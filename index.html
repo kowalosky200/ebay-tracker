@@ -118,6 +118,25 @@ tbody tr:hover td{background:var(--surface2);}
 .bar-prof:hover{opacity:0.8;}
 .bar-label{font-size:9px;color:var(--muted);text-align:center;margin-top:4px;font-family:var(--fm);}
 .bar-zero .bar-rev{opacity:0.15;}
+
+.edit-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:600;align-items:center;justify-content:center;overflow-y:auto;padding:20px;}
+.edit-modal-overlay.on{display:flex;}
+.edit-modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:28px;width:100%;max-width:680px;margin:auto;}
+.edit-modal h3{font-family:var(--fh);font-weight:800;font-size:18px;margin-bottom:20px;color:var(--accent);}
+.edit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
+.edit-mbtns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+
+/* KPI cards clickable */
+.kcard{cursor:pointer;transition:all 0.15s;}
+.kcard:hover{border-color:var(--accent);transform:translateY(-1px);}
+.kcard.active-filter{border-color:var(--accent);background:var(--surface2);}
+
+/* Drill-down panel */
+.drill-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:28px;}
+.drill-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.drill-title{font-family:var(--fn);font-size:28px;color:var(--accent);letter-spacing:1px;}
+.drill-close{background:none;border:1px solid var(--border2);border-radius:6px;color:var(--muted2);font-family:var(--fh);font-size:13px;font-weight:700;padding:5px 12px;cursor:pointer;}
+.drill-close:hover{border-color:var(--accent);color:var(--accent);}
 </style>
 </head>
 <body>
@@ -148,6 +167,28 @@ tbody tr:hover td{background:var(--surface2);}
     <label style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:7px;font-weight:500">Date sold</label>
     <input type="date" id="modal-date">
     <div class="mbtns"><button class="btn btn-s" onclick="closeModal()">Cancel</button><button class="btn btn-p" onclick="confirmSold()">Confirm</button></div>
+  </div>
+</div>
+
+<div id="edit-modal-overlay" class="edit-modal-overlay" onclick="closeEdit(event)">
+  <div class="edit-modal">
+    <h3>Edit Item</h3>
+    <div class="edit-grid">
+      <div class="fg" style="grid-column:1/-1"><label>Item Name</label><input type="text" id="em-name" placeholder="Item name"></div>
+      <div class="fg"><label>Date Listed</label><input type="date" id="em-listed"></div>
+      <div class="fg"><label>Date Sold (blank if unsold)</label><input type="date" id="em-sold"></div>
+      <div class="fg"><label>Location</label><input type="text" id="em-loc" placeholder="Bed, A101..."></div>
+      <div class="fg"><label>Sale Price (£)</label><input type="number" id="em-price" step="0.01"></div>
+      <div class="fg"><label>Item Cost (£)</label><input type="number" id="em-cost" step="0.01"></div>
+      <div class="fg"><label>Shipping Cost (£)</label><input type="number" id="em-ship" step="0.01"></div>
+      <div class="fg"><label>eBay Fee (£)</label><input type="number" id="em-ebay" step="0.01"></div>
+      <div class="fg"><label>Postage Charged (£)</label><input type="number" id="em-post" step="0.01"></div>
+      <div class="fg"><label>Promo % (e.g. 0.05)</label><input type="number" id="em-promo" step="0.01"></div>
+    </div>
+    <div class="edit-mbtns">
+      <button class="btn btn-s" onclick="closeEdit()">Cancel</button>
+      <button class="btn btn-p" onclick="saveEdit()">Save Changes</button>
+    </div>
   </div>
 </div>
 <div id="toast"></div>
@@ -191,6 +232,103 @@ function renderChart(){
     <div class="bars-wrap">${bars}</div>
   </div>`;
 }
+
+// ── EDIT ITEM ─────────────────────────────────────────────────────────
+let _editTarget=null;
+function openEdit(m,id){
+  const item=DB[m].find(i=>i.id===id);
+  if(!item)return;
+  _editTarget={m,id};
+  document.getElementById('em-name').value=item.item||'';
+  document.getElementById('em-listed').value=item.dateListed||'';
+  document.getElementById('em-sold').value=item.dateSold||'';
+  document.getElementById('em-loc').value=item.location||'';
+  document.getElementById('em-price').value=item.salePrice||'';
+  document.getElementById('em-cost').value=item.itemCost||'';
+  document.getElementById('em-ship').value=item.shipping||'';
+  document.getElementById('em-ebay').value=item.ebayFee||'';
+  document.getElementById('em-post').value=item.postage||'';
+  document.getElementById('em-promo').value=item.promoPercent||'';
+  document.getElementById('edit-modal-overlay').classList.add('on');
+}
+function closeEdit(e){
+  if(!e||e.target===document.getElementById('edit-modal-overlay')){
+    document.getElementById('edit-modal-overlay').classList.remove('on');
+    _editTarget=null;
+  }
+}
+function saveEdit(){
+  if(!_editTarget)return;
+  const{m,id}=_editTarget;
+  const item=DB[m].find(i=>i.id===id);
+  if(!item)return;
+  item.item=document.getElementById('em-name').value.trim()||item.item;
+  item.dateListed=document.getElementById('em-listed').value||item.dateListed;
+  item.dateSold=document.getElementById('em-sold').value||null;
+  item.location=document.getElementById('em-loc').value.trim();
+  item.salePrice=parseFloat(document.getElementById('em-price').value)||item.salePrice;
+  item.itemCost=parseFloat(document.getElementById('em-cost').value)||0;
+  item.shipping=parseFloat(document.getElementById('em-ship').value)||0;
+  item.ebayFee=parseFloat(document.getElementById('em-ebay').value)||0;
+  item.postage=parseFloat(document.getElementById('em-post').value)||0;
+  item.promoPercent=parseFloat(document.getElementById('em-promo').value)||0;
+  recalc(item,item.dateSold);
+  saveDB();
+  closeEdit();
+  const cur=document.querySelector('.page.on').id;
+  if(cur==='p-monthly')renderMonth();
+  if(cur==='p-stock')renderStock();
+  if(cur==='p-summary')renderSummary();
+  toast('Item updated');
+}
+
+// ── KPI DRILL-DOWN ────────────────────────────────────────────────────
+let activeDrill=null;
+function drillKPI(type){
+  if(activeDrill===type){activeDrill=null;renderSummary();return;}
+  activeDrill=type;
+  renderSummary();
+  const panel=document.getElementById('drill-panel');
+  if(!panel)return;
+  let items=[],title='',cols='';
+  if(type==='revenue'){
+    items=allSold();title='All Sold Items';
+    cols='<th>Item</th><th>Month</th><th>Location</th><th>Date Sold</th><th>Sale Price</th><th>Total Revenue</th><th>Gross Profit</th><th>ROI</th><th></th>';
+  } else if(type==='profit'){
+    items=allSold().filter(i=>i.grossProfit>0);title='Profitable Sales';
+    cols='<th>Item</th><th>Month</th><th>Sale Price</th><th>Item Cost</th><th>Gross Profit</th><th>ROI</th><th></th>';
+  } else if(type==='costs'){
+    items=allSold();title='Cost Breakdown';
+    cols='<th>Item</th><th>Month</th><th>Item Cost</th><th>Shipping</th><th>eBay Fee</th><th>Promo</th><th>Total Cost</th><th></th>';
+  } else if(type==='stock'){
+    items=allUnsold();title='Current Stock';
+    cols='<th>Item</th><th>Month</th><th>Location</th><th>Listed</th><th>List Price</th><th>Item Cost</th><th>Potential Profit</th><th></th>';
+  } else if(type==='unrealised'){
+    items=allUnsold();title='Unrealised Profit';
+    cols='<th>Item</th><th>Month</th><th>Location</th><th>List Price</th><th>Item Cost</th><th>Potential Profit</th><th>ROI</th><th></th>';
+  } else if(type==='listed'){
+    items=MONTHS.flatMap(m=>(DB[m]||[]).map(i=>({...i,month:m})));title='All Items';
+    cols='<th>Status</th><th>Item</th><th>Month</th><th>Location</th><th>Sale Price</th><th>Gross Profit</th><th></th>';
+  }
+
+  const rows=items.map(i=>{
+    const editBtn=`<button class="tbtn" onclick="openEdit('${i.month}','${i.id}')">Edit</button>`;
+    if(type==='revenue')return`<tr><td>${esc(i.item)}</td><td class="dim">${MN[i.month]}</td><td class="dim">${esc(i.location||'--')}</td><td class="dim">${i.dateSold||'--'}</td><td>${fmt(i.salePrice)}</td><td>${fmt(i.totalRev)}</td><td class="pos">${fmt(i.grossProfit)}</td><td style="color:var(--accent)">${i.roi!=null?(i.roi*100).toFixed(0)+'%':'--'}</td><td>${editBtn}</td></tr>`;
+    if(type==='profit')return`<tr><td>${esc(i.item)}</td><td class="dim">${MN[i.month]}</td><td>${fmt(i.salePrice)}</td><td class="dim">${fmt(i.itemCost)}</td><td class="pos">${fmt(i.grossProfit)}</td><td style="color:var(--accent)">${i.roi!=null?(i.roi*100).toFixed(0)+'%':'--'}</td><td>${editBtn}</td></tr>`;
+    if(type==='costs')return`<tr><td>${esc(i.item)}</td><td class="dim">${MN[i.month]}</td><td class="dim">${fmt(i.itemCost)}</td><td class="dim">${fmt(i.shipping)}</td><td class="dim">${fmt(i.ebayFee)}</td><td class="dim">${fmt(i.promoCost)}</td><td style="color:var(--red)">${fmt(i.totalCost)}</td><td>${editBtn}</td></tr>`;
+    if(type==='stock'||type==='unrealised'){const p=i.totalRev-i.totalCost;return`<tr><td>${esc(i.item)}</td><td class="dim">${MN[i.month]}</td><td class="dim">${esc(i.location||'--')}</td><td>${type==='stock'?i.dateListed||'--':fmt(i.salePrice)}</td><td>${type==='stock'?fmt(i.salePrice):fmt(i.itemCost)}</td><td class="${p>0?'pos':'neg'}">${fmt(p)}</td><td style="color:var(--accent)">${i.roi!=null?(i.roi*100).toFixed(0)+'%':'--'}</td><td>${editBtn}</td></tr>`;}
+    if(type==='listed'){const s=!!i.dateSold;return`<tr><td><span class="badge ${s?'sold-b':'listed-b'}">${s?'Sold':'Listed'}</span></td><td>${esc(i.item)}</td><td class="dim">${MN[i.month]}</td><td class="dim">${esc(i.location||'--')}</td><td>${fmt(i.salePrice)}</td><td class="${i.grossProfit>0?'pos':''}">${i.grossProfit!=null?fmt(i.grossProfit):'--'}</td><td>${editBtn}</td></tr>`;}
+    return'';
+  }).join('');
+
+  panel.innerHTML=`
+    <div class="drill-header">
+      <div class="drill-title">${title} (${items.length})</div>
+      <button class="drill-close" onclick="drillKPI('${type}')">Close &#x2715;</button>
+    </div>
+    <div class="twrap"><table><thead><tr>${cols}</tr></thead>
+    <tbody>${rows||'<tr><td colspan="9" class="empty">No items</td></tr>'}</tbody></table></div>`;
+}
 function initDB(){
   try{const s=localStorage.getItem('g007v3');if(s){DB=JSON.parse(s);return;}}catch(e){}
   DB=JSON.parse(JSON.stringify(SEED));
@@ -211,13 +349,16 @@ function goNav(page){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.getElementById('p-'+page).classList.add('on');
   ['summary','monthly','stock','tax'].forEach((p,i)=>{if(p===page)document.querySelectorAll('.tab')[i].classList.add('on');});
+  if(page!=='summary')activeDrill=null;
   if(page==='summary')renderSummary();
   if(page==='monthly')renderMonthPage();
   if(page==='stock')renderStock();
   if(page==='tax')renderTax();
 }
 
-function kc(l,v,s,c){return`<div class="kcard ${c}"><div class="klabel">${l}</div><div class="kval">${v}</div><div class="ksub">${s}</div></div>`;}
+function kc(l,v,s,c,drill=''){const act=drill&&activeDrill===drill?' active-filter':'';const click=drill?`onclick="drillKPI('${drill}')"`:'';
+return`<div class="kcard ${c}${act}" ${click} title="${drill?'Click to filter':''}">
+<div class="klabel">${l}</div><div class="kval">${v}</div><div class="ksub">${s}</div></div>`;}
 
 function renderSummary(){
   const yt=yT(),u=allUnsold();
@@ -226,7 +367,8 @@ function renderSummary(){
   document.getElementById('p-summary').innerHTML=`
     <div class="page-title" style="color:var(--accent)">2026</div>
     <div class="page-sub">eBay Reselling -- Annual Overview</div>
-    <div class="kgrid">${kc('Total Revenue',fmt(yt.rev),yt.nSold+' items sold','')}${kc('Gross Profit',fmt(yt.profit),'Margin: '+(yt.rev>0?((yt.profit/yt.rev)*100).toFixed(1)+'%':'--'),'g')}${kc('Total Costs',fmt(yt.cost),'Fees + shipping + stock','r')}${kc('Stock on Hand',u.length+' items',fmt(sc)+' cost value','b')}${kc('Unrealised Profit',fmt(unreal),'If all listed items sell','p')}${kc('Items Listed',yt.nTotal,yt.nSold+' sold · '+(yt.nTotal-yt.nSold)+' active','')}</div>
+    <div class="kgrid">${kc('Total Revenue',fmt(yt.rev),yt.nSold+' items sold','','revenue')}${kc('Gross Profit',fmt(yt.profit),'Margin: '+(yt.rev>0?((yt.profit/yt.rev)*100).toFixed(1)+'%':'--'),'g','profit')}${kc('Total Costs',fmt(yt.cost),'Fees + shipping + stock','r','costs')}${kc('Stock on Hand',u.length+' items',fmt(sc)+' cost value','b','stock')}${kc('Unrealised Profit',fmt(unreal),'If all listed items sell','p','unrealised')}${kc('Items Listed',yt.nTotal,yt.nSold+' sold · '+(yt.nTotal-yt.nSold)+' active','','listed')}</div>
+    <div id="drill-panel"></div>
     ${renderChart()}
     <div class="sl">Monthly breakdown</div>
     <div class="mgrid">${MONTHS.map(m=>{const t=mT(m);return`<div class="mcard" onclick="goMonth('${m}')"><div class="mname">${MN[m]}</div><div class="mval ${t.profit>0?'pos':'nil'}">${t.profit>0?fmt(t.profit):'--'}</div><div class="msub">${t.nSold} sold · ${t.nTotal-t.nSold} listed</div></div>`;}).join('')}</div>
