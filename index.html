@@ -116,17 +116,19 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,11,14,0.97);backdrop-fi
 .twrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);margin-bottom:20px;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 thead{background:var(--surface2);}
-th{padding:9px 12px;text-align:left;color:var(--muted2);font-size:10px;text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap;border-bottom:1px solid var(--border);font-weight:500;}
-td{padding:9px 12px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle;}
+th{padding:8px 8px;text-align:left;color:var(--muted2);font-size:10px;text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap;border-bottom:1px solid var(--border);font-weight:500;}
+td{padding:8px 8px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
 tbody tr:hover td{background:var(--surface2);}
 .pos{color:var(--green);font-weight:500;}.neg{color:var(--red);}.dim{color:var(--muted2);}
 
 /* MOBILE TABLE — hide cols on small screens */
-@media(max-width:800px){
+@media(max-width:960px){
   .col-hide{display:none !important;}
   col.col-hide{display:none !important;}
-  td,th{padding:7px 8px;}
+}
+@media(max-width:600px){
+  td,th{padding:6px 6px;}
 }
 .row-detail{display:none;background:var(--surface2);}
 .row-detail.on{display:table-row;}
@@ -337,20 +339,20 @@ tbody tr.selected td{background:rgba(240,180,41,0.05);}
 .twrap table{table-layout:fixed;width:100%;}
 .twrap th,.twrap td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;}
 /* Fixed column widths for monthly table */
-.col-w-cb{width:32px;}
-.col-w-edit{width:28px;}
-.col-w-status{width:62px;}
-.col-w-item{width:auto;min-width:120px;}
-.col-w-cat{width:110px;}
-.col-w-loc{width:72px;}
-.col-w-listed{width:84px;}
-.col-w-price{width:72px;text-align:right;}
-.col-w-cost{width:68px;text-align:right;}
-.col-w-parts{width:60px;text-align:right;}
-.col-w-return{width:68px;text-align:center;}
-.col-w-profit{width:72px;text-align:right;}
-.col-w-roi{width:50px;text-align:right;}
-.col-w-acts{width:76px;text-align:right;}
+.col-w-cb{width:28px;}
+.col-w-edit{width:26px;}
+.col-w-status{width:58px;}
+.col-w-item{width:auto;min-width:130px;}
+.col-w-cat{width:105px;}
+.col-w-loc{width:68px;}
+.col-w-listed{width:80px;}
+.col-w-price{width:70px;text-align:right;}
+.col-w-cost{width:64px;text-align:right;}
+.col-w-parts{width:56px;text-align:right;}
+.col-w-return{width:60px;text-align:center;}
+.col-w-profit{width:70px;text-align:right;}
+.col-w-roi{width:56px;text-align:right;}
+.col-w-acts{width:72px;text-align:right;}
 /* Align td values to match th */
 .twrap td.num{text-align:right;}
 .twrap td.ctr{text-align:center;}
@@ -613,15 +615,25 @@ function recalc(i,ds){
   const pc=i.salePrice*(i.promoPercent||0);
   const partsCost=(i.parts||[]).reduce((a,p)=>a+(p.cost||0),0);
   const tc=i.itemCost+i.shipping+i.ebayFee+pc+partsCost;
+  // Active return costs (if item currently returned/partially refunded)
   const refundAmt=i.returnData?(i.returnData.type==='full'?i.totalRev||i.salePrice:i.returnData.refundAmount||0):0;
   const returnCost=(i.returnData&&i.returnData.returnPostage||0)+(i.returnData&&i.returnData.feesKept||0);
   const tr=i.salePrice+(i.postage||0)-refundAmt;
+  // Historical return costs (previous return events archived to returnHistory)
+  const historyCost=(i.returnHistory||[]).reduce((a,rh)=>a+(rh.returnPostage||0)+(rh.feesKept||0),0);
+  // Note: historical refund amounts are NOT deducted from current revenue
+  // (the item was resold at the new price — the refund was a past event)
+  // But the postage/fees from historical returns DO reduce lifetime profit
   i.promoCost=+pc.toFixed(4);
   i.partsCost=+partsCost.toFixed(4);
   i.totalCost=+(tc+returnCost).toFixed(4);
   i.totalRev=+tr.toFixed(4);
+  // grossProfit = current sale only (shown on item page as "this sale")
   i.grossProfit=ds?+(tr-tc-returnCost).toFixed(2):null;
-  i.roi=i.itemCost>0?+((tr-tc-returnCost)/i.itemCost).toFixed(4):null;
+  // lifetimeProfit = grossProfit minus any historical return costs
+  i.lifetimeProfit=ds?+(tr-tc-returnCost-historyCost).toFixed(2):null;
+  // ROI uses lifetimeProfit so it reflects the true return on the original investment
+  i.roi=i.itemCost>0?+((tr-tc-returnCost-historyCost)/i.itemCost).toFixed(4):null;
   i.isReturned=!!(i.returnData&&i.returnData.loggedAt);
 }
 function isStale(i){return !i.dateSold&&i.dateListed&&daysAgo(i.dateListed)>=30;}
@@ -1056,8 +1068,7 @@ function renderMonth(){_selected.clear();
         <col class="col-w-listed col-hide">
         <col class="col-w-price">
         <col class="col-w-cost">
-        <col class="col-w-parts col-hide">
-        <col class="col-w-return col-hide">
+
         <col class="col-w-profit">
         <col class="col-w-roi col-hide">
         <col class="col-w-acts">
@@ -1072,8 +1083,7 @@ function renderMonth(){_selected.clear();
         <th class="col-w-listed col-hide">Listed</th>
         <th class="col-w-price" style="text-align:right">Price</th>
         <th class="col-w-cost" style="text-align:right">Cost</th>
-        <th class="col-w-parts col-hide" style="text-align:right">Parts</th>
-        <th class="col-w-return col-hide" style="text-align:center">Return</th>
+
         <th class="col-w-profit" style="text-align:right">Profit</th>
         <th class="col-w-roi col-hide" style="text-align:right">ROI</th>
         <th class="col-w-acts" style="text-align:right">Actions</th>
@@ -1107,7 +1117,10 @@ function iRow(i,m){
   return`<tr id="row-${i.id}">
     <td class="col-w-cb ctr"><input type="checkbox" class="row-cb" data-id="${i.id}" onchange="toggleSelect('${i.id}',this)"></td>
     <td class="col-w-edit ctr"><button class="edit-icon-btn" onclick="toggleRowEdit('${m}','${i.id}')" title="Edit">&#9998;</button></td>
-    <td class="col-w-status"><span class="badge ${s?'sold-b':stale?'stale-b':'listed-b'}">${s?'Sold':stale?'Stale':'Listed'}</span></td>
+    <td class="col-w-status">
+      <span class="badge ${s?'sold-b':stale?'stale-b':'listed-b'}">${s?'Sold':stale?'Stale':'Listed'}</span>
+      ${(i.returnData||i.returnHistory?.length)?'<span class="badge" style="background:rgba(245,101,101,0.12);color:var(--red);font-size:8px;margin-left:2px">R</span>':''}
+    </td>
     <td class="col-w-item" style="cursor:pointer" onclick="_prevPage='monthly';openItem('${m}','${i.id}')">
       ${i.gid?`<span style="font-size:9px;color:var(--muted);font-family:var(--fm);margin-right:4px">${i.gid}</span>`:''}${esc(i.item)}
     </td>
@@ -1116,9 +1129,8 @@ function iRow(i,m){
     <td class="col-w-listed col-hide dim">${i.dateListed||'--'}</td>
     <td class="col-w-price num">${fmt(i.salePrice)}</td>
     <td class="col-w-cost num dim">${fmt(i.itemCost)}</td>
-    <td class="col-w-parts col-hide num col-parts">${(i.parts&&i.parts.length)?fmt(i.partsCost||0):'--'}</td>
-    <td class="col-w-return col-hide ctr col-return">${i.returnData?(i.returnData.type==='full'?'<span class="badge" style="background:rgba(245,101,101,0.15);color:var(--red);font-size:9px">Ret</span>':'<span class="badge" style="background:rgba(245,101,101,0.15);color:var(--red);font-size:9px">Part</span>'):'--'}</td>
-    <td class="col-w-profit num ${i.grossProfit>0?'pos':i.grossProfit<0?'neg':''}">${i.grossProfit!=null?fmt(i.grossProfit):'--'}</td>
+
+    <td class="col-w-profit num ${(i.lifetimeProfit||i.grossProfit||0)>0?'pos':(i.lifetimeProfit||i.grossProfit||0)<0?'neg':''}">${i.grossProfit!=null?fmt(i.lifetimeProfit!=null?i.lifetimeProfit:i.grossProfit):'--'}</td>
     <td class="col-w-roi col-hide num" style="color:var(--accent)">${i.roi!=null&&i.itemCost>0?Math.min(Math.round(i.roi*100),999)+'%':i.roi!=null?'N/A':'--'}</td>
     <td class="col-w-acts">
       <div class="acts-wrap">
@@ -1658,7 +1670,7 @@ function renderItemPage() {
       </div>
       <div class="item-detail-grid">
         <div class="idetail"><div class="idetail-label">Sale Price</div><div class="idetail-val acc">${fmt(i.salePrice)}</div></div>
-        <div class="idetail"><div class="idetail-label">${s?'Gross Profit':'Potential Profit'}</div><div class="idetail-val ${pot>0?'pos':'red'}">${fmt(s?i.grossProfit:pot)}</div></div>
+        <div class="idetail"><div class="idetail-label">${s?(i.returnHistory?.length?'Lifetime Profit':'Gross Profit'):'Potential Profit'}</div><div class="idetail-val ${(s?i.lifetimeProfit||i.grossProfit:pot)>0?'pos':'red'}">${fmt(s?(i.lifetimeProfit||i.grossProfit):pot)}</div></div>
         <div class="idetail"><div class="idetail-label">Item Cost</div><div class="idetail-val">${fmt(i.itemCost)}</div></div>
         <div class="idetail"><div class="idetail-label">ROI</div><div class="idetail-val ${i.roi>1?'pos':''}">${i.roi!=null&&i.itemCost>0?Math.min(Math.round(i.roi*100),999)+'%':i.roi!=null?'N/A':'--'}</div></div>
         <div class="idetail"><div class="idetail-label">Location</div><div class="idetail-val" style="font-size:16px">${esc(i.location||'--')}</div></div>
@@ -1677,9 +1689,24 @@ function renderItemPage() {
       ${i.returnData&&i.returnData.returnPostage?`<div class="cb-row"><span style="color:var(--red)">Return postage</span><span style="color:var(--red)">${fmt(i.returnData.returnPostage)}</span></div>`:''}
       ${i.returnData&&i.returnData.feesKept?`<div class="cb-row"><span style="color:var(--red)">eBay fees kept on return</span><span style="color:var(--red)">${fmt(i.returnData.feesKept)}</span></div>`:''}
       ${i.returnData&&i.returnData.refundAmount?`<div class="cb-row"><span style="color:var(--red)">Refund issued</span><span style="color:var(--red)">-${fmt(i.returnData.refundAmount)}</span></div>`:''}
-      <div class="cb-row"><span class="dim">Total cost</span><span style="color:var(--red)">${fmt(i.totalCost)}</span></div>
-      <div class="cb-row"><span>Total revenue</span><span style="color:var(--accent)">${fmt(i.totalRev)}</span></div>
-      <div class="cb-row"><span>${s?'Gross Profit':'Potential Profit'}</span><span style="color:${pot>0?'var(--green)':'var(--red)'}">${fmt(s?i.grossProfit:pot)}</span></div>
+      ${(()=>{if(!i.returnHistory||!i.returnHistory.length)return'';
+        const totalReturnCost=i.returnHistory.reduce((a,rh)=>(a+(rh.returnPostage||0)+(rh.feesKept||0)),0);
+        const totalRefunded=i.returnHistory.reduce((a,rh)=>a+(rh.refundAmount||0),0);
+        return`<div class="cb-row" style="background:rgba(245,101,101,0.05);border-radius:4px;padding:4px 0">
+          <span style="color:var(--warn)">Previous return costs (${i.returnHistory.length}x)</span>
+          <span style="color:var(--warn)">${fmt(totalReturnCost+totalRefunded)}</span>
+        </div>
+        ${i.returnHistory.map((rh,n)=>`
+        <div class="cb-row" style="padding-left:10px">
+          <span class="dim" style="font-size:11px">Return #${n+1}: refund ${fmt(rh.refundAmount||0)} + postage ${fmt(rh.returnPostage||0)}</span>
+          <span style="color:var(--red);font-size:11px">-${fmt((rh.refundAmount||0)+(rh.returnPostage||0))}</span>
+        </div>`).join('')}`;
+      })()
+      }
+      <div class="cb-row"><span class="dim">Total cost (this sale)</span><span style="color:var(--red)">${fmt(i.totalCost)}</span></div>
+      <div class="cb-row"><span>Total revenue (this sale)</span><span style="color:var(--accent)">${fmt(i.totalRev)}</span></div>
+      <div class="cb-row"><span>${s?'Gross Profit (this sale)':'Potential Profit'}</span><span style="color:${pot>0?'var(--green)':'var(--red)'}">${fmt(s?i.grossProfit:pot)}</span></div>
+      ${(s&&i.returnHistory&&i.returnHistory.length)?`<div class="cb-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">Lifetime Profit</span><span style="color:${(i.lifetimeProfit||0)>0?'var(--green)':'var(--red)'};font-weight:700">${fmt(i.lifetimeProfit||0)}</span></div>`:''}
     </div>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
@@ -1916,9 +1943,11 @@ function importExcel(){
             const salePrice=parseFloat(row[iSaleP])||0;
             const itemCost=parseFloat(row[iCost])||0;
             const shipping=parseFloat(row[iShip])||0;
+            // Private seller — no eBay FVF since Oct 2024
             const ebayFeeRaw=parseFloat(row[iEbay])||0;
-            // Use spreadsheet fee if present, otherwise calculate from category
-            const ebayFee=ebayFeeRaw>0?ebayFeeRaw:calcEbayFee(salePrice,postage,category);
+            const ebayFee=0; // Private seller pays no FVF
+            const ebayFeeCalc=0;
+            const feeDiscrepancy=false;
             const postage=parseFloat(row[iPost])||0;
             const promoPercent=parseFloat(row[iPromoP])||0;
             const location=iLoc>=0?String(row[iLoc]||'').trim():'';
@@ -1963,7 +1992,7 @@ function importExcel(){
               if(existing.dateSold!==dateSold){diff.push(`sold date ${existing.dateSold||'none'}->${dateSold||'none'}`);}
               if(existing.shipping!==shipping){diff.push(`shipping ${existing.shipping}->${shipping}`);}
               // Check fee against correctly calculated value
-              if(Math.abs((existing.ebayFee||0)-ebayFeeCalc)>0.01){diff.push(`eBay fee corrected: was ${fmt(existing.ebayFee||0)} (${fmt(ebayFeeRaw)} in sheet), now ${fmt(ebayFeeCalc)} (${ebayFeeLabel(category)})`);}
+              if(Math.abs((existing.ebayFee||0)-ebayFeeCalc)>0.01){diff.push(`eBay fee corrected: was ${fmt(existing.ebayFee||0)} (${fmt(ebayFeeRaw)} in sheet), now ${fmt(ebayFeeCalc)} (${ebayFeeLabel(category,0)})`);}
               if(existing.location!==location&&location){diff.push(`location ${existing.location}->${location}`);}
 
               if(diff.length>0){
@@ -1998,7 +2027,7 @@ function importExcel(){
                 itemCost,shipping,ebayFee,promoPercent,promoCost,
                 totalCost,totalRev,grossProfit,roi
               });
-              const feeNote=feeDiscrepancy?` (fee corrected: sheet had ${fmt(ebayFeeRaw)}, using ${fmt(ebayFeeCalc)} at ${ebayFeeLabel(category)})`:'';
+              const feeNote=feeDiscrepancy?` (fee corrected: sheet had ${fmt(ebayFeeRaw)}, using ${fmt(ebayFeeCalc)} at ${ebayFeeLabel(category,0)})`:'';
               changes.push({action:'added',month:MN[m],item:name,changes:'new item'+feeNote,feeFixed:feeDiscrepancy,ebayFeeRaw,ebayFeeCalc,category});
               if(feeDiscrepancy)feeCorrections++;
               added++;
