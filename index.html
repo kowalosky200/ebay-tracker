@@ -880,7 +880,11 @@ function renderSummary(){
       ${kc('Stock on Hand',u.length+' items',fmt(sc)+' cost value','b','stock')}
       ${kc('Unrealised Profit',fmt(unreal),'If all listed items sell','p','unrealised')}
       ${kc('Items Listed',yt.nTotal,yt.nSold+' sold &middot; '+(yt.nTotal-yt.nSold)+' active','','listed')}
-      ${(()=>{const ret=returnedItems();return ret.length?kc('Returns & Refunds',ret.length+' item'+(ret.length!==1?'s':''),ret.filter(i=>i.returnData?.type==='partial').length+' partial &middot; '+ret.filter(i=>i.returnData?.type==='full').length+' full','r','returns'):''})()}
+      ${(()=>{
+        const ret=returnedItems();
+        const retPct=yt.nSold>0?((ret.length/yt.nSold)*100).toFixed(1)+'%':'0%';
+        return ret.length?kc('Return Rate',retPct,ret.length+' of '+yt.nSold+' sold &middot; '+ret.filter(i=>i.returnData?.type==='partial').length+' partial','r','returns'):'';
+      })()}
     </div>
     <div id="drill-panel"></div>
     ${insHtml}
@@ -1028,7 +1032,7 @@ function renderMonth(){_selected.clear();
         <div class="mstat"><div class="msv dim">${fmt(t.cost)}</div><div class="msl">Total Costs</div></div>
         <div class="mstat"><div class="msv">${t.rev>0?((t.profit/t.rev)*100).toFixed(1)+'%':'--'}</div><div class="msl">Margin</div></div>
         <div class="mstat"><div class="msv">${t.nSold}/${t.nTotal}</div><div class="msl">Sold / Listed</div></div>
-        ${t.nReturns>0?`<div class="mstat" style="border-color:rgba(245,101,101,0.3)"><div class="msv" style="color:var(--red)">${t.nReturns}</div><div class="msl" style="color:var(--red)">Returns</div></div>`:''}
+        ${t.nReturns>0?`<div class="mstat" style="border-color:rgba(245,101,101,0.3)"><div class="msv" style="color:var(--red)">${t.nSold>0?((t.nReturns/t.nSold)*100).toFixed(0)+'%':'--'}</div><div class="msl" style="color:var(--red)">${t.nReturns}/${t.nSold} returned</div></div>`:''}
       </div>
     </div>
     ${stale.length?`<div class="stale-alert"><div class="stale-dot"></div><div><div class="stale-text">${stale.length} stale item${stale.length>1?'s':''} (30+ days)</div><div class="stale-items">${stale.map(i=>esc(i.item)).join(', ')}</div></div></div>`:''}
@@ -1182,7 +1186,17 @@ function confirmSold(){
   const ds=document.getElementById('modal-date').value;
   if(!ds){toast('Pick a date','err');return;}
   const item=DB[_st.m].find(i=>i.id===_st.id);
-  if(item){item.dateSold=ds;recalc(item,ds);saveDB();}
+  if(item){
+    item.dateSold=ds;
+    // If this item had a full return, clear the returnData so revenue
+    // is calculated fresh on the new sale — no double-deduction
+    if(item.returnData&&item.returnData.type==='full'){
+      delete item.returnData;
+      item.isReturned=false;
+    }
+    recalc(item,ds);
+    saveDB();
+  }
   closeModal();
   const cur=document.querySelector('.page.on').id;
   if(cur==='p-monthly')renderMonth();
