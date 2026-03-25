@@ -283,6 +283,17 @@ tbody tr:hover td{background:var(--surface2);}
 .export-btn.primary{border-color:var(--green);color:var(--green);}
 .export-btn.primary:hover{background:rgba(45,212,160,0.08);}
 .export-btn svg{width:13px;height:13px;flex-shrink:0;}
+
+.cb-cell{width:32px;text-align:center;padding:6px 4px !important;}
+.row-cb{width:14px;height:14px;cursor:pointer;accent-color:var(--accent);}
+.bulk-bar{display:none;align-items:center;gap:10px;padding:10px 14px;background:rgba(240,180,41,0.08);border:1px solid rgba(240,180,41,0.25);border-radius:8px;margin-bottom:12px;flex-wrap:wrap;}
+.bulk-bar.show{display:flex;}
+.bulk-count{font-size:13px;color:var(--accent);font-family:var(--fh);font-weight:700;}
+.bulk-del{padding:6px 14px;border-radius:6px;border:1px solid rgba(245,101,101,0.4);background:rgba(245,101,101,0.08);color:var(--red);font-family:var(--fh);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;}
+.bulk-del:hover{background:rgba(245,101,101,0.18);}
+.bulk-clear{padding:6px 12px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-family:var(--fh);font-size:12px;font-weight:700;cursor:pointer;}
+.bulk-clear:hover{border-color:var(--accent);color:var(--accent);}
+tbody tr.selected td{background:rgba(240,180,41,0.05);}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -771,7 +782,7 @@ function renderMonthPage(){
   }
   renderMonth();
 }
-function renderMonth(){
+function renderMonth(){_selected.clear();
   const m=document.getElementById('msel')?.value||'MAR';
   const items=DB[m]||[],t=mT(m),s=sold(m),u=unsold(m);
   const made=s.reduce((a,i)=>a+(i.grossProfit||0),0);
@@ -799,7 +810,13 @@ function renderMonth(){
     ${tot>0?`<div class="pbar-wrap"><div class="pbar-labels"><span>Realised ${fmt(made)} (${pct}%)</span><span>Remaining ${fmt(rem)}</span></div><div class="pbar"><div class="pbar-fill" style="width:${pct}%"></div></div></div>`:''}
     <div class="sl">Items this month (${items.length})</div>
     <div class="twrap"><table>
+      <div class="bulk-bar" id="bulk-bar">
+        <span class="bulk-count" id="bulk-count">0 items selected</span>
+        <button class="bulk-del" onclick="bulkDelete('${m}')">&#x2715; Delete selected</button>
+        <button class="bulk-clear" onclick="clearSelection()">Clear selection</button>
+      </div>
       <thead><tr>
+        <th class="cb-cell"><input type="checkbox" id="master-cb" class="row-cb" onchange="toggleSelectAll(this,'${m}')" title="Select all"></th>
         <th style="width:28px"></th>
         <th>Status</th>
         <th>Item</th>
@@ -839,6 +856,7 @@ function editRowInner(i){
 function iRow(i,m){
   const s=!!i.dateSold;const stale=isStale(i);
   return`<tr id="row-${i.id}">
+    <td class="cb-cell"><input type="checkbox" class="row-cb" data-id="${i.id}" onchange="toggleSelect('${i.id}',this)"></td>
     <td style="width:28px;text-align:center"><button class="edit-icon-btn" onclick="toggleRowEdit('${m}','${i.id}')" title="Edit">&#9998;</button></td>
     <td><span class="badge ${s?'sold-b':stale?'stale-b':'listed-b'}">${s?'Sold':stale?'Stale':'Listed'}</span></td>
     <td style="max-width:210px;overflow:hidden;text-overflow:ellipsis">
@@ -858,7 +876,7 @@ function iRow(i,m){
     </td>
   </tr>
   <tr id="editrow-${i.id}" style="display:none;background:var(--surface2)">
-    <td></td><td colspan="10">${editRowInner({...i,month:m})}</td>
+    <td></td><td></td><td colspan="10">${editRowInner({...i,month:m})}</td>
   </tr>`;
 }
 
@@ -1699,6 +1717,65 @@ function showImportLog(changes){
     </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click',ev=>{if(ev.target===modal)modal.remove();});
+}
+
+
+// ── BULK SELECT ───────────────────────────────────────────────────────
+let _selected=new Set();
+
+function toggleSelect(id,cb){
+  if(cb.checked)_selected.add(id);
+  else _selected.delete(id);
+  const row=document.getElementById('row-'+id);
+  if(row)row.classList.toggle('selected',cb.checked);
+  updateBulkBar();
+}
+
+function toggleSelectAll(masterCb,m){
+  const items=DB[m]||[];
+  const cbs=document.querySelectorAll('.row-cb');
+  cbs.forEach(cb=>{
+    cb.checked=masterCb.checked;
+    const id=cb.dataset.id;
+    if(id){
+      if(masterCb.checked)_selected.add(id);
+      else _selected.delete(id);
+      const row=document.getElementById('row-'+id);
+      if(row)row.classList.toggle('selected',masterCb.checked);
+    }
+  });
+  updateBulkBar();
+}
+
+function updateBulkBar(){
+  const bar=document.getElementById('bulk-bar');
+  const count=document.getElementById('bulk-count');
+  if(!bar)return;
+  if(_selected.size>0){
+    bar.classList.add('show');
+    if(count)count.textContent=_selected.size+' item'+(+_selected.size!==1?'s':'')+' selected';
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+function bulkDelete(m){
+  if(!_selected.size)return;
+  if(!confirm(`Delete ${_selected.size} item${_selected.size!==1?'s':''}?`))return;
+  DB[m]=(DB[m]||[]).filter(i=>!_selected.has(i.id));
+  _selected.clear();
+  saveDB();
+  renderMonth();
+  toast(`Deleted`);
+}
+
+function clearSelection(){
+  _selected.clear();
+  document.querySelectorAll('.row-cb').forEach(cb=>cb.checked=false);
+  document.querySelectorAll('tbody tr.selected').forEach(r=>r.classList.remove('selected'));
+  const master=document.getElementById('master-cb');
+  if(master)master.checked=false;
+  updateBulkBar();
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────
