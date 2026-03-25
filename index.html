@@ -294,6 +294,31 @@ tbody tr:hover td{background:var(--surface2);}
 .bulk-clear{padding:6px 12px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-family:var(--fh);font-size:12px;font-weight:700;cursor:pointer;}
 .bulk-clear:hover{border-color:var(--accent);color:var(--accent);}
 tbody tr.selected td{background:rgba(240,180,41,0.05);}
+
+/* Parts & Returns */
+.parts-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;}
+.parts-title{font-family:var(--fh);font-weight:700;font-size:12px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.parts-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.part-row{display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:6px;padding:7px 10px;font-size:12px;}
+.part-name{flex:1;color:var(--text);}
+.part-cost{color:var(--red);font-weight:500;white-space:nowrap;}
+.part-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0 2px;line-height:1;}
+.part-del:hover{color:var(--red);}
+.part-add-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.part-add-row input{background:var(--bg);border:1px solid var(--border2);border-radius:5px;padding:6px 8px;color:var(--text);font-family:var(--fm);font-size:12px;}
+.part-add-row input:focus{outline:none;border-color:var(--accent);}
+.parts-total{display:flex;justify-content:space-between;font-size:12px;font-weight:600;padding-top:8px;border-top:1px solid var(--border);margin-top:6px;}
+.return-section{background:rgba(245,101,101,0.05);border:1px solid rgba(245,101,101,0.2);border-radius:10px;padding:16px;margin-bottom:16px;}
+.return-title{font-family:var(--fh);font-weight:700;font-size:12px;color:var(--red);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;}
+.return-type-btns{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.rtype-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-family:var(--fh);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;}
+.rtype-btn.on{border-color:var(--red);color:var(--red);background:rgba(245,101,101,0.08);}
+.return-fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
+.return-log{background:rgba(245,101,101,0.08);border:1px solid rgba(245,101,101,0.2);border-radius:6px;padding:10px 12px;margin-top:8px;font-size:12px;}
+.return-log-title{color:var(--red);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+/* Monthly table extra cols */
+.col-parts{color:var(--warn);}
+.col-return{color:var(--red);}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -455,7 +480,21 @@ function allUnsold(){return MONTHS.flatMap(m=>unsold(m).map(i=>({...i,month:m}))
 function allItems(){return MONTHS.flatMap(m=>(DB[m]||[]).map(i=>({...i,month:m})));}
 function mT(m){const s=sold(m);return{rev:s.reduce((a,i)=>a+(i.totalRev||0),0),cost:s.reduce((a,i)=>a+(i.totalCost||0),0),profit:s.reduce((a,i)=>a+(i.grossProfit||0),0),nSold:s.length,nTotal:(DB[m]||[]).length};}
 function yT(){return MONTHS.reduce((a,m)=>{const t=mT(m);a.rev+=t.rev;a.cost+=t.cost;a.profit+=t.profit;a.nSold+=t.nSold;a.nTotal+=t.nTotal;return a;},{rev:0,cost:0,profit:0,nSold:0,nTotal:0});}
-function recalc(i,ds){const pc=i.salePrice*(i.promoPercent||0);const tc=i.itemCost+i.shipping+i.ebayFee+pc;const tr=i.salePrice+(i.postage||0);i.promoCost=+pc.toFixed(4);i.totalCost=+tc.toFixed(4);i.totalRev=+tr.toFixed(4);i.grossProfit=ds?+(tr-tc).toFixed(2):null;i.roi=i.itemCost>0?+((tr-tc)/i.itemCost).toFixed(4):null;}
+function recalc(i,ds){
+  const pc=i.salePrice*(i.promoPercent||0);
+  const partsCost=(i.parts||[]).reduce((a,p)=>a+(p.cost||0),0);
+  const tc=i.itemCost+i.shipping+i.ebayFee+pc+partsCost;
+  const refundAmt=i.returnData?(i.returnData.type==='full'?i.totalRev||i.salePrice:i.returnData.refundAmount||0):0;
+  const returnCost=(i.returnData&&i.returnData.returnPostage||0)+(i.returnData&&i.returnData.feesKept||0);
+  const tr=i.salePrice+(i.postage||0)-refundAmt;
+  i.promoCost=+pc.toFixed(4);
+  i.partsCost=+partsCost.toFixed(4);
+  i.totalCost=+(tc+returnCost).toFixed(4);
+  i.totalRev=+tr.toFixed(4);
+  i.grossProfit=ds?+(tr-tc-returnCost).toFixed(2):null;
+  i.roi=i.itemCost>0?+((tr-tc-returnCost)/i.itemCost).toFixed(4):null;
+  i.isReturned=!!(i.returnData&&i.returnData.loggedAt);
+}
 function isStale(i){return !i.dateSold&&i.dateListed&&daysAgo(i.dateListed)>=30;}
 function staleItems(){return allItems().filter(isStale);}
 
@@ -825,6 +864,8 @@ function renderMonth(){_selected.clear();
         <th class="col-hide">Listed</th>
         <th>Price</th>
         <th>Cost</th>
+        <th class="col-hide">Parts</th>
+        <th class="col-hide">Return</th>
         <th>Profit</th>
         <th class="col-hide">ROI</th>
         <th style="width:80px">Actions</th>
@@ -867,6 +908,8 @@ function iRow(i,m){
     <td class="dim col-hide">${i.dateListed||'--'}</td>
     <td>${fmt(i.salePrice)}</td>
     <td class="dim">${fmt(i.itemCost)}</td>
+    <td class="col-hide col-parts">${(i.parts&&i.parts.length)?fmt(i.partsCost||0):'--'}</td>
+    <td class="col-hide col-return">${i.returnData?(i.returnData.type==='full'?'<span class=\'badge\' style=\'background:rgba(245,101,101,0.15);color:var(--red)\'>Returned</span>':'<span class=\'badge\' style=\'background:rgba(245,101,101,0.15);color:var(--red)\'>Partial</span>'):'--'}</td>
     <td class="${i.grossProfit>0?'pos':i.grossProfit<0?'neg':''}">${i.grossProfit!=null?fmt(i.grossProfit):'--'}</td>
     <td class="dim col-hide" style="color:var(--accent)">${i.roi!=null?(i.roi*100).toFixed(0)+'%':'--'}</td>
     <td style="display:flex;gap:3px;align-items:center">
@@ -876,7 +919,7 @@ function iRow(i,m){
     </td>
   </tr>
   <tr id="editrow-${i.id}" style="display:none;background:var(--surface2)">
-    <td></td><td></td><td colspan="10">${editRowInner({...i,month:m})}</td>
+    <td></td><td></td><td colspan="12">${editRowInner({...i,month:m})}</td>
   </tr>`;
 }
 
@@ -1325,6 +1368,7 @@ function renderItemPage() {
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap">
       <button class="backbtn" onclick="goBack()">&#8592; Back</button>
       <span class="badge ${s?'sold-b':stale?'stale-b':'listed-b'}">${s?'Sold':stale?'Stale':'Listed'}</span>
+      ${i.returnData?`<span class="badge" style="background:rgba(245,101,101,0.15);color:var(--red)">${i.returnData.type==='full'?'Returned':'Partial refund'}</span>`:''}
       ${i.category?`<span class="badge" style="background:var(--surface2);color:var(--muted2)">${esc(i.category)}</span>`:''}
     </div>
     ${i.gid?`<div style="font-family:var(--fm);font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">${i.gid}</div>`:''}
@@ -1355,16 +1399,22 @@ function renderItemPage() {
       <div class="cb-row"><span>eBay fee</span><span style="color:var(--red)">${fmt(i.ebayFee)}</span></div>
       <div class="cb-row"><span>Promotion cost</span><span style="color:var(--red)">${fmt(i.promoCost)}</span></div>
       ${i.postage>0?`<div class="cb-row"><span>Postage charged (inc.)</span><span style="color:var(--green)">+${fmt(i.postage)}</span></div>`:''}
+      ${(i.parts&&i.parts.length)?`<div class="cb-row"><span style="color:var(--warn)">Parts &amp; additional costs</span><span style="color:var(--warn)">${fmt(i.partsCost||0)}</span></div>`:''}
+      ${i.returnData&&i.returnData.returnPostage?`<div class="cb-row"><span style="color:var(--red)">Return postage</span><span style="color:var(--red)">${fmt(i.returnData.returnPostage)}</span></div>`:''}
+      ${i.returnData&&i.returnData.feesKept?`<div class="cb-row"><span style="color:var(--red)">eBay fees kept on return</span><span style="color:var(--red)">${fmt(i.returnData.feesKept)}</span></div>`:''}
+      ${i.returnData&&i.returnData.refundAmount?`<div class="cb-row"><span style="color:var(--red)">Refund issued</span><span style="color:var(--red)">-${fmt(i.returnData.refundAmount)}</span></div>`:''}
       <div class="cb-row"><span class="dim">Total cost</span><span style="color:var(--red)">${fmt(i.totalCost)}</span></div>
       <div class="cb-row"><span>Total revenue</span><span style="color:var(--accent)">${fmt(i.totalRev)}</span></div>
       <div class="cb-row"><span>${s?'Gross Profit':'Potential Profit'}</span><span style="color:${pot>0?'var(--green)':'var(--red)'}">${fmt(s?i.grossProfit:pot)}</span></div>
     </div>
 
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
       <button class="btn btn-s" onclick="toggleItemEdit('${i.month}','${i.id}')">&#9998; Edit Item</button>
       ${!s?`<button class="btn btn-p" onclick="openSold('${i.month}','${i.id}')">Mark as sold</button>`:''}
       <button class="btn btn-s" style="color:var(--red);border-color:rgba(245,101,101,0.3)" onclick="if(confirm('Delete this item?')){_prevPage=_prevPage||'summary';DB['${i.month}']=DB['${i.month}'].filter(x=>x.id!=='${i.id}');saveDB();goNav(_prevPage);toast('Deleted')}">Delete</button>
     </div>
+    ${partsHTML(i,i.month)}
+    ${returnHTML(i,i.month)}
 
     <div id="editrow-${i.id}" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:0;margin-top:16px;overflow:hidden">
       <div id="editrow-inner-${i.id}">${editRowInner(i)}</div>
@@ -1776,6 +1826,162 @@ function clearSelection(){
   const master=document.getElementById('master-cb');
   if(master)master.checked=false;
   updateBulkBar();
+}
+
+
+// ── PARTS & ADDITIONAL COSTS ──────────────────────────────────────────
+function addPart(m,id){
+  const nameEl=document.getElementById('part-name-input');
+  const costEl=document.getElementById('part-cost-input');
+  if(!nameEl||!costEl)return;
+  const name=nameEl.value.trim();
+  const cost=parseFloat(costEl.value)||0;
+  if(!name||cost<=0){toast('Enter description and cost','err');return;}
+  const item=(DB[m]||[]).find(i=>i.id===id);
+  if(!item)return;
+  if(!item.parts)item.parts=[];
+  item.parts.push({id:Date.now().toString(),name,cost});
+  recalc(item,item.dateSold);
+  saveDB();
+  nameEl.value='';costEl.value='';
+  _currentItem={...item,month:m};
+  renderItemPage();
+  toast('Added: '+name);
+}
+
+function deletePart(m,id,partId){
+  const item=(DB[m]||[]).find(i=>i.id===id);
+  if(!item)return;
+  item.parts=(item.parts||[]).filter(p=>p.id!==partId);
+  recalc(item,item.dateSold);
+  saveDB();
+  _currentItem={...item,month:m};
+  renderItemPage();
+  toast('Removed');
+}
+
+// ── RETURNS ───────────────────────────────────────────────────────────
+let _returnType='full';
+function setReturnType(type,btn){
+  _returnType=type;
+  document.querySelectorAll('.rtype-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('partial-fields').style.display=type==='partial'?'contents':'none';
+  document.getElementById('full-fields').style.display=type==='full'?'contents':'none';
+}
+
+function logReturn(m,id){
+  const item=(DB[m]||[]).find(i=>i.id===id);
+  if(!item)return;
+  const returnPostage=parseFloat(document.getElementById('return-postage')?.value)||0;
+  const feesKept=parseFloat(document.getElementById('return-fees-kept')?.value)||0;
+  const notes=(document.getElementById('return-notes')?.value||'').trim();
+  let refundAmount=0;
+  let newSoldStatus=item.dateSold;
+
+  if(_returnType==='full'){
+    refundAmount=item.totalRev||item.salePrice||0;
+    newSoldStatus=null; // back to listed
+    item.returnData={
+      type:'full',refundAmount,returnPostage,feesKept,notes,
+      originalSoldDate:item.dateSold,loggedAt:new Date().toISOString().split('T')[0]
+    };
+    item.dateSold=null;
+    toast('Full return logged — item back in stock');
+  } else {
+    refundAmount=parseFloat(document.getElementById('partial-refund-amt')?.value)||0;
+    const reason=(document.getElementById('partial-reason')?.value||'').trim();
+    item.returnData={
+      type:'partial',refundAmount,returnPostage,feesKept,notes,reason,
+      loggedAt:new Date().toISOString().split('T')[0]
+    };
+    toast('Partial refund of '+fmt(refundAmount)+' logged');
+  }
+  recalc(item,item.dateSold);
+  saveDB();
+  _currentItem={...item,month:m};
+  renderItemPage();
+}
+
+function clearReturn(m,id){
+  if(!confirm('Remove return record and restore original sale?'))return;
+  const item=(DB[m]||[]).find(i=>i.id===id);
+  if(!item)return;
+  if(item.returnData?.originalSoldDate)item.dateSold=item.returnData.originalSoldDate;
+  delete item.returnData;
+  recalc(item,item.dateSold);
+  saveDB();
+  _currentItem={...item,month:m};
+  renderItemPage();
+  toast('Return record cleared');
+}
+
+function partsHTML(i,m){
+  const parts=i.parts||[];
+  const total=parts.reduce((a,p)=>a+(p.cost||0),0);
+  return`<div class="parts-section">
+    <div class="parts-title">
+      <span>Parts &amp; Additional Costs</span>
+      ${total>0?`<span style="color:var(--warn);font-size:12px">${fmt(total)} added to costs</span>`:''}
+    </div>
+    ${parts.length?`<div class="parts-list">
+      ${parts.map(p=>`<div class="part-row">
+        <span class="part-name">${esc(p.name)}</span>
+        <span class="part-cost">${fmt(p.cost)}</span>
+        <button class="part-del" onclick="deletePart('${m}','${i.id}','${p.id}')" title="Remove">&#x2715;</button>
+      </div>`).join('')}
+      <div class="parts-total"><span>Total additional costs</span><span style="color:var(--warn)">${fmt(total)}</span></div>
+    </div>`:'<div style="font-size:12px;color:var(--muted);margin-bottom:10px">No parts or additional costs yet</div>'}
+    <div class="part-add-row">
+      <input type="text" id="part-name-input" placeholder="e.g. Power supply, Battery" style="flex:1;min-width:140px">
+      <input type="number" id="part-cost-input" step="0.01" placeholder="Cost £" style="width:90px">
+      <button class="btn btn-p" style="padding:6px 12px;font-size:12px" onclick="addPart('${m}','${i.id}')">+ Add</button>
+    </div>
+  </div>`;
+}
+
+function returnHTML(i,m){
+  const rd=i.returnData;
+  const isSold=!!i.dateSold;
+  // Only show return section for sold items or items with existing return
+  if(!isSold&&!rd)return'';
+  if(rd){
+    // Show logged return summary
+    return`<div class="return-section">
+      <div class="return-title">&#9888; ${rd.type==='full'?'Full Return':'Partial Refund'} Logged</div>
+      <div class="return-log">
+        ${rd.type==='full'?`<div>Item returned on ${rd.loggedAt} &mdash; back in stock</div>`:''}
+        ${rd.type==='partial'?`<div>Partial refund of <strong>${fmt(rd.refundAmount)}</strong> issued ${rd.loggedAt}</div>`:''}
+        ${rd.reason?`<div style="color:var(--muted2);margin-top:3px">Reason: ${esc(rd.reason)}</div>`:''}
+        ${rd.returnPostage>0?`<div style="color:var(--muted2)">Return postage: ${fmt(rd.returnPostage)}</div>`:''}
+        ${rd.feesKept>0?`<div style="color:var(--muted2)">eBay fees kept: ${fmt(rd.feesKept)}</div>`:''}
+        ${rd.notes?`<div style="color:var(--muted2)">Notes: ${esc(rd.notes)}</div>`:''}
+      </div>
+      <div style="margin-top:10px"><button class="btn btn-s" style="font-size:12px;padding:5px 12px;color:var(--red);border-color:rgba(245,101,101,0.3)" onclick="clearReturn('${m}','${i.id}')">Remove return record</button></div>
+    </div>`;
+  }
+  // Show return form for sold items
+  return`<div class="return-section">
+    <div class="return-title">Log Return or Refund</div>
+    <div class="return-type-btns">
+      <button class="rtype-btn on" onclick="setReturnType('full',this)">Full return</button>
+      <button class="rtype-btn" onclick="setReturnType('partial',this)">Partial refund</button>
+    </div>
+    <div class="return-fields">
+      <style>#partial-fields{display:none}</style>
+      <div id="partial-fields" style="display:none;grid-column:1/-1;display:none">
+        <div class="fg"><label>Refund amount (£)</label><input type="number" id="partial-refund-amt" step="0.01" placeholder="e.g. 3.00"></div>
+        <div class="fg"><label>Reason</label><input type="text" id="partial-reason" placeholder="e.g. Item not as described"></div>
+      </div>
+      <div id="full-fields" style="display:contents">
+        <div style="font-size:12px;color:var(--muted2);padding:6px 0">Full refund of ${fmt(i.totalRev||i.salePrice)} will be recorded. Item returns to Listed.</div>
+      </div>
+      <div class="fg"><label>Return postage cost (£)</label><input type="number" id="return-postage" step="0.01" placeholder="0.00"></div>
+      <div class="fg"><label>eBay fees kept (£)</label><input type="number" id="return-fees-kept" step="0.01" placeholder="0.00" title="eBay sometimes keeps a % even on returns"></div>
+      <div class="fg" style="grid-column:1/-1"><label>Notes</label><input type="text" id="return-notes" placeholder="e.g. Buyer claimed damage, agreed £3 goodwill"></div>
+    </div>
+    <div style="margin-top:12px"><button class="btn btn-p" style="background:var(--red);font-size:13px" onclick="logReturn('${m}','${i.id}')">Log Return / Refund</button></div>
+  </div>`;
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────
