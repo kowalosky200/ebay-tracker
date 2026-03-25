@@ -432,12 +432,12 @@ tbody tr.selected td{background:rgba(240,180,41,0.05);}
     <div class="fg"><label>Location</label><input type="text" id="qa-loc" placeholder="Bed, A101, Desk..."></div>
     <div class="fg"><label>Date Listed</label><input type="date" id="qa-listed"></div>
     <div class="fg"><label>Sale Price (£)</label><input type="number" id="qa-price" step="0.01" placeholder="0.00" oninput="qaAutoCalc()"></div>
-    <div class="fg"><label>eBay Fee (£)</label><input type="number" id="qa-ebay" step="0.01" placeholder="auto"></div>
+    <div class="fg"><label>eBay Fee (£) <span id="qa-fee-hint" style="color:var(--muted);font-size:9px;text-transform:none;letter-spacing:0;font-weight:400;margin-left:4px">auto</span></label><input type="number" id="qa-ebay" step="0.01" placeholder="auto" oninput="if(this.value)document.getElementById('qa-fee-hint').textContent='manual'"></div>
     <div class="fg"><label>Shipping Cost (£)</label><input type="number" id="qa-ship" step="0.01" placeholder="2.94"></div>
     <div class="fg"><label>Promo %</label><input type="number" id="qa-promo" step="0.01" placeholder="0.05"></div>
     <div class="fg"><label>Source / Where bought</label><input type="text" id="qa-source" placeholder="e.g. Bramley Car Boot"></div>
     <div class="fg"><label>Category</label>
-      <select id="qa-cat">
+      <select id="qa-cat" onchange="qaAutoCalc()">
         <option value="">-- Select --</option><option value="Books">Books</option><option value="Cameras">Cameras</option><option value="Clothing & Accessories">Clothing & Accessories</option><option value="Computers">Computers</option><option value="DVD & Blu-ray">DVD & Blu-ray</option><option value="Home & Garden">Home & Garden</option><option value="Home Phones">Home Phones</option><option value="Mobile Phones">Mobile Phones</option><option value="Music">Music</option><option value="Smart Home">Smart Home</option><option value="Toys & Games">Toys & Games</option><option value="TV & Audio">TV & Audio</option><option value="Vehicle Parts">Vehicle Parts</option><option value="Video Games">Video Games</option><option value="Baby">Baby</option><option value="Jewellery & Watches">Jewellery & Watches</option><option value="Sport & Leisure">Sport & Leisure</option><option value="Collectibles">Collectibles</option><option value="Other">Other</option>
       </select>
     </div>
@@ -478,7 +478,7 @@ let DB,invFilter='all',activeDrill=null,_st=null,_searchQ='';
 
 function initDB(){
   try{
-    const s=localStorage.getItem('g007v11');
+    const s=localStorage.getItem('g007v13');
     if(s){
       DB=JSON.parse(s);
       // Migrate: apply categories to any items missing them
@@ -526,7 +526,7 @@ function assignItemIDs(){
   });
   if(changed)saveDB();
 }
-function saveDB(){try{localStorage.setItem('g007v11',JSON.stringify(DB));}catch(e){}}
+function saveDB(){try{localStorage.setItem('g007v13',JSON.stringify(DB));}catch(e){}}
 
 // ── HELPERS ───────────────────────────────────────────────────────────
 function daysAgo(d){return Math.round((Date.now()-new Date(d))/86400000);}
@@ -538,6 +538,45 @@ function allItems(){return MONTHS.flatMap(m=>(DB[m]||[]).map(i=>({...i,month:m})
 function mT(m){const s=sold(m);const ret=(DB[m]||[]).filter(i=>i.returnData);return{rev:s.reduce((a,i)=>a+(i.totalRev||0),0),cost:s.reduce((a,i)=>a+(i.totalCost||0),0),profit:s.reduce((a,i)=>a+(i.grossProfit||0),0),nSold:s.length,nTotal:(DB[m]||[]).length,nReturns:ret.length};}
 function returnedItems(){return MONTHS.flatMap(m=>(DB[m]||[]).filter(i=>i.returnData).map(i=>({...i,month:m})));}
 function yT(){return MONTHS.reduce((a,m)=>{const t=mT(m);a.rev+=t.rev;a.cost+=t.cost;a.profit+=t.profit;a.nSold+=t.nSold;a.nTotal+=t.nTotal;return a;},{rev:0,cost:0,profit:0,nSold:0,nTotal:0});}
+
+// ── eBAY FEE CALCULATOR ───────────────────────────────────────────────
+// UK eBay private seller Final Value Fees (2025/26)
+// Fee = % of (sale price + postage charged to buyer)
+// Per-order fee of £0.00 for private sellers (waived)
+const EBAY_FEE_RATES = {
+  // Media — higher rate
+  'Books':             0.1435,
+  'DVD & Blu-ray':     0.1435,
+  'Music':             0.1435,
+  'Video Games':       0.1435,
+  // Vehicle Parts — lower rate
+  'Vehicle Parts':     0.0872,
+  // Standard rate for everything else
+  'Cameras':           0.128,
+  'Computers':         0.128,
+  'Mobile Phones':     0.128,
+  'Smart Home':        0.128,
+  'TV & Audio':        0.128,
+  'Home Phones':       0.128,
+  'Toys & Games':      0.128,
+  'Clothing & Accessories': 0.128,
+  'Home & Garden':     0.128,
+  'Baby':              0.128,
+  'Other':             0.128,
+};
+const EBAY_FEE_DEFAULT = 0.128; // standard rate fallback
+
+function calcEbayFee(salePrice, postage, category){
+  const total = (parseFloat(salePrice)||0) + (parseFloat(postage)||0);
+  const rate = EBAY_FEE_RATES[category] || EBAY_FEE_DEFAULT;
+  return +(total * rate).toFixed(2);
+}
+
+function ebayFeeLabel(category){
+  const rate = EBAY_FEE_RATES[category] || EBAY_FEE_DEFAULT;
+  return (rate*100).toFixed(2)+'%';
+}
+
 function recalc(i,ds){
   const pc=i.salePrice*(i.promoPercent||0);
   const partsCost=(i.parts||[]).reduce((a,p)=>a+(p.cost||0),0);
@@ -1012,7 +1051,7 @@ function editRowInner(i){
     <div class="fg"><label>Sale Price</label><input type="number" id="ei-price-${i.id}" step="0.01" value="${i.salePrice||''}"></div>
     <div class="fg"><label>Item Cost</label><input type="number" id="ei-cost-${i.id}" step="0.01" value="${i.itemCost||''}"></div>
     <div class="fg"><label>Shipping</label><input type="number" id="ei-ship-${i.id}" step="0.01" value="${i.shipping||''}"></div>
-    <div class="fg"><label>eBay Fee</label><input type="number" id="ei-ebay-${i.id}" step="0.01" value="${i.ebayFee||''}"></div>
+    <div class="fg"><label>eBay Fee <span style="color:var(--muted);font-size:9px;font-weight:400">(calc: ${fmt(calcEbayFee(i.salePrice,i.postage||0,i.category))})</span></label><input type="number" id="ei-ebay-${i.id}" step="0.01" value="${i.ebayFee||''}" placeholder="${calcEbayFee(i.salePrice,i.postage||0,i.category)}"></div>
     <div class="fg"><label>Postage</label><input type="number" id="ei-post-${i.id}" step="0.01" value="${i.postage||''}"></div>
     <div class="fg"><label>Promo %</label><input type="number" id="ei-promo-${i.id}" step="0.01" value="${i.promoPercent||''}"></div>
   </div>
@@ -1041,7 +1080,6 @@ function iRow(i,m){
     <td class="col-w-roi col-hide num" style="color:var(--accent)">${i.roi!=null?(i.roi*100).toFixed(0)+'%':'--'}</td>
     <td class="col-w-acts">
       <div class="acts-wrap">
-        <button class="tbtn" onclick="_prevPage='monthly';openItem('${m}','${i.id}')" title="View" style="font-size:12px;padding:2px 5px">&#128065;</button>
         <button class="tbtn" onclick="duplicateItem('${m}','${i.id}')" title="Duplicate" style="font-size:12px;padding:2px 5px">&#10697;</button>
         ${!s?`<button class="tbtn" onclick="openSold('${m}','${i.id}')" title="Mark sold" style="font-size:12px;padding:2px 5px">&#10003;</button>`:''}
         <button class="tbtn del" onclick="delItem('${m}','${i.id}')" title="Delete" style="font-size:11px;padding:2px 5px">&#x2715;</button>
@@ -1074,7 +1112,8 @@ function saveInlineEdit(m,id){
   item.salePrice=parseFloat(document.getElementById('ei-price-'+id)?.value)||item.salePrice||0;
   item.itemCost=parseFloat(document.getElementById('ei-cost-'+id)?.value)||0;
   item.shipping=parseFloat(document.getElementById('ei-ship-'+id)?.value)||0;
-  item.ebayFee=parseFloat(document.getElementById('ei-ebay-'+id)?.value)||0;
+  const ebayInput2=parseFloat(document.getElementById('ei-ebay-'+id)?.value);
+  item.ebayFee=ebayInput2>0?ebayInput2:calcEbayFee(item.salePrice,item.postage||0,item.category);
   item.postage=parseFloat(document.getElementById('ei-post-'+id)?.value)||0;
   item.promoPercent=parseFloat(document.getElementById('ei-promo-'+id)?.value)||0;
   recalc(item,item.dateSold);
@@ -1200,7 +1239,6 @@ function renderStock(){
           <td class="${p>0?'pos':'neg'} num">${fmt(p)}</td>
           <td style="color:var(--accent)">${i.roi!=null?(i.roi*100).toFixed(0)+'%':'--'}</td>
           <td style="display:flex;gap:3px;align-items:center;justify-content:flex-end">
-            <button class="tbtn" onclick="_prevPage='stock';openItem('${i.month}','${i.id}')" title="View" style="font-size:12px;padding:2px 5px">&#128065;</button>
             <button class="tbtn" onclick="duplicateItem('${i.month}','${i.id}')" title="Duplicate" style="font-size:12px;padding:2px 5px">&#10697;</button>
             <button class="tbtn" onclick="openSold('${i.month}','${i.id}')" title="Mark sold" style="font-size:12px;padding:2px 5px">&#10003;</button>
             <button class="tbtn del" onclick="delItem('${i.month}','${i.id}')" title="Delete" style="font-size:11px;padding:2px 5px">&#x2715;</button>
@@ -1296,7 +1334,15 @@ function closePanel(){
 }
 function qaAutoCalc(){
   const p=parseFloat(document.getElementById('qa-price')?.value)||0;
-  if(p>0)document.getElementById('qa-ebay').value=(p*0.093).toFixed(2);
+  const post=parseFloat(document.getElementById('qa-post-input')?.value)||0;
+  const cat=document.getElementById('qa-cat')?.value||'';
+  if(p>0){
+    const fee=calcEbayFee(p,post,cat);
+    document.getElementById('qa-ebay').value=fee.toFixed(2);
+    // Show rate hint
+    const hint=document.getElementById('qa-fee-hint');
+    if(hint)hint.textContent=ebayFeeLabel(cat)+' FVF';
+  }
 }
 function quickAddItem(){
   const name=document.getElementById('qa-name').value.trim();
@@ -1305,7 +1351,10 @@ function quickAddItem(){
   const price=parseFloat(document.getElementById('qa-price').value)||0;
   const cost=parseFloat(document.getElementById('qa-cost').value)||0;
   const ship=parseFloat(document.getElementById('qa-ship').value)||0;
-  const ebay=parseFloat(document.getElementById('qa-ebay').value)||(price*0.093);
+  const post=parseFloat(document.getElementById('qa-post-input')?.value)||0;
+  const cat=document.getElementById('qa-cat')?.value||'';
+  const ebayInput=parseFloat(document.getElementById('qa-ebay').value);
+  const ebay=ebayInput||calcEbayFee(price,post,cat);
   const pp=parseFloat(document.getElementById('qa-promo').value)||0.05;
   const ds=document.getElementById('qa-sold').value||null;
   const cat=document.getElementById('qa-cat').value||'';
@@ -1550,7 +1599,7 @@ function renderItemPage() {
       <div class="cb-title">Cost breakdown</div>
       <div class="cb-row"><span>Item cost</span><span style="color:var(--red)">${fmt(i.itemCost)}</span></div>
       <div class="cb-row"><span>Shipping cost</span><span style="color:var(--red)">${fmt(i.shipping)}</span></div>
-      <div class="cb-row"><span>eBay fee</span><span style="color:var(--red)">${fmt(i.ebayFee)}</span></div>
+      <div class="cb-row"><span>eBay Final Value Fee <span style="color:var(--muted);font-size:11px">(${ebayFeeLabel(i.category)})</span></span><span style="color:var(--red)">${fmt(i.ebayFee)}</span></div>
       <div class="cb-row"><span>Promotion cost</span><span style="color:var(--red)">${fmt(i.promoCost)}</span></div>
       ${i.postage>0?`<div class="cb-row"><span>Postage charged (inc.)</span><span style="color:var(--green)">+${fmt(i.postage)}</span></div>`:''}
       ${(i.parts&&i.parts.length)?`<div class="cb-row"><span style="color:var(--warn)">Parts &amp; additional costs</span><span style="color:var(--warn)">${fmt(i.partsCost||0)}</span></div>`:''}
@@ -1721,7 +1770,7 @@ function importExcel(){
     reader.onload=ev=>{
       try{
         const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
-        let added=0,updated=0,unchanged=0;
+        let added=0,updated=0,unchanged=0,feeCorrections=0;
         const sheetToMonth={
           'JAN-26':'JAN','FEB-26':'FEB','MAR-26':'MAR','APR-26':'APR',
           'MAY-26':'MAY','JUN-26':'JUN','JUL-26':'JUL','AUG-26':'AUG',
@@ -1779,7 +1828,9 @@ function importExcel(){
             const salePrice=parseFloat(row[iSaleP])||0;
             const itemCost=parseFloat(row[iCost])||0;
             const shipping=parseFloat(row[iShip])||0;
-            const ebayFee=parseFloat(row[iEbay])||0;
+            const ebayFeeRaw=parseFloat(row[iEbay])||0;
+            // Use spreadsheet fee if present, otherwise calculate from category
+            const ebayFee=ebayFeeRaw>0?ebayFeeRaw:calcEbayFee(salePrice,postage,category);
             const postage=parseFloat(row[iPost])||0;
             const promoPercent=parseFloat(row[iPromoP])||0;
             const location=iLoc>=0?String(row[iLoc]||'').trim():'';
@@ -1823,7 +1874,8 @@ function importExcel(){
               if(existing.itemCost!==itemCost){diff.push(`cost ${existing.itemCost}->${itemCost}`);}
               if(existing.dateSold!==dateSold){diff.push(`sold date ${existing.dateSold||'none'}->${dateSold||'none'}`);}
               if(existing.shipping!==shipping){diff.push(`shipping ${existing.shipping}->${shipping}`);}
-              if(existing.ebayFee!==ebayFee){diff.push(`ebay fee ${existing.ebayFee}->${ebayFee}`);}
+              // Check fee against correctly calculated value
+              if(Math.abs((existing.ebayFee||0)-ebayFeeCalc)>0.01){diff.push(`eBay fee corrected: was ${fmt(existing.ebayFee||0)} (${fmt(ebayFeeRaw)} in sheet), now ${fmt(ebayFeeCalc)} (${ebayFeeLabel(category)})`);}}
               if(existing.location!==location&&location){diff.push(`location ${existing.location}->${location}`);}
 
               if(diff.length>0){
@@ -1858,7 +1910,9 @@ function importExcel(){
                 itemCost,shipping,ebayFee,promoPercent,promoCost,
                 totalCost,totalRev,grossProfit,roi
               });
-              changes.push({action:'added',month:MN[m],item:name,changes:'new item'});
+              const feeNote=feeDiscrepancy?` (fee corrected: sheet had ${fmt(ebayFeeRaw)}, using ${fmt(ebayFeeCalc)} at ${ebayFeeLabel(category)})`:'';
+              changes.push({action:'added',month:MN[m],item:name,changes:'new item'+feeNote,feeFixed:feeDiscrepancy,ebayFeeRaw,ebayFeeCalc,category});
+              if(feeDiscrepancy)feeCorrections++;
               added++;
             }
           }
@@ -1873,7 +1927,8 @@ function importExcel(){
         if(added)msg+=`${added} added`;
         if(updated)msg+=`${msg?', ':''}${updated} updated`;
         if(unchanged)msg+=`${msg?', ':''}${unchanged} unchanged`;
-        if(!added&&!updated){msg='All items up to date';}
+        if(feeCorrections)msg+=` · ${feeCorrections} fee${feeCorrections!==1?'s':''} corrected`;
+        if(!added&&!updated){msg='All items up to date'+(feeCorrections?` · ${feeCorrections} fees corrected`:'');}
         toast(msg||'Import complete');
 
         // Show change log if there were updates
@@ -1897,6 +1952,7 @@ function showImportLog(changes){
 
   const added=changes.filter(c=>c.action==='added');
   const updated=changes.filter(c=>c.action==='updated');
+  const feeFixed=changes.filter(c=>c.feeFixed||(c.changes&&c.changes.includes('eBay fee corrected')));
 
   const modal=document.createElement('div');
   modal.id='import-log-modal';
@@ -1916,14 +1972,21 @@ function showImportLog(changes){
           <div style="font-family:var(--fn);font-size:28px;color:var(--accent)">${updated.length}</div>
           <div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.8px">Updated</div>
         </div>
+        ${feeFixed.length?`<div style="background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.3);border-radius:8px;padding:10px 16px;text-align:center;">
+          <div style="font-family:var(--fn);font-size:28px;color:var(--blue)">${feeFixed.length}</div>
+          <div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.8px">Fees corrected</div>
+        </div>`:''}
       </div>
+      ${feeFixed.length?`<div style="background:rgba(99,179,237,0.06);border:1px solid rgba(99,179,237,0.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--blue);line-height:1.6">
+        <strong>eBay fees recalculated</strong> using current UK rates (Books/DVDs/Games/Music 14.35% &middot; Vehicle Parts 8.72% &middot; All other categories 12.8%). Your spreadsheet had different values for ${feeFixed.length} item${feeFixed.length!==1?'s':''} — the app now uses the correct rate. Update your spreadsheet to match if needed.
+      </div>`:''}
       ${updated.length?`
       <div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;font-weight:500;">Changes made</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
         ${updated.map(c=>`
           <div style="background:var(--surface2);border-radius:7px;padding:9px 12px;">
             <div style="font-size:13px;color:var(--text);margin-bottom:3px;">${esc(c.item)}</div>
-            <div style="font-size:11px;color:var(--accent);">${esc(c.changes)}</div>
+            <div style="font-size:11px;color:${c.changes&&c.changes.includes('eBay fee corrected')?'var(--blue)':'var(--accent)'}">${esc(c.changes)}</div>
             <div style="font-size:10px;color:var(--muted2);margin-top:2px;">${c.month}</div>
           </div>`).join('')}
       </div>`:''}
