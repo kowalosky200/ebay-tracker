@@ -385,7 +385,7 @@ let DB,invFilter='all',activeDrill=null,_st=null,_searchQ='';
 
 function initDB(){
   try{
-    const s=localStorage.getItem('g007v8');
+    const s=localStorage.getItem('g007v9');
     if(s){
       DB=JSON.parse(s);
       // Migrate: apply categories to any items missing them
@@ -399,12 +399,41 @@ function initDB(){
         });
       });
       if(changed)saveDB();
+      assignItemIDs();
       return;
     }
   }catch(e){}
-  DB=JSON.parse(JSON.stringify(SEED));saveDB();
+  DB=JSON.parse(JSON.stringify(SEED));
+  assignItemIDs();
+  saveDB();
 }
-function saveDB(){try{localStorage.setItem('g007v8',JSON.stringify(DB));}catch(e){}}
+
+function assignItemIDs(){
+  // Get highest existing G007 number
+  let max=0;
+  MONTHS.forEach(m=>{
+    (DB[m]||[]).forEach(i=>{
+      if(i.gid){
+        const n=parseInt(i.gid.replace('G007-',''))||0;
+        if(n>max)max=n;
+      }
+    });
+  });
+  // Assign IDs to items missing them, in month/listed order
+  let changed=false;
+  MONTHS.forEach(m=>{
+    const items=(DB[m]||[]).slice().sort((a,b)=>new Date(a.dateListed||'2026-01-01')-new Date(b.dateListed||'2026-01-01'));
+    items.forEach(i=>{
+      if(!i.gid){
+        max++;
+        i.gid='G007-'+String(max).padStart(4,'0');
+        changed=true;
+      }
+    });
+  });
+  if(changed)saveDB();
+}
+function saveDB(){try{localStorage.setItem('g007v9',JSON.stringify(DB));}catch(e){}}
 
 // ── HELPERS ───────────────────────────────────────────────────────────
 function daysAgo(d){return Math.round((Date.now()-new Date(d))/86400000);}
@@ -502,7 +531,8 @@ function renderSearch(){
   const results=allItems().filter(i=>
     (i.item||'').toLowerCase().includes(q)||
     (i.location||'').toLowerCase().includes(q)||
-    (i.category||'').toLowerCase().includes(q)
+    (i.category||'').toLowerCase().includes(q)||
+    (i.gid||'').toLowerCase().includes(q)
   );
   const el=document.getElementById('p-search');
   el.innerHTML=`<div class="page-title">Search Results</div>
@@ -514,7 +544,9 @@ function renderSearch(){
       return`<tr>
         <td style="width:28px"><button class="edit-icon-btn" onclick="toggleRowEdit('${i.month}','${i.id}')">&#9998;</button></td>
         <td><span class="badge ${s?'sold-b':stale?'stale-b':'listed-b'}">${s?'Sold':stale?'Stale':'Listed'}</span></td>
-        <td>${hlText(i.item||'',q)}</td>
+        <td>
+          ${i.gid?`<span style="font-size:9px;color:var(--muted);font-family:var(--fm);margin-right:5px">${i.gid}</span>`:''}${hlText(i.item||'',q)}
+        </td>
         <td class="dim">${MN[i.month]}</td>
         <td class="dim">${esc(i.location||'--')}</td>
         <td>${fmt(i.salePrice)}</td>
@@ -809,7 +841,9 @@ function iRow(i,m){
   return`<tr id="row-${i.id}">
     <td style="width:28px;text-align:center"><button class="edit-icon-btn" onclick="toggleRowEdit('${m}','${i.id}')" title="Edit">&#9998;</button></td>
     <td><span class="badge ${s?'sold-b':stale?'stale-b':'listed-b'}">${s?'Sold':stale?'Stale':'Listed'}</span></td>
-    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${esc(i.item)}</td>
+    <td style="max-width:210px;overflow:hidden;text-overflow:ellipsis">
+      ${i.gid?`<span style="font-size:9px;color:var(--muted);font-family:var(--fm);margin-right:5px;letter-spacing:0.5px">${i.gid}</span>`:''}${esc(i.item)}
+    </td>
     <td class="dim col-hide">${esc(i.category||'--')}</td>
     <td class="dim col-hide">${esc(i.location||'--')}</td>
     <td class="dim col-hide">${i.dateListed||'--'}</td>
@@ -941,7 +975,9 @@ function renderStock(){
         const d=daysAgo(i.dateListed),p=i.totalRev-i.totalCost,stale=isStale(i);
         return`<tr id="row-${i.id}">
           <td style="width:28px;text-align:center"><button class="edit-icon-btn" onclick="toggleRowEdit('${i.month}','${i.id}')">&#9998;</button></td>
-          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${esc(i.item)}${stale?' <span class="badge stale-b">Stale</span>':''}</td>
+          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">
+            ${i.gid?`<span style="font-size:9px;color:var(--muted);font-family:var(--fm);margin-right:5px">${i.gid}</span>`:''}${esc(i.item)}${stale?' <span class="badge stale-b">Stale</span>':''}
+          </td>
           <td class="dim">${MN[i.month]||i.month}</td>
           <td class="dim">${esc(i.location||'--')}</td>
           <td style="color:${d>=30?'var(--warn)':d>=14?'var(--muted2)':'var(--muted2)'};font-weight:${d>=30?'500':'400'}">${d}d</td>
@@ -1062,6 +1098,10 @@ function quickAddItem(){
   const item={id:Date.now().toString(),dateListed:document.getElementById('qa-listed').value,item:name,location:document.getElementById('qa-loc').value.trim(),category:cat,source:src,dateSold:ds,salePrice:price,postage:0,itemCost:cost,shipping:ship,ebayFee:+ebay.toFixed(2),promoPercent:pp};
   recalc(item,ds);
   if(!DB[m])DB[m]=[];
+  // Assign next G007 ID
+  let maxId=0;
+  MONTHS.forEach(mo=>(DB[mo]||[]).forEach(i=>{const n=parseInt((i.gid||'').replace('G007-',''))||0;if(n>maxId)maxId=n;}));
+  item.gid='G007-'+String(maxId+1).padStart(4,'0');
   DB[m].push(item);
   saveDB();
   // Reset form
@@ -1269,6 +1309,7 @@ function renderItemPage() {
       <span class="badge ${s?'sold-b':stale?'stale-b':'listed-b'}">${s?'Sold':stale?'Stale':'Listed'}</span>
       ${i.category?`<span class="badge" style="background:var(--surface2);color:var(--muted2)">${esc(i.category)}</span>`:''}
     </div>
+    ${i.gid?`<div style="font-family:var(--fm);font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:6px">${i.gid}</div>`:''}
     <div style="font-family:var(--fn);font-size:36px;letter-spacing:1px;margin-bottom:6px;line-height:1.1">${esc(i.item)}</div>
     <div style="color:var(--muted2);font-size:12px;margin-bottom:24px">${MN[i.month]} &middot; Listed ${i.dateListed||'--'}${i.dateSold?' &middot; Sold '+i.dateSold:''}</div>
 
@@ -1385,9 +1426,9 @@ function restoreBackup(){
 function exportMonthCSV(m){
   const items=DB[m]||[];
   if(!items.length){toast('No items in '+MN[m],'err');return;}
-  const headers=['Item','Category','Location','Source','Date Listed','Date Sold','Sale Price','Item Cost','Shipping','eBay Fee','Promo Cost','Total Cost','Total Revenue','Gross Profit','ROI %'];
+  const headers=['ID','Item','Category','Location','Source','Date Listed','Date Sold','Sale Price','Item Cost','Shipping','eBay Fee','Promo Cost','Total Cost','Total Revenue','Gross Profit','ROI %'];
   const rows=items.map(i=>[
-    '"'+(i.item||'').replace(/"/g,'""')+'"',
+    i.gid||'','"'+(i.item||'').replace(/"/g,'""')+'"',
     i.category||'',i.location||'',i.source||'',
     i.dateListed||'',i.dateSold||'',
     i.salePrice||0,i.itemCost||0,i.shipping||0,i.ebayFee||0,
@@ -1419,9 +1460,9 @@ function exportYearCSV(){
   const yt=yT();
   const total=['TOTAL',yt.nTotal,yt.nSold,yt.rev.toFixed(2),yt.cost.toFixed(2),yt.profit.toFixed(2),yt.rev>0?((yt.profit/yt.rev)*100).toFixed(1):'0'].join(',');
   // All items sheet
-  const itemHeaders=['Month','Item','Category','Location','Source','Date Listed','Date Sold','Sale Price','Item Cost','Total Cost','Gross Profit','ROI %'];
+  const itemHeaders=['ID','Month','Item','Category','Location','Source','Date Listed','Date Sold','Sale Price','Item Cost','Total Cost','Gross Profit','ROI %'];
   const allRows=MONTHS.flatMap(m=>(DB[m]||[]).map(i=>[
-    MN[m],'"'+(i.item||'').replace(/"/g,'""')+'"',
+    i.gid||'',MN[m],'"'+(i.item||'').replace(/"/g,'""')+'"',
     i.category||'',i.location||'',i.source||'',
     i.dateListed||'',i.dateSold||'',
     i.salePrice||0,i.itemCost||0,
@@ -1457,28 +1498,28 @@ function importExcel(){
     reader.onload=ev=>{
       try{
         const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
-        let imported=0,skipped=0;
-        // Map sheet names to month keys
+        let added=0,updated=0,unchanged=0;
         const sheetToMonth={
           'JAN-26':'JAN','FEB-26':'FEB','MAR-26':'MAR','APR-26':'APR',
           'MAY-26':'MAY','JUN-26':'JUN','JUL-26':'JUL','AUG-26':'AUG',
           'SEP-26':'SEP','OCT-26':'OCT','NOV-26':'NOV','DEC-26':'DEC'
         };
-        const newData=JSON.parse(JSON.stringify(DB)); // start from current
+        const newData=JSON.parse(JSON.stringify(DB));
+        const changes=[];
 
         wb.SheetNames.forEach(sheetName=>{
           const m=sheetToMonth[sheetName];
           if(!m)return;
           const ws=wb.Sheets[sheetName];
           const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-          // Find header row (row with "Item Name")
+
+          // Find header row
           let headerRow=-1;
           for(let i=0;i<rows.length;i++){
-            if(rows[i]&&rows[i].some(c=>String(c||'').includes('Item Name'))){
-              headerRow=i;break;
-            }
+            if(rows[i]&&rows[i].some(c=>String(c||'').includes('Item Name'))){headerRow=i;break;}
           }
           if(headerRow<0)return;
+
           const headers=rows[headerRow].map(h=>String(h||'').trim().toLowerCase());
           const col=name=>headers.findIndex(h=>h.includes(name));
           const iName=col('item name');
@@ -1493,67 +1534,171 @@ function importExcel(){
           const iLoc=col('location');
           if(iName<0)return;
 
-          const existingNames=new Set((newData[m]||[]).map(i=>i.item));
           if(!newData[m])newData[m]=[];
+
+          // Parse date helper
+          const parseDate=v=>{
+            if(!v)return null;
+            if(v instanceof Date)return v.toISOString().split('T')[0];
+            if(typeof v==='string'&&v.match(/\d{4}-\d{2}-\d{2}/))return v.split('T')[0];
+            if(typeof v==='number'){const d=new Date(Math.round((v-25569)*86400*1000));return d.toISOString().split('T')[0];}
+            return null;
+          };
 
           for(let r=headerRow+1;r<rows.length;r++){
             const row=rows[r];
             if(!row||!row[iName])continue;
             const name=String(row[iName]||'').trim();
             if(!name||name==='MONTH END')continue;
-            // Skip if already exists (don't duplicate)
-            if(existingNames.has(name)){skipped++;continue;}
-            // Parse date helper
-            const parseDate=v=>{
-              if(!v)return null;
-              if(v instanceof Date)return v.toISOString().split('T')[0];
-              if(typeof v==='string'&&v.match(/\d{4}-\d{2}-\d{2}/))return v.split('T')[0];
-              if(typeof v==='number'){
-                // Excel serial date
-                const d=new Date(Math.round((v-25569)*86400*1000));
-                return d.toISOString().split('T')[0];
-              }
-              return null;
-            };
+
+            const dateListed=parseDate(row[iListed]);
+            const dateSold=parseDate(row[iSold]);
             const salePrice=parseFloat(row[iSaleP])||0;
             const itemCost=parseFloat(row[iCost])||0;
             const shipping=parseFloat(row[iShip])||0;
             const ebayFee=parseFloat(row[iEbay])||0;
             const postage=parseFloat(row[iPost])||0;
             const promoPercent=parseFloat(row[iPromoP])||0;
-            const dateListed=parseDate(row[iListed]);
-            const dateSold=parseDate(row[iSold]);
             const location=iLoc>=0?String(row[iLoc]||'').trim():'';
-            const promoCost=salePrice*promoPercent;
-            const totalCost=itemCost+shipping+ebayFee+promoCost;
-            const totalRev=salePrice+postage;
+            const promoCost=+(salePrice*promoPercent).toFixed(4);
+            const totalCost=+(itemCost+shipping+ebayFee+promoCost).toFixed(4);
+            const totalRev=+(salePrice+postage).toFixed(4);
             const grossProfit=dateSold?+(totalRev-totalCost).toFixed(2):null;
             const roi=itemCost>0?+((totalRev-totalCost)/itemCost).toFixed(4):null;
             const category=CAT_MAP[name]||'Other';
-            newData[m].push({
-              id:'xl_'+Date.now()+'_'+r,
-              item:name,category,location,source:'',
-              dateListed,dateSold,salePrice,postage,
-              itemCost,shipping,ebayFee,promoPercent,promoCost,
-              totalCost:+totalCost.toFixed(4),
-              totalRev:+totalRev.toFixed(4),
-              grossProfit,roi
-            });
-            imported++;
+
+            // Match: same name + same dateListed in same month (handles duplicates)
+            const existing=newData[m].find(i=>
+              i.item===name &&
+              (i.dateListed===dateListed || (!i.dateListed&&!dateListed))
+            );
+
+            if(existing){
+              // Check if anything has actually changed
+              const diff=[];
+              if(existing.salePrice!==salePrice){diff.push(`price ${existing.salePrice}->${salePrice}`);}
+              if(existing.itemCost!==itemCost){diff.push(`cost ${existing.itemCost}->${itemCost}`);}
+              if(existing.dateSold!==dateSold){diff.push(`sold date ${existing.dateSold||'none'}->${dateSold||'none'}`);}
+              if(existing.shipping!==shipping){diff.push(`shipping ${existing.shipping}->${shipping}`);}
+              if(existing.ebayFee!==ebayFee){diff.push(`ebay fee ${existing.ebayFee}->${ebayFee}`);}
+              if(existing.location!==location&&location){diff.push(`location ${existing.location}->${location}`);}
+
+              if(diff.length>0){
+                // Update the item — preserve app-only fields (source, category if set, notes)
+                const preserve={
+                  id:existing.id,
+                  source:existing.source||'',
+                  category:existing.category&&existing.category!=='Other'?existing.category:category,
+                };
+                Object.assign(existing,{
+                  ...preserve,
+                  item:name,location:location||existing.location,
+                  dateListed,dateSold,salePrice,postage,
+                  itemCost,shipping,ebayFee,promoPercent,promoCost,
+                  totalCost,totalRev,grossProfit,roi
+                });
+                changes.push({action:'updated',month:MN[m],item:name,changes:diff.join(', ')});
+                updated++;
+              } else {
+                unchanged++;
+              }
+            } else {
+              // New item — add it
+              // Get next available ID
+              let xlMax=0;
+              MONTHS.forEach(mo=>(newData[mo]||[]).forEach(i=>{const n=parseInt((i.gid||'').replace('G007-',''))||0;if(n>xlMax)xlMax=n;}));
+              newData[m].push({
+                id:'xl_'+Date.now()+'_'+r+'_'+Math.random().toString(36).slice(2,6),
+                gid:'G007-'+String(xlMax+1).padStart(4,'0'),
+                item:name,category,location,source:'',
+                dateListed,dateSold,salePrice,postage,
+                itemCost,shipping,ebayFee,promoPercent,promoCost,
+                totalCost,totalRev,grossProfit,roi
+              });
+              changes.push({action:'added',month:MN[m],item:name,changes:'new item'});
+              added++;
+            }
           }
         });
+
         DB=newData;
         saveDB();
         renderSummary();
-        toast(`Imported ${imported} new items${skipped?' ('+skipped+' skipped — already exist)':''}`);
+
+        // Show detailed results
+        let msg=``;
+        if(added)msg+=`${added} added`;
+        if(updated)msg+=`${msg?', ':''}${updated} updated`;
+        if(unchanged)msg+=`${msg?', ':''}${unchanged} unchanged`;
+        if(!added&&!updated){msg='All items up to date';}
+        toast(msg||'Import complete');
+
+        // Show change log if there were updates
+        if(changes.length>0){
+          showImportLog(changes);
+        }
       }catch(err){
         console.error(err);
-        toast('Error reading file — make sure it is the correct Excel format','err');
+        toast('Error reading file','err');
       }
     };
     reader.readAsArrayBuffer(file);
   };
   input.click();
+}
+
+function showImportLog(changes){
+  // Build a simple modal showing what changed
+  const existing=document.getElementById('import-log-modal');
+  if(existing)existing.remove();
+
+  const added=changes.filter(c=>c.action==='added');
+  const updated=changes.filter(c=>c.action==='updated');
+
+  const modal=document.createElement('div');
+  modal.id='import-log-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML=`
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:24px;width:100%;max-width:560px;max-height:80vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <div style="font-family:var(--fh);font-weight:800;font-size:17px;">Import complete</div>
+        <button onclick="document.getElementById('import-log-modal').remove()" style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--muted2);font-size:16px;cursor:pointer;padding:2px 8px;">&#x2715;</button>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
+        <div style="background:rgba(45,212,160,0.1);border:1px solid rgba(45,212,160,0.3);border-radius:8px;padding:10px 16px;text-align:center;">
+          <div style="font-family:var(--fn);font-size:28px;color:var(--green)">${added.length}</div>
+          <div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.8px">Added</div>
+        </div>
+        <div style="background:rgba(240,180,41,0.1);border:1px solid rgba(240,180,41,0.3);border-radius:8px;padding:10px 16px;text-align:center;">
+          <div style="font-family:var(--fn);font-size:28px;color:var(--accent)">${updated.length}</div>
+          <div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.8px">Updated</div>
+        </div>
+      </div>
+      ${updated.length?`
+      <div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;font-weight:500;">Changes made</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+        ${updated.map(c=>`
+          <div style="background:var(--surface2);border-radius:7px;padding:9px 12px;">
+            <div style="font-size:13px;color:var(--text);margin-bottom:3px;">${esc(c.item)}</div>
+            <div style="font-size:11px;color:var(--accent);">${esc(c.changes)}</div>
+            <div style="font-size:10px;color:var(--muted2);margin-top:2px;">${c.month}</div>
+          </div>`).join('')}
+      </div>`:''}
+      ${added.length?`
+      <div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;font-weight:500;">New items added</div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        ${added.map(c=>`
+          <div style="background:var(--surface2);border-radius:7px;padding:7px 12px;display:flex;justify-content:space-between;">
+            <span style="font-size:12px;color:var(--text)">${esc(c.item)}</span>
+            <span style="font-size:11px;color:var(--muted2)">${c.month}</span>
+          </div>`).join('')}
+      </div>`:''}
+      <div style="margin-top:18px;">
+        <button onclick="document.getElementById('import-log-modal').remove()" style="padding:8px 20px;border-radius:7px;border:none;cursor:pointer;font-family:var(--fh);font-size:13px;font-weight:700;background:var(--accent);color:#000;">Done</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',ev=>{if(ev.target===modal)modal.remove();});
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────
