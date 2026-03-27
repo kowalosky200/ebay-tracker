@@ -1678,15 +1678,33 @@ function initDB(){
   ]
 };
   
-  // Check if localStorage is empty, if so load preloaded data
+  // Check if localStorage has data, if not load preloaded data
   const existing = localStorage.getItem('g007v23');
+  
   if(!existing || existing === '{}' || existing === 'null'){
+    // No data in localStorage - load preloaded data
     console.log('📦 Loading preloaded data (62 items from Excel)');
     DB = preloadedData;
     saveDB();
   }else{
-    const parsed = JSON.parse(existing);
-    DB = parsed;
+    // Parse existing data
+    try{
+      const parsed = JSON.parse(existing);
+      // Check if parsed data is actually empty
+      const itemCount = Object.values(parsed).flat().length;
+      if(itemCount === 0){
+        console.log('📦 localStorage empty - loading preloaded data (62 items)');
+        DB = preloadedData;
+        saveDB();
+      }else{
+        console.log(`📊 Loaded ${itemCount} items from localStorage`);
+        DB = parsed;
+      }
+    }catch(e){
+      console.error('Error parsing localStorage, loading preloaded data:', e);
+      DB = preloadedData;
+      saveDB();
+    }
   }
 
 
