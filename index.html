@@ -318,9 +318,9 @@ const ITEM_SOURCES=[
 ];
 
 const ITEM_CATEGORIES=[
-  'Electronics & Computers','Home & Garden','Toys & Games','Books & Media','Clothing & Fashion',
-  'Sports & Leisure','Collectibles & Art','Health & Beauty','Pet Supplies',
-  'Vehicle Parts & Accessories','Business & Industrial','Other'
+  'Electronics & Tech','Cameras & Photography','Audio & Music',
+  'Books & Media','Toys & Games','Home & Garden',
+  'Clothing & Fashion','Collectibles & Vintage','Other'
 ];
 
 const EXPENSE_CATEGORIES=[
@@ -351,6 +351,88 @@ function updateThemeIcon(theme){
   document.getElementById('theme-icon').textContent=theme==='light'?'🌙':'☀️';
 }
 
+// AUTO-CATEGORISE by item name keyword matching
+function autoCategory(name){
+  if(!name)return'Other';
+  const n=name.toLowerCase();
+  // Order matters — more specific rules first
+  const rules=[
+    ['Cameras & Photography',[
+      'camera','canon','nikon','fuji','olympus','pentax','dslr','mirrorless','lens','flash unit',
+      'tripod','gopro','dashcam','550d','600d','700d','1300d','astro mod','kit and lens'
+    ]],
+    ['Audio & Music',[
+      'headphones','earphones','earbuds','speaker','amplifier','receiver','hi-fi','hifi',
+      'walkman','docking station','docking speaker','dock','stereo','turntable','vinyl player',
+      'soundbar','subwoofer','microphone','musical instrument','piano','guitar','bass','drum',
+      'yamaha','roland','casio','korg','singing machine','karaoke',
+      'geermac','amplidect','landline phone','bt4600','big button phone','cordless phone',
+      'azatom','sony wh','sony xm','wh-1','xm3','xm4','xm5',
+      'bose','jbl','marshall','denon','pioneer','onkyo','psr-','psr '
+    ]],
+    ['Electronics & Tech',[
+      'laptop','macbook','pc ','computer','monitor','gpu','graphics card','processor','cpu',
+      'ram','ssd','hard drive','router','netgear','switch','hub','raspberry','arduino',
+      'tablet','ipad','kindle','printer','scanner','webcam',
+      'iphone','samsung','nokia','motorola','motorolla','blackberry','htc','huawei',
+      'pixel','oneplus','android','smartphone','ericsson','siemens',
+      'smartwatch','fitbit','garmin','apple watch',
+      'geforce','radeon','gtx','rtx','nvidia','amd','intel',
+      'asus','msi','gigabyte','corsair','logitech','razer','steelseries',
+      'nest','echo','alexa','smart home','thermostat','cctv','security camera',
+      'wifi','bluetooth','usb hub','hdmi','charger','power bank',
+      'acer','dell','lenovo','toshiba','surface','chromebook',
+      'joystick','gamepad','controller','vr headset','oculus',
+      'magic keyboard','magic trackpad','apple magic','keyboard 1314','keyboard 1255','keyboard 1655',
+      'ps1','ps2','ps3','ps4','playstation','xbox','nintendo','saitek',
+      'smarter','fridgecam','remote control adaptor','tv ','television',
+      'projector','salus','wireless thermostat','grand turismo','gran turismo'
+    ]],
+    ['Books & Media',[
+      'book','novel','paperback','hardback','hardcover','comic','manga','graphic novel',
+      'magazine','dvd','blu-ray','blu ray','vhs','cassette','vinyl','record','cd ',
+      'audiobook','box set','trilogy','collection','encyclopedia','dictionary','textbook',
+      'manual','guide','biography','cookbook','star wars','lord of the rings','lotr',
+      'harry potter','band of brothers','game of thrones','george rr martin','dk illustrated',
+      'power rangers','season 1','complete series'
+    ]],
+    ['Toys & Games',[
+      'lego','playmobil','toy','doll','action figure','board game','puzzle','jigsaw',
+      'card game','chess','monopoly','scrabble','jenga','nerf','hot wheels','matchbox',
+      'barbie','figurine','soft toy','teddy','plush','baby toy','rc car','train set',
+      'meccano','pokemon','warhammer','dice','playset','blocks','building set',
+      'mr potato','potato head','saturn v','marble run','game piece'
+    ]],
+    ['Home & Garden',[
+      'sofa','chair','table','shelving','shelf','bookcase','wardrobe','drawer','cabinet',
+      'mirror','lamp','light','bulb','curtain','blind','rug','carpet','cushion','pillow',
+      'duvet','bedding','towel','cookware','pan','pot','kettle','toaster','microwave',
+      'blender','mixer','juicer','coffee','cutlery','crockery','plates','mugs','glasses',
+      'storage','bin','basket','garden','plant','hose','lawnmower','spade','rake',
+      'drill','saw','hammer','wrench','screwdriver','toolbox','ladder','paint','tile',
+      'flooring','shower','tap','toilet','sink','radiator','heater','fan','vacuum',
+      'dyson','hoover','mop','broom','cleaning','laundry','iron','sewing','torch',
+      'mag-lite','maglite','tyre chains','husky','tool'
+    ]],
+    ['Clothing & Fashion',[
+      'shirt','t-shirt','jumper','hoodie','jacket','coat','trousers','jeans','dress',
+      'skirt','suit','tie','scarf','gloves','hat','cap','boots','shoes','trainers',
+      'sneakers','sandals','handbag','purse','wallet','belt','socks','underwear',
+      'swimwear','sportswear','activewear','shoe care','shoe shine','top shine',
+      'backpack','rucksack','bag '
+    ]],
+    ['Collectibles & Vintage',[
+      'collectible','collectable','antique','vintage','retro','rare','limited edition',
+      'signed','memorabilia','stamp','coin','badge','pin','medal','trophy','ornament',
+      'vase','pottery','ceramic','china','silver','gold','jewellery','jewelry',
+      'watch','clock','postcard','poster','print','painting','art','sculpture',
+      'model kit','die cast','diecast','miniature'
+    ]],
+  ];
+  for(const[cat,kws]of rules){if(kws.some(k=>n.includes(k)))return cat;}
+  return'Other';
+}
+
 // DATABASE
 function initDB(){
   // Preloaded data from Excel
@@ -359,12 +441,16 @@ function initDB(){
   const stored = localStorage.getItem(STORAGE_KEY);
   if(!stored){
     DB = preloadedData;
-    MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{if(!i.category)i.category=autoCategory(i.item);}));
+    MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{i.category=autoCategory(i.item);}));
     saveDB();
   }else{
     DB = JSON.parse(stored);
+    // Re-run autoCategory on every item to pick up new category names
     let changed=false;
-    MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{if(!i.category){i.category=autoCategory(i.item);changed=true;}}));
+    MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{
+      const fresh=autoCategory(i.item);
+      if(i.category!==fresh){i.category=fresh;changed=true;}
+    }));
     if(changed)saveDB();
   }
 }
@@ -549,150 +635,24 @@ function updateBPFPreview(){
 }
 
 // SUMMARY PAGE
-function toggleSellThroughBar(card,byCat){
+function toggleSellThrough(card, byCat){
   const bd=card.querySelector('.st-breakdown');
   if(bd.style.display==='none'){
     bd.style.display='block';
-    if(!byCat||!byCat.length){bd.innerHTML='<div style="font-size:12px;color:var(--muted)">No category data yet</div>';return;}
+    if(!byCat||!byCat.length){bd.innerHTML='<div style="font-size:12px;color:var(--muted)">No category data yet — add categories to items</div>';return;}
     bd.innerHTML=byCat.map(c=>`
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;cursor:pointer;border-radius:6px;padding:4px;transition:background 0.15s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''" onclick="showCategoryItems(${JSON.stringify(c.cat).replace(/"/g,'&quot;')})">
-        <div style="width:130px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.cat)}">${esc(c.cat)}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px">
+        <div style="width:110px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.cat)}">${esc(c.cat)}</div>
         <div style="flex:1;background:var(--surface2);border-radius:4px;height:8px;overflow:hidden">
           <div style="width:${c.pct}%;background:var(--accent);height:100%;border-radius:4px"></div>
         </div>
-        <div style="width:36px;text-align:right;font-weight:600">${c.pct}%</div>
-        <div style="width:36px;text-align:right;color:var(--muted)">${c.sold}/${c.total}</div>
-        <div style="color:var(--muted);font-size:10px">›</div>
+        <div style="width:40px;text-align:right;font-weight:600">${c.pct}%</div>
+        <div style="width:40px;text-align:right;color:var(--muted)">${c.sold}/${c.total}</div>
       </div>
     `).join('');
   }else{
     bd.style.display='none';
   }
-}
-
-function showCategoryItems(cat){
-  let items=[];
-  MONTHS.forEach(m=>{
-    (DB[m]||[]).forEach(i=>{
-      if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-      if((i.category||'Other')===cat)items.push({...i,month:m});
-    });
-  });
-  const sold=items.filter(i=>i.dateSold&&!i.isReturned);
-  const active=items.filter(i=>!i.dateSold&&!i.isReturned);
-  const totalProfit=sold.reduce((s,i)=>s+calcGrossProfit(i),0);
-  const html=`
-    <div style="margin-bottom:16px;background:var(--surface2);border-radius:10px;padding:14px">
-      <div style="font-size:16px;font-weight:700;margin-bottom:6px">${esc(cat)}</div>
-      <div style="display:flex;gap:16px;font-size:13px;color:var(--text-secondary);flex-wrap:wrap">
-        <span>${items.length} total</span>
-        <span style="color:var(--green)">${sold.length} sold · ${fmt(totalProfit)} profit</span>
-        <span style="color:var(--muted)">${active.length} active</span>
-      </div>
-    </div>
-    ${items.map(i=>{
-      const status=i.isReturned?'returned':i.dateSold?'sold':'listed';
-      const prof=i.dateSold&&!i.isReturned?calcGrossProfit(i):null;
-      return`
-        <div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="closePanel();openItemDetail('${i.month}','${i.id}')">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-            <div style="flex:1;font-weight:600;font-size:14px">${esc(i.item)}</div>
-            <div class="item-badge ${status}">${status}</div>
-            <div style="font-size:11px;color:var(--muted)">${i.month}</div>
-          </div>
-          <div style="display:flex;gap:12px;font-size:12px;color:var(--text-secondary)">
-            <span>${fmt(i.salePrice)}</span>
-            ${prof!==null?`<span style="color:var(--green);font-weight:600">${fmt(prof)}</span>`:''}
-            ${i.dateSold&&!i.isReturned&&calcROI(i)!==null?`<span style="color:var(--muted)">ROI ${calcROI(i).toFixed(1)}%</span>`:''}
-          </div>
-        </div>
-      `;
-    }).join('')}
-  `;
-  openPanel(esc(cat),html);
-}
-
-function autoCategory(name){
-  if(!name)return'';
-  const n=name.toLowerCase();
-  const rules=[
-    ['Electronics & Computers',['laptop','macbook','pc ','computer','monitor','keyboard','mouse','gpu','graphics card','router','tablet','ipad','kindle','printer','scanner','webcam','headset','headphones','earphones','earbuds','speaker','amplifier','receiver','projector','tv ','television','camera','canon','nikon','sony','fuji','olympus','pentax','dslr','mirrorless','lens','flash','tripod','drone','gopro','dashcam','phone','mobile','iphone','samsung','nokia','motorola','blackberry','htc','huawei','pixel','oneplus','android','smartphone','smartwatch','fitbit','garmin','apple watch','geforce','radeon','gtx','rtx','nvidia','amd','intel','asus','msi','gigabyte','corsair','logitech','razer','steelseries','nest','echo','alexa','smart home','thermostat','cctv','security camera','wifi','bluetooth','usb','hdmi','charger','power bank','acer','dell','lenovo','toshiba','surface','chromebook','joystick','gamepad','controller','docking','walkman','stereo','hi-fi','hifi','dect','landline','bt4600','netgear','smarter','fridgecam','geermac','saitek','azatom','yamaha']],
-    ['Toys & Games',['lego','playmobil','toy','doll','action figure','board game','puzzle','jigsaw','card game','chess','monopoly','scrabble','jenga','nerf','hot wheels','matchbox','barbie','figurine','soft toy','teddy','plush','baby toy','rc car','train set','meccano','pokemon','warhammer','dice','playset','blocks','building set','mr potato','potato head','power rangers','singing machine','saturn v']],
-    ['Books & Media',['book','novel','paperback','hardback','hardcover','comic','manga','graphic novel','magazine','dvd','blu-ray','blu ray','vhs','cassette','vinyl','record','cd ','audiobook','box set','trilogy','collection','encyclopedia','dictionary','textbook','manual','guide','biography','cookbook','star wars','lord of the rings','lotr','harry potter','band of brothers','game of thrones','george rr martin','dk illustrated']],
-    ['Collectibles & Art',['collectible','collectable','antique','vintage','retro','rare','limited edition','signed','memorabilia','stamp','coin','badge','pin','medal','trophy','ornament','vase','pottery','ceramic','china','silver','gold','jewellery','jewelry','watch','clock','postcard','poster','print','painting','art','sculpture','model kit','die cast','diecast','miniature']],
-    ['Clothing & Fashion',['shirt','t-shirt','jumper','hoodie','jacket','coat','trousers','jeans','dress','skirt','suit','tie','scarf','gloves','hat','cap','boots','shoes','trainers','sneakers','sandals','bag','handbag','purse','wallet','belt','socks','underwear','swimwear','sportswear','activewear','shoe care','shoe shine','top shine']],
-    ['Sports & Leisure',['golf','tennis','football','rugby','cricket','cycling','bike','bicycle','fishing','camping','hiking','climbing','weights','dumbbell','barbell','treadmill','rowing','kayak','surfboard','skateboard','ski','snowboard','yoga','pilates','exercise','fitness','swimming','diving','archery','darts','snooker','table tennis','badminton','boxing','martial arts']],
-    ['Home & Garden',['sofa','chair','table','desk','shelving','shelf','bookcase','wardrobe','drawer','cabinet','mirror','lamp','light','bulb','curtain','blind','rug','carpet','cushion','pillow','duvet','bedding','towel','cookware','pan','pot','kettle','toaster','microwave','blender','mixer','juicer','coffee','cutlery','crockery','plates','mugs','glasses','storage','box','bin','basket','garden','plant','hose','lawnmower','spade','rake','power tool','drill','saw','hammer','wrench','screwdriver','toolbox','ladder','paint','tile','flooring','shower','tap','toilet','sink','radiator','heater','fan','vacuum','dyson','hoover','mop','broom','cleaning','laundry','iron','sewing','torch','mag-lite','maglite']],
-    ['Vehicle Parts & Accessories',['car','van','truck','motorbike','motorcycle','scooter','tyre','tire','wheel','alloy','brake','clutch','engine','exhaust','suspension','car battery','alternator','sat nav','car audio','roof rack','tow bar','trailer','caravan','bike rack','jump leads','tyre chains','husky']],
-    ['Health & Beauty',['shampoo','conditioner','hair','makeup','cosmetic','skincare','moisturiser','serum','toner','cleanser','sunscreen','perfume','aftershave','cologne','deodorant','razor','shaving','nail','manicure','lipstick','mascara','foundation','eyeshadow','supplement','vitamin','protein','medicine','first aid','bandage','thermometer','blood pressure','dental','toothbrush','hearing aid','glasses','massage','spa']],
-    ['Pet Supplies',['dog','cat','pet','hamster','rabbit','fish','bird','reptile','aquarium','cage','kennel','lead','collar','harness','pet food','treat','litter','scratch post','pet bed','grooming']],
-    ['Business & Industrial',['industrial','commercial','office','filing','franking','till','cash register','scales','label','barcode','trade','wholesale','catering','laboratory','workshop','safety','hi-vis','compressor','generator','welder','pallet','racking']],
-  ];
-  for(const[cat,kws]of rules){if(kws.some(k=>n.includes(k)))return cat;}
-  return'Other';
-}
-
-function showROIItems(){
-  let items=[];
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
-    if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    if(i.dateSold&&!i.isReturned){const roi=calcROI(i);if(roi!==null)items.push({...i,month:m,_roi:roi});}
-  });});
-  items.sort((a,b)=>b._roi-a._roi);
-  const avg=items.length?items.reduce((s,i)=>s+i._roi,0)/items.length:0;
-  const html=`
-    <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:10px;padding:14px">
-      <div style="font-size:28px;font-weight:700;color:var(--accent)">${avg.toFixed(1)}%</div>
-      <div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Average ROI</div><div style="font-size:13px;color:var(--text-secondary)">${items.length} items calculated</div></div>
-    </div>
-    ${items.map(i=>`
-      <div style="padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer;border-left:3px solid ${i._roi>=50?'var(--green)':i._roi>=20?'var(--accent)':'var(--muted)'}" onclick="closePanel();openItemDetail('${i.month}','${i.id}')">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <div style="flex:1;font-weight:600;font-size:14px">${esc(i.item)}</div>
-          <div style="font-size:16px;font-weight:700;color:${i._roi>=50?'var(--green)':i._roi>=20?'var(--accent)':'var(--text)'}">${i._roi.toFixed(1)}%</div>
-        </div>
-        <div style="display:flex;gap:16px;font-size:12px;color:var(--text-secondary)">
-          <span>Sale: <strong>${fmt(i.salePrice)}</strong></span>
-          <span>Profit: <strong style="color:var(--green)">${fmt(calcGrossProfit(i))}</strong></span>
-          <span style="color:var(--muted)">${i.month}</span>
-        </div>
-      </div>
-    `).join('')}`;
-  openPanel('Avg ROI — All Items',html);
-}
-
-function showAllItemsPanel(defaultFilter){_renderAllItemsPanel(defaultFilter||'sold');}
-function _renderAllItemsPanel(filter){
-  let soldItems=[],activeItems=[];
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
-    if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    if(i.dateSold&&!i.isReturned)soldItems.push({...i,month:m});
-    else if(!i.isReturned)activeItems.push({...i,month:m});
-  });});
-  const items=filter==='sold'?soldItems:activeItems;
-  const html=`
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button style="flex:1;padding:10px;border-radius:8px;border:2px solid ${filter==='sold'?'var(--accent)':'var(--border)'};background:${filter==='sold'?'var(--accent)':'var(--surface2)'};color:${filter==='sold'?'#000':'var(--text)'};font-weight:600;cursor:pointer;font-size:13px" onclick="_renderAllItemsPanel('sold')">Sold (${soldItems.length})</button>
-      <button style="flex:1;padding:10px;border-radius:8px;border:2px solid ${filter==='active'?'var(--accent)':'var(--border)'};background:${filter==='active'?'var(--accent)':'var(--surface2)'};color:${filter==='active'?'#000':'var(--text)'};font-weight:600;cursor:pointer;font-size:13px" onclick="_renderAllItemsPanel('active')">Active (${activeItems.length})</button>
-    </div>
-    <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">${items.length} items</div>
-    ${items.map(i=>{
-      const prof=i.dateSold?calcGrossProfit(i):null;
-      const roi=calcROI(i);
-      return`<div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="closePanel();openItemDetail('${i.month}','${i.id}')">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <div style="flex:1;font-weight:600;font-size:14px">${esc(i.item)}</div>
-          <div class="item-badge ${i.dateSold?'sold':'listed'}">${i.month}</div>
-        </div>
-        <div style="display:flex;gap:12px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap">
-          <span>${fmt(i.salePrice)}</span>
-          ${prof!==null?`<span style="color:var(--green);font-weight:600">${fmt(prof)}</span>`:''}
-          ${roi!==null?`<span style="color:var(--muted)">ROI ${roi.toFixed(1)}%</span>`:''}
-          ${i.category?`<span>📁 ${esc(i.category)}</span>`:''}
-        </div>
-      </div>`;
-    }).join('')}`;
-  openPanel('All Items',html);
 }
 
 function showFilteredItems(filter){
@@ -731,7 +691,6 @@ function showFilteredItems(filter){
 
 function renderSummary(){
   const stats=calcYearlyStats();
-  const stPct=Math.min(stats.sellThrough,100);
   const html=`
     <div class="kgrid">
       <div class="kcard clickable" onclick="showFilteredItems('revenue')">
@@ -754,15 +713,15 @@ function renderSummary(){
         <div class="kval">${fmt(stats.stockValue)}</div>
         <div class="ksub">Listed value ›</div>
       </div>
-      <div class="kcard clickable" onclick="showROIItems()">
+      <div class="kcard">
         <div class="klabel">Avg ROI</div>
         <div class="kval">${stats.avgROI.toFixed(1)}%</div>
-        <div class="ksub">Sold items ›</div>
+        <div class="ksub">Sold items</div>
       </div>
-      <div class="kcard clickable" onclick="showAllItemsPanel('sold')">
+      <div class="kcard">
         <div class="klabel">Total Items</div>
         <div class="kval">${stats.totalItems}</div>
-        <div class="ksub">${stats.listedCount} active ›</div>
+        <div class="ksub">${stats.listedCount} active</div>
       </div>
     </div>
 
@@ -776,23 +735,18 @@ function renderSummary(){
       </div>
     `:''}
 
-    <div class="chart-wrap" style="cursor:pointer;margin-bottom:16px" onclick="toggleSellThroughBar(this,${JSON.stringify(stats.byCat).replace(/"/g,'&quot;')})">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px">📊 Sell-through Rate <span style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none">(tap for categories)</span></div>
-        <div style="font-size:24px;font-weight:700;letter-spacing:-0.01em">${stPct.toFixed(1)}%</div>
+    <div class="insights">
+      <div class="insight-card clickable" onclick="toggleSellThrough(this,${JSON.stringify(stats.byCat).replace(/"/g,'&quot;')})" style="flex-direction:column;align-items:flex-start;cursor:pointer">
+        <div style="display:flex;align-items:center;gap:12px;width:100%">
+          <div class="insight-icon">📊</div>
+          <div style="flex:1">
+            <div class="insight-label">Sell-through <span style="font-size:11px;color:var(--muted)">(tap for categories)</span></div>
+            <div class="insight-val">${stats.sellThrough.toFixed(1)}%</div>
+            <div class="insight-sub">Of all listings</div>
+          </div>
+        </div>
+        <div class="st-breakdown" style="display:none;width:100%;margin-top:10px;border-top:1px solid var(--border);padding-top:10px"></div>
       </div>
-      <div style="background:var(--surface2);border-radius:8px;height:14px;overflow:hidden;margin-bottom:8px">
-        <div style="width:${stPct}%;background:var(--accent);height:100%;border-radius:8px;transition:width 0.5s ease"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
-        <span>${stats.soldCount} sold</span>
-        <span>${stats.listedCount} active</span>
-        <span>${stats.totalItems} total</span>
-      </div>
-      <div class="st-breakdown" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px"></div>
-    </div>
-
-    <div class="insights" style="grid-template-columns:repeat(3,1fr);margin-bottom:32px">
       <div class="insight-card">
         <div class="insight-icon">⏱️</div>
         <div>
@@ -846,7 +800,7 @@ function renderSummary(){
       </div>
     </div>
 
-    <div class="sl">Monthly Breakdown</div>
+    <div class="sl">Recent Activity</div>
     <div class="mgrid">
       ${MONTHS.map(m=>{
         const ms=calcMonthStats(m);
@@ -862,6 +816,7 @@ function renderSummary(){
   `;
   document.getElementById('p-summary').innerHTML=html;
 }
+
 function goToMonth(m){
   SELECTED_MONTH=m;
   goToTab('monthly');
@@ -1041,7 +996,7 @@ function openItemDetail(m,id){
       <button class="btn btn-p" onclick="closePanel();editItem('${m}','${id}')">✏️ Edit</button>
       ${!i.dateSold?`<button class="btn btn-s" onclick="closePanel();markSold('${m}','${id}')">✅ Mark Sold</button>`:''}
       ${i.dateSold&&!i.isReturned?`<button class="btn btn-s" onclick="closePanel();openReturn('${m}','${id}')">↩️ Log Return</button>`:''}
-      <button class="btn btn-s" onclick="duplicateItem('${m}','${id}')">📋 Duplicate</button>
+      <button class="btn btn-s" onclick="closePanel();duplicateItem('${m}','${id}')">📋 Duplicate</button>
       <button class="btn btn-s danger" onclick="closePanel();deleteItem('${m}','${id}')">🗑️ Delete</button>
     </div>
   `;
@@ -1351,6 +1306,8 @@ function importDB(e){
       const imported=JSON.parse(e.target.result);
       if(confirm('This will replace all current data. Continue?')){
         DB=imported;
+        // Auto-categorise all imported items
+        MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{i.category=autoCategory(i.item);}));
         saveDB();
         toast('Database imported');
         renderSummary();
@@ -1473,7 +1430,7 @@ function processExcelFile(file){
             ex.promoPercent=incoming.promoPercent;
             ex.dateSold=incoming.dateSold;
             ex.location=incoming.location||ex.location;
-            if(!ex.category)ex.category=autoCategory(ex.item);
+            ex.category=autoCategory(ex.item);
             updateCount++;
           }else{
             // NEW item
@@ -1647,28 +1604,20 @@ function deleteItem(m,id){
 function duplicateItem(m,id){
   const item=(DB[m]||[]).find(i=>i.id===id);
   if(!item)return;
-  // Count existing copies to number them
-  const baseName=item.item.replace(/\s*\(copy( \d+)?\)\s*$/,'');
-  const existingCopies=(DB[m]||[]).filter(i=>i.item.startsWith(baseName+' (copy')).length;
-  const copyLabel=existingCopies===0?'(copy)':`(copy ${existingCopies+1})`;
   const copy=JSON.parse(JSON.stringify(item));
   copy.id='dup_'+Date.now();
   copy.gid='G007-'+String(getNextGID()).padStart(4,'0');
   copy.dateSold=null;
   copy.grossProfit=null;
   copy.isReturned=false;
-  copy.returnHistory=[];
   delete copy.returnData;
-  copy.item=baseName+' '+copyLabel;
+  copy.item=item.item+' (copy)';
   DB[m].push(copy);
   saveDB();
-  toast(`Duplicated → ${copy.item}`);
-  // Refresh page then open the new item
+  toast('Item duplicated');
   const cur=document.querySelector('.page.on').id;
   if(cur==='p-monthly')renderMonth();
   else if(cur==='p-stock')renderStock();
-  // Open the duplicate's detail panel
-  openItemDetail(m,copy.id);
 }
 
 function openReturn(m,id){
