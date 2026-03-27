@@ -35,7 +35,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .tab{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;white-space:nowrap;}
 .tab:hover{color:var(--text);background:var(--surface2);}
 .tab.on{background:var(--accent);color:#000;}
-.nav-more{position:relative;display:none;}
+.nav-more{position:relative;}
 .nav-more-btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;display:flex;align-items:center;gap:4px;}
 .nav-more-btn:hover{color:var(--text);background:var(--surface2);}
 .nav-more-btn.has-items{display:flex;}
@@ -359,41 +359,13 @@ function initDB(){
   const stored = localStorage.getItem(STORAGE_KEY);
   if(!stored){
     DB = preloadedData;
-    MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{if(!i.category)i.category=autoCategory(i.item);}));
     saveDB();
   }else{
     DB = JSON.parse(stored);
-    // Patch any items still missing a category (covers existing localStorage data)
-    let changed=false;
-    MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{if(!i.category){i.category=autoCategory(i.item);changed=true;}}));
-    if(changed)saveDB();
   }
 }
 function saveDB(){
   localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
-}
-
-// AUTO-CATEGORISE by item name keyword matching
-function autoCategory(name){
-  if(!name)return'';
-  const n=name.toLowerCase();
-  const rules=[
-    ['Electronics & Computers',['laptop','macbook','pc ','computer','monitor','keyboard','mouse','gpu','graphics card','processor','cpu','ram','ssd','hard drive','router','switch','hub','raspberry','arduino','tablet','ipad','kindle','e-reader','printer','scanner','webcam','headset','headphones','earphones','earbuds','speaker','amplifier','receiver','projector','tv ','television','camera','canon','nikon','sony','fuji','olympus','pentax','dslr','mirrorless','lens','flash','tripod','drone','gopro','dashcam','phone','mobile','iphone','samsung','nokia','motorola','blackberry','htc','huawei','pixel','oneplus','android','smartphone','smartwatch','fitbit','garmin','apple watch','geforce','radeon','gtx','rtx','nvidia','amd','intel','asus','msi','gigabyte','corsair','logitech','razer','steelseries','nest','echo','alexa','smart home','thermostat','cctv','security camera','wifi','bluetooth','usb','hdmi','charger','power bank','acer','dell','lenovo','toshiba','surface','chromebook','joystick','gamepad','controller','vr headset','oculus','docking station','docking','walkman','stereo','hi-fi','hifi','amplifier','dect','landline','bt4600','netgear','smarter','fridgecam','router','geermac','saitek','azatom']],
-    ['Toys & Games',['lego','playmobil','toy','doll','action figure','board game','puzzle','jigsaw','card game','chess','monopoly','scrabble','jenga','nerf','hot wheels','matchbox','barbie','figurine','soft toy','teddy','plush','rattle','baby toy','rc car','remote control car','train set','meccano','marble run','pokemon','warhammer','dungeons','d&d','dice','playset','rocket','blocks','building set','mr potato','potato head','power rangers','singing machine','saturn v']],
-    ['Books & Media',['book','novel','paperback','hardback','hardcover','comic','manga','graphic novel','magazine','dvd','blu-ray','blu ray','vhs','cassette','vinyl','record','cd ','audiobook','box set','trilogy','collection','encyclopedia','dictionary','textbook','manual','guide','biography','autobiography','cookbook','recipe','colouring','coloring','star wars','lord of the rings','lotr','harry potter','band of brothers','game of thrones','george rr martin','dk illustrated','piano book']],
-    ['Collectibles & Art',['collectible','collectable','antique','vintage','retro','rare','limited edition','signed','memorabilia','stamp','coin','badge','pin','medal','trophy','ornament','vase','pottery','ceramic','china','silver','gold','jewellery','jewelry','watch','clock','postcard','poster','print','painting','art','sculpture','model kit','die cast','diecast','miniature']],
-    ['Clothing & Fashion',['shirt','t-shirt','jumper','hoodie','jacket','coat','trousers','jeans','dress','skirt','suit','tie','scarf','gloves','hat','cap','boots','shoes','trainers','sneakers','sandals','bag','handbag','purse','wallet','belt','socks','underwear','swimwear','sportswear','gym','activewear','uniform','workwear','shoe care','shoe shine','top shine']],
-    ['Sports & Leisure',['golf','tennis','football','rugby','cricket','cycling','bike','bicycle','fishing','camping','hiking','climbing','weights','dumbbell','barbell','treadmill','rowing','kayak','canoe','surfboard','skateboard','roller','skates','ski','snowboard','yoga','pilates','exercise','fitness','swimming','diving','archery','darts','snooker','pool cue','table tennis','badminton','squash','hockey','baseball','basketball','volleyball','boxing','martial arts']],
-    ['Home & Garden',['sofa','chair','table','desk','shelving','shelf','bookcase','wardrobe','drawer','cabinet','mirror','lamp','light','bulb','curtain','blind','rug','carpet','cushion','pillow','duvet','bedding','towel','cookware','pan','pot','kettle','toaster','microwave','blender','mixer','juicer','coffee','cutlery','crockery','plates','mugs','glasses','storage','box','bin','basket','garden','plant','hose','lawnmower','strimmer','spade','rake','power tool','drill','saw','hammer','wrench','screwdriver','toolbox','ladder','paint','tile','flooring','shower','tap','toilet','sink','radiator','heater','fan','vacuum','dyson','hoover','mop','broom','cleaning','laundry','iron','ironing','sewing','knitting','torch','mag-lite','maglite']],
-    ['Vehicle Parts & Accessories',['car','van','truck','motorbike','motorcycle','scooter','tyre','tire','wheel','alloy','brake','clutch','engine','exhaust','suspension','shock','car battery','alternator','starter','radiator','coolant','oil filter','wiper','headlight','tail light','bumper','door','bonnet','boot','steering','gearbox','sat nav','car audio','roof rack','tow bar','trailer','caravan','bike rack','roof box','jump leads','tyre chains','husky']],
-    ['Health & Beauty',['shampoo','conditioner','hair','makeup','cosmetic','skincare','moisturiser','serum','toner','cleanser','sunscreen','perfume','aftershave','cologne','deodorant','razor','shaving','nail','manicure','pedicure','lipstick','mascara','foundation','eyeshadow','supplement','vitamin','protein','medicine','first aid','bandage','thermometer','blood pressure','dental','toothbrush','toothpaste','hearing aid','glasses','contact lens','massage','spa']],
-    ['Pet Supplies',['dog','cat','pet','hamster','rabbit','fish','bird','reptile','aquarium','cage','kennel','lead','collar','harness','pet food','treat','litter','scratch post','pet bed','grooming']],
-    ['Business & Industrial',['industrial','commercial','office','filing','franking','till','cash register','scales','label','barcode','pos ','trade','wholesale','catering','laboratory','workshop','safety','hi-vis','compressor','generator','welder','pallet','racking']],
-  ];
-  for(const[cat,kws]of rules){
-    if(kws.some(k=>n.includes(k)))return cat;
-  }
-  return'Other';
 }
 
 // BUYER PROTECTION FEE (Tiered eBay UK formula)
@@ -573,23 +545,25 @@ function updateBPFPreview(){
 }
 
 // SUMMARY PAGE
-function toggleSellThrough(card, byCat){
+function toggleSellThroughBar(card, byCat){
   const bd=card.querySelector('.st-breakdown');
   if(bd.style.display==='none'){
     bd.style.display='block';
-    if(!byCat||!byCat.length){bd.innerHTML='<div style="font-size:12px;color:var(--muted)">No category data yet — add categories to items</div>';return;}
+    if(!byCat||!byCat.length){bd.innerHTML='<div style="font-size:12px;color:var(--muted)">No category data yet</div>';return;}
     bd.innerHTML=byCat.map(c=>`
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px">
-        <div style="width:110px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.cat)}">${esc(c.cat)}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px">
+        <div style="width:130px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.cat)}">${esc(c.cat)}</div>
         <div style="flex:1;background:var(--surface2);border-radius:4px;height:8px;overflow:hidden">
           <div style="width:${c.pct}%;background:var(--accent);height:100%;border-radius:4px"></div>
         </div>
-        <div style="width:40px;text-align:right;font-weight:600">${c.pct}%</div>
-        <div style="width:40px;text-align:right;color:var(--muted)">${c.sold}/${c.total}</div>
+        <div style="width:36px;text-align:right;font-weight:600">${c.pct}%</div>
+        <div style="width:36px;text-align:right;color:var(--muted)">${c.sold}/${c.total}</div>
       </div>
     `).join('');
   }else{
     bd.style.display='none';
+  }
+}
   }
 }
 
@@ -673,18 +647,23 @@ function renderSummary(){
       </div>
     `:''}
 
-    <div class="insights">
-      <div class="insight-card clickable" onclick="toggleSellThrough(this,${JSON.stringify(stats.byCat).replace(/"/g,'&quot;')})" style="flex-direction:column;align-items:flex-start;cursor:pointer">
-        <div style="display:flex;align-items:center;gap:12px;width:100%">
-          <div class="insight-icon">📊</div>
-          <div style="flex:1">
-            <div class="insight-label">Sell-through <span style="font-size:11px;color:var(--muted)">(tap for categories)</span></div>
-            <div class="insight-val">${stats.sellThrough.toFixed(1)}%</div>
-            <div class="insight-sub">Of all listings</div>
-          </div>
-        </div>
-        <div class="st-breakdown" style="display:none;width:100%;margin-top:10px;border-top:1px solid var(--border);padding-top:10px"></div>
+    <div class="chart-wrap" style="cursor:pointer;margin-bottom:16px" onclick="toggleSellThroughBar(this,${JSON.stringify(stats.byCat).replace(/"/g,'&quot;')})">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px">📊 Sell-through Rate <span style="font-size:11px;color:var(--muted);font-weight:400;text-transform:none">(tap for categories)</span></div>
+        <div style="font-size:24px;font-weight:700;letter-spacing:-0.01em">${Math.min(stats.sellThrough,100).toFixed(1)}%</div>
       </div>
+      <div style="background:var(--surface2);border-radius:8px;height:14px;overflow:hidden;margin-bottom:8px">
+        <div style="width:${Math.min(stats.sellThrough,100)}%;background:var(--accent);height:100%;border-radius:8px;transition:width 0.5s ease"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
+        <span>${stats.soldCount} sold</span>
+        <span>${stats.listedCount} active</span>
+        <span>${stats.totalItems} total</span>
+      </div>
+      <div class="st-breakdown" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px"></div>
+    </div>
+
+    <div class="insights" style="grid-template-columns:repeat(3,1fr);margin-bottom:32px">
       <div class="insight-card">
         <div class="insight-icon">⏱️</div>
         <div>
@@ -1366,14 +1345,13 @@ function processExcelFile(file){
             ex.promoPercent=incoming.promoPercent;
             ex.dateSold=incoming.dateSold;
             ex.location=incoming.location||ex.location;
-            if(!ex.category)ex.category=autoCategory(ex.item);
             updateCount++;
           }else{
-            // NEW item — auto-categorise
+            // NEW item
             DB[month].push({
               id:'xl_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),
               gid:'G007-'+String(getNextGID()).padStart(4,'0'),
-              source:'',category:autoCategory(itemName),notes:'',parts:[],
+              source:'',category:'',notes:'',parts:[],
               returnData:null,returnHistory:[],isReturned:false,
               ...incoming
             });
@@ -1689,44 +1667,37 @@ function toggleNavMore(){
 
 // Handle responsive navigation
 function handleNavResize(){
-  const navInner=document.querySelector('.nav-inner');
-  const brand=document.querySelector('.brand');
   const tabs=document.querySelector('.tabs');
-  const navRight=document.querySelector('.nav-right');
-  const moreWrap=document.querySelector('.nav-more');
-  const moreBtn=document.querySelector('.nav-more-btn');
-  const moreMenu=document.getElementById('nav-more-menu');
-  const tabButtons=Array.from(tabs.querySelectorAll('.tab'));
-
-  if(!navInner||!moreWrap||!moreMenu)return;
-
-  // Show all tabs, hide More button — measure from clean state
+  const tabButtons=tabs.querySelectorAll('.tab');
+  const moreBtn=tabs.querySelector('.nav-more-btn');
+  const moreMenu=tabs.querySelector('.nav-more-menu');
+  
+  if(!tabs||!moreBtn||!moreMenu)return;
+  
+  // Reset visibility
   tabButtons.forEach(t=>t.style.display='');
-  moreWrap.style.display='none';
+  moreBtn.classList.remove('has-items');
   moreMenu.innerHTML='';
-
-  // Total available width for tabs = nav width minus brand, nav-right, gaps and padding
-  const available = navInner.offsetWidth
-    - (brand?.offsetWidth||0)
-    - (navRight?.offsetWidth||0)
-    - 80; // padding + gaps buffer
-
-  // Measure cumulative tab widths; once we exceed, collapse from the right
-  let used=0;
-  const moreBtnW=80; // approximate More button width + gap
-  const toHide=[];
-
+  
+  // Check if tabs overflow
+  const navRight=document.querySelector('.nav-right');
+  const brandWidth=document.querySelector('.brand')?.offsetWidth||0;
+  const navRightWidth=navRight?.offsetWidth||0;
+  const availableWidth=tabs.parentElement.offsetWidth - brandWidth - navRightWidth - 100;
+  
+  let totalWidth=0;
+  const hiddenTabs=[];
+  
   tabButtons.forEach((tab,idx)=>{
-    used += tab.offsetWidth + 4;
-    // Start collapsing once adding this tab (plus room for More btn) would overflow
-    if(used + (toHide.length===0 ? moreBtnW : 0) > available && idx >= 1){
-      toHide.push(tab);
+    totalWidth+=tab.offsetWidth+4;
+    if(totalWidth>availableWidth && idx>=2){
+      hiddenTabs.push(tab);
     }
   });
-
-  if(toHide.length > 0){
-    moreWrap.style.display='flex';
-    toHide.forEach(tab=>{
+  
+  if(hiddenTabs.length>0){
+    moreBtn.classList.add('has-items');
+    hiddenTabs.forEach(tab=>{
       tab.style.display='none';
       const btn=document.createElement('button');
       btn.textContent=tab.textContent;
