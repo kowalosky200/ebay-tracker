@@ -1113,6 +1113,40 @@ function renderMonth(){_selected.clear();
     </table></div>
 `;
 }
+function iRow(i,m){
+  const s=!!i.dateSold;
+  const stale=isStale(i);
+  const dispProfit=i.lifetimeProfit!=null?i.lifetimeProfit:i.grossProfit;
+  const profitCls=(dispProfit||0)>0?'pos':(dispProfit||0)<0?'neg':'';
+  const roiStr=i.roi!=null?Math.round(i.roi*100)+'%':'--';
+  const cb=`<input type="checkbox" class="row-cb" ${_selected.has(i.id)?'checked':''} onchange="toggleSelect('${m}','${i.id}',this)">`;
+  const pencil=`<button class="tbtn" onclick="event.stopPropagation();toggleRowEdit('${m}','${i.id}')" title="Edit" style="font-size:11px;padding:2px 6px">&#9998;</button>`;
+  const status=`<span class="badge ${s?'sold-b':stale?'stale-b':'listed-b'}">${s?'Sold':stale?'Stale':'Listed'}</span>${(i.returnData||i.returnHistory?.length)?'<span class="badge" style="background:rgba(245,101,101,0.12);color:var(--red);font-size:8px;margin-left:2px">R</span>':''}`;
+  const name=`<span style="cursor:pointer;color:var(--accent)" onclick="event.stopPropagation();_prevPage='monthly';openItem('${m}','${i.id}')">${esc(i.item)}</span>`;
+  const acts=`<div class="acts-wrap">
+    <button class="tbtn" onclick="event.stopPropagation();duplicateItem('${m}','${i.id}')" title="Duplicate">&#10697;</button>
+    ${!s?`<button class="tbtn" onclick="event.stopPropagation();openSold('${m}','${i.id}')" title="Mark sold">&#10003;</button>`:''}
+    <button class="tbtn del" onclick="event.stopPropagation();delItem('${m}','${i.id}')" title="Delete">&#x2715;</button>
+  </div>`;
+  return`<tr style="cursor:pointer" onclick="_prevPage='monthly';openItem('${m}','${i.id}')">
+    <td class="cb-cell" onclick="event.stopPropagation()">${cb}</td>
+    <td class="col-w-edit" onclick="event.stopPropagation()">${pencil}</td>
+    <td class="col-w-status">${status}</td>
+    <td class="col-w-item">${name}</td>
+    <td class="col-w-cat col-hide dim">${esc(i.category||'--')}</td>
+    <td class="col-w-loc col-hide dim">${esc(i.location||'--')}</td>
+    <td class="col-w-listed col-hide dim">${i.dateListed||'--'}</td>
+    <td class="col-w-price num">${fmt(i.salePrice)}</td>
+    <td class="col-w-cost num dim">${fmt(i.itemCost)}</td>
+    <td class="col-w-profit num ${profitCls}">${dispProfit!=null?fmt(dispProfit):'--'}</td>
+    <td class="col-w-roi col-hide num" style="color:var(--accent)">${roiStr}</td>
+    <td class="col-w-acts acts-td">${acts}</td>
+  </tr>
+  <tr id="editrow-${i.id}" style="display:none;background:var(--surface2)">
+    <td></td><td></td><td colspan="10"><div id="editrow-inner-${i.id}"></div></td>
+  </tr>`;
+}
+
 function editRowInner(i){
   // Uses 'ip-' prefix for IDs to avoid collision with monthly table row edits
   const prefix='ip-';
