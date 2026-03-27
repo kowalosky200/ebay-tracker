@@ -36,8 +36,9 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .tab:hover{color:var(--text);background:var(--surface2);}
 .tab.on{background:var(--accent);color:#000;}
 .nav-more{position:relative;}
-.nav-more-btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;display:none;}
+.nav-more-btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;display:flex;align-items:center;gap:4px;}
 .nav-more-btn:hover{color:var(--text);background:var(--surface2);}
+.nav-more-btn.has-items{display:flex;}
 .nav-more-menu{display:none;position:absolute;top:calc(100% + 4px);right:0;min-width:150px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px var(--shadow-md);z-index:100;overflow:hidden;}
 .nav-more.open .nav-more-menu{display:block;}
 .nav-more-menu button{width:100%;padding:10px 16px;background:none;border:none;text-align:left;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-secondary);transition:all 0.15s;}
@@ -250,7 +251,10 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
       <button class="tab" onclick="goToTab('expenses')">Expenses</button>
       <button class="tab" onclick="goToTab('data')">Data</button>
       <div class="nav-more">
-        <button class="nav-more-btn" onclick="event.stopPropagation();toggleNavMore()">More ▾</button>
+        <button class="nav-more-btn" onclick="event.stopPropagation();toggleNavMore()">
+          <span>More</span>
+          <span style="font-size:10px">▾</span>
+        </button>
         <div class="nav-more-menu" id="nav-more-menu"></div>
       </div>
     </div>
@@ -1118,6 +1122,7 @@ function importExcel(e){
     const script=document.createElement('script');
     script.src='https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
     script.onload=function(){processExcelFile(file);};
+    script.onerror=function(){toast('Failed to load Excel library','err');};
     document.head.appendChild(script);
   }else{
     processExcelFile(file);
@@ -1133,33 +1138,49 @@ function processExcelFile(file){
       let importCount=0;
       let skipCount=0;
       
+      console.log('Available sheets:',workbook.SheetNames);
+      
       function safeFloat(val){
         if(val===null||val===undefined||val==='')return 0;
         if(typeof val==='number')return val;
-        if(typeof val==='string'&&val.startsWith('#'))return 0; // Excel errors
+        if(typeof val==='string'&&val.startsWith('#'))return 0;
         try{return parseFloat(val)||0;}catch{return 0;}
       }
       
       MONTHS.forEach(month=>{
-        const sheetName=month+'-26';
+        // Try both uppercase and mixed case
+        let sheetName=`${month}-26`;
+        if(!workbook.SheetNames.includes(sheetName)){
+          sheetName=`${month.toUpperCase()}-26`;
+        }
         if(!workbook.SheetNames.includes(sheetName))return;
         
+        console.log(`Processing sheet: ${sheetName}`);
+        
         const worksheet=workbook.Sheets[sheetName];
-        const jsonData=XLSX.utils.sheet_to_json(worksheet,{header:1,raw:false,dateNF:'yyyy-mm-dd'});
+        const jsonData=XLSX.utils.sheet_to_json(worksheet,{header:1,raw:false,dateNF:'yyyy-mm-dd',defval:''});
+        
+        // Header is in row 3 (index 2)
         const headerRow=jsonData[2]||[];
         const dataRows=jsonData.slice(3);
+        
         const colMap={};
         headerRow.forEach((header,idx)=>{if(header)colMap[header]=idx;});
         
-        dataRows.forEach(row=>{
+        console.log(`Column mapping for ${sheetName}:`,colMap);
+        
+        dataRows.forEach((row,rowIdx)=>{
           if(!row||row.length===0)return;
+          
           const dateListedStr=row[colMap['Date Listed']];
           const itemName=row[colMap['Item Name']];
           const dateSoldStr=row[colMap['Date Sold']];
-          if(!dateListedStr||!itemName)return;
+          
+          if(!dateListedStr||!itemName||itemName==='MONTH END')return;
           
           const dateListed=parseExcelDate(dateListedStr);
           const dateSold=dateSoldStr?parseExcelDate(dateSoldStr):null;
+          
           const exists=(DB[month]||[]).some(i=>i.item===itemName && i.dateListed===dateListed);
           if(exists){skipCount++;return;}
           
@@ -1181,17 +1202,20 @@ function processExcelFile(file){
             grossProfit:null,
             isReturned:false
           };
+          
           if(item.dateSold){item.grossProfit=calcGrossProfit(item);}
           if(!DB[month])DB[month]=[];
           DB[month].push(item);
           importCount++;
         });
       });
+      
       saveDB();
+      console.log(`Import complete: ${importCount} imported, ${skipCount} skipped`);
       toast(`Imported ${importCount} items, skipped ${skipCount} duplicates`);
       renderSummary();
     }catch(err){
-      console.error(err);
+      console.error('Excel import error:',err);
       toast('Excel import failed: '+err.message,'err');
     }
   };
@@ -1498,37 +1522,37 @@ function handleNavResize(){
   const tabButtons=tabs.querySelectorAll('.tab');
   const moreBtn=tabs.querySelector('.nav-more-btn');
   const moreMenu=tabs.querySelector('.nav-more-menu');
-  const moreWrapper=tabs.querySelector('.nav-more');
   
   if(!tabs||!moreBtn||!moreMenu)return;
   
   // Reset visibility
   tabButtons.forEach(t=>t.style.display='');
-  moreBtn.style.display='none';
+  moreBtn.classList.remove('has-items');
   moreMenu.innerHTML='';
   
   // Check if tabs overflow
-  const tabsWidth=tabs.offsetWidth;
   const navRight=document.querySelector('.nav-right');
-  const availableWidth=tabs.parentElement.offsetWidth - navRight.offsetWidth - 200; // 200px for brand
+  const brandWidth=document.querySelector('.brand')?.offsetWidth||0;
+  const navRightWidth=navRight?.offsetWidth||0;
+  const availableWidth=tabs.parentElement.offsetWidth - brandWidth - navRightWidth - 100;
   
   let totalWidth=0;
   const hiddenTabs=[];
   
   tabButtons.forEach((tab,idx)=>{
-    totalWidth+=tab.offsetWidth+4; // +4 for gap
-    if(totalWidth>availableWidth && idx>1){ // Keep at least 2 tabs visible
+    totalWidth+=tab.offsetWidth+4;
+    if(totalWidth>availableWidth && idx>=2){
       hiddenTabs.push(tab);
     }
   });
   
   if(hiddenTabs.length>0){
-    moreBtn.style.display='';
+    moreBtn.classList.add('has-items');
     hiddenTabs.forEach(tab=>{
       tab.style.display='none';
       const btn=document.createElement('button');
       btn.textContent=tab.textContent;
-      btn.className=tab.className;
+      btn.className=tab.classList.contains('on')?'on':'';
       btn.onclick=tab.onclick;
       moreMenu.appendChild(btn);
     });
