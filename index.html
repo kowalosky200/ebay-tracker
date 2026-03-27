@@ -35,7 +35,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .tab{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;white-space:nowrap;}
 .tab:hover{color:var(--text);background:var(--surface2);}
 .tab.on{background:var(--accent);color:#000;}
-.nav-more{position:relative;display:none;}
+.nav-more{position:relative;}
 .nav-more-btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;display:flex;align-items:center;gap:4px;}
 .nav-more-btn:hover{color:var(--text);background:var(--surface2);}
 .nav-more-btn.has-items{display:flex;}
@@ -372,112 +372,6 @@ function saveDB(){
   localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
 }
 
-// AUTO-CATEGORISE by item name keyword matching
-function autoCategory(name){
-  if(!name)return'';
-  const n=name.toLowerCase();
-  const rules=[
-    ['Electronics & Computers',['laptop','macbook','pc ','computer','monitor','keyboard','mouse','gpu','graphics card','processor','cpu','ram','ssd','hard drive','router','switch','hub','raspberry','arduino','tablet','ipad','kindle','printer','scanner','webcam','headset','headphones','earphones','earbuds','speaker','amplifier','receiver','projector','tv ','television','camera','canon','nikon','sony','fuji','olympus','pentax','dslr','mirrorless','lens','flash','tripod','drone','gopro','dashcam','phone','mobile','iphone','samsung','nokia','motorola','blackberry','htc','huawei','pixel','oneplus','android','smartphone','smartwatch','fitbit','garmin','apple watch','geforce','radeon','gtx','rtx','nvidia','amd','intel','asus','msi','gigabyte','corsair','logitech','razer','steelseries','nest','echo','alexa','smart home','thermostat','cctv','security camera','wifi','bluetooth','usb','hdmi','charger','power bank','acer','dell','lenovo','toshiba','surface','chromebook','joystick','gamepad','controller','vr headset','oculus','docking station','docking','walkman','stereo','hi-fi','hifi','dect','landline','bt4600','netgear','smarter','fridgecam','geermac','saitek','azatom','yamaha','keyboard','piano']],
-    ['Toys & Games',['lego','playmobil','toy','doll','action figure','board game','puzzle','jigsaw','card game','chess','monopoly','scrabble','jenga','nerf','hot wheels','matchbox','barbie','figurine','soft toy','teddy','plush','rattle','baby toy','rc car','remote control car','train set','meccano','marble run','pokemon','warhammer','dungeons','d&d','dice','playset','blocks','building set','mr potato','potato head','power rangers','singing machine','saturn v']],
-    ['Books & Media',['book','novel','paperback','hardback','hardcover','comic','manga','graphic novel','magazine','dvd','blu-ray','blu ray','vhs','cassette','vinyl','record','cd ','audiobook','box set','trilogy','collection','encyclopedia','dictionary','textbook','manual','guide','biography','autobiography','cookbook','recipe','colouring','coloring','star wars','lord of the rings','lotr','harry potter','band of brothers','game of thrones','george rr martin','dk illustrated']],
-    ['Collectibles & Art',['collectible','collectable','antique','vintage','retro','rare','limited edition','signed','memorabilia','stamp','coin','badge','pin','medal','trophy','ornament','vase','pottery','ceramic','china','silver','gold','jewellery','jewelry','watch','clock','postcard','poster','print','painting','art','sculpture','model kit','die cast','diecast','miniature']],
-    ['Clothing & Fashion',['shirt','t-shirt','jumper','hoodie','jacket','coat','trousers','jeans','dress','skirt','suit','tie','scarf','gloves','hat','cap','boots','shoes','trainers','sneakers','sandals','bag','handbag','purse','wallet','belt','socks','underwear','swimwear','sportswear','gym wear','activewear','uniform','workwear','shoe care','shoe shine','top shine']],
-    ['Sports & Leisure',['golf','tennis','football','rugby','cricket','cycling','bike','bicycle','fishing','camping','hiking','climbing','weights','dumbbell','barbell','treadmill','rowing','kayak','canoe','surfboard','skateboard','roller','skates','ski','snowboard','yoga','pilates','exercise','fitness','swimming','diving','archery','darts','snooker','pool cue','table tennis','badminton','squash','hockey','baseball','basketball','volleyball','boxing','martial arts']],
-    ['Home & Garden',['sofa','chair','table','desk','shelving','shelf','bookcase','wardrobe','drawer','cabinet','mirror','lamp','light','bulb','curtain','blind','rug','carpet','cushion','pillow','duvet','bedding','towel','cookware','pan','pot','kettle','toaster','microwave','blender','mixer','juicer','coffee','cutlery','crockery','plates','mugs','glasses','storage','box','bin','basket','garden','plant','hose','lawnmower','strimmer','spade','rake','power tool','drill','saw','hammer','wrench','screwdriver','toolbox','ladder','paint','tile','flooring','shower','tap','toilet','sink','radiator','heater','fan','vacuum','dyson','hoover','mop','broom','cleaning','laundry','iron','ironing','sewing','knitting','torch','mag-lite','maglite']],
-    ['Vehicle Parts & Accessories',['car','van','truck','motorbike','motorcycle','scooter','tyre','tire','wheel','alloy','brake','clutch','engine','exhaust','suspension','shock','car battery','alternator','starter','coolant','oil filter','wiper','headlight','bumper','steering','gearbox','sat nav','car audio','roof rack','tow bar','trailer','caravan','bike rack','roof box','jump leads','tyre chains','husky']],
-    ['Health & Beauty',['shampoo','conditioner','hair','makeup','cosmetic','skincare','moisturiser','serum','toner','cleanser','sunscreen','perfume','aftershave','cologne','deodorant','razor','shaving','nail','manicure','pedicure','lipstick','mascara','foundation','eyeshadow','supplement','vitamin','protein','medicine','first aid','bandage','thermometer','blood pressure','dental','toothbrush','toothpaste','hearing aid','glasses','contact lens','massage','spa']],
-    ['Pet Supplies',['dog','cat','pet','hamster','rabbit','fish','bird','reptile','aquarium','cage','kennel','lead','collar','harness','pet food','treat','litter','scratch post','pet bed','grooming']],
-    ['Business & Industrial',['industrial','commercial','office','filing','franking','till','cash register','scales','label','barcode','pos ','trade','wholesale','catering','laboratory','workshop','safety','hi-vis','compressor','generator','welder','pallet','racking']],
-  ];
-  for(const[cat,kws]of rules){if(kws.some(k=>n.includes(k)))return cat;}
-  return'Other';
-}
-
-// SELL-THROUGH BAR toggle
-function toggleSellThroughBar(card,byCat){
-  const bd=card.querySelector('.st-breakdown');
-  if(bd.style.display==='none'){
-    bd.style.display='block';
-    if(!byCat||!byCat.length){bd.innerHTML='<div style="font-size:12px;color:var(--muted)">No category data yet</div>';return;}
-    bd.innerHTML=byCat.map(c=>`
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px">
-        <div style="width:130px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.cat)}">${esc(c.cat)}</div>
-        <div style="flex:1;background:var(--surface2);border-radius:4px;height:8px;overflow:hidden">
-          <div style="width:${c.pct}%;background:var(--accent);height:100%;border-radius:4px"></div>
-        </div>
-        <div style="width:36px;text-align:right;font-weight:600">${c.pct}%</div>
-        <div style="width:36px;text-align:right;color:var(--muted)">${c.sold}/${c.total}</div>
-      </div>
-    `).join('');
-  }else{bd.style.display='none';}
-}
-
-// ROI panel
-function showROIItems(){
-  let items=[];
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
-    if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    if(i.dateSold&&!i.isReturned){const roi=calcROI(i);if(roi!==null)items.push({...i,month:m,_roi:roi});}
-  });});
-  items.sort((a,b)=>b._roi-a._roi);
-  const avg=items.length?items.reduce((s,i)=>s+i._roi,0)/items.length:0;
-  const html=`
-    <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:10px;padding:14px">
-      <div style="font-size:28px;font-weight:700;color:var(--accent)">${avg.toFixed(1)}%</div>
-      <div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Average ROI</div><div style="font-size:13px;color:var(--text-secondary)">${items.length} items calculated</div></div>
-    </div>
-    <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">${items.length} sold items — sorted by ROI</div>
-    ${items.map(i=>`
-      <div style="padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer;border-left:3px solid ${i._roi>=50?'var(--green)':i._roi>=20?'var(--accent)':'var(--muted)'}" onclick="closePanel();openItemDetail('${i.month}','${i.id}')">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <div style="flex:1;font-weight:600;font-size:14px">${esc(i.item)}</div>
-          <div style="font-size:16px;font-weight:700;color:${i._roi>=50?'var(--green)':i._roi>=20?'var(--accent)':'var(--text)'}">${i._roi.toFixed(1)}%</div>
-        </div>
-        <div style="display:flex;gap:16px;font-size:12px;color:var(--text-secondary)">
-          <span>Sale: <strong>${fmt(i.salePrice)}</strong></span>
-          <span>Profit: <strong style="color:var(--green)">${fmt(calcGrossProfit(i))}</strong></span>
-          <span style="color:var(--muted)">${i.month}</span>
-        </div>
-      </div>
-    `).join('')}`;
-  openPanel('Avg ROI — All Items',html);
-}
-
-// All Items panel with Sold/Active toggle
-function showAllItemsPanel(defaultFilter){_renderAllItemsPanel(defaultFilter||'sold');}
-function _renderAllItemsPanel(filter){
-  let soldItems=[],activeItems=[];
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
-    if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    if(i.dateSold&&!i.isReturned)soldItems.push({...i,month:m});
-    else if(!i.isReturned)activeItems.push({...i,month:m});
-  });});
-  const items=filter==='sold'?soldItems:activeItems;
-  const html=`
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button style="flex:1;padding:10px;border-radius:8px;border:2px solid ${filter==='sold'?'var(--accent)':'var(--border)'};background:${filter==='sold'?'var(--accent)':'var(--surface2)'};color:${filter==='sold'?'#000':'var(--text)'};font-weight:600;cursor:pointer;font-size:13px" onclick="_renderAllItemsPanel('sold')">Sold (${soldItems.length})</button>
-      <button style="flex:1;padding:10px;border-radius:8px;border:2px solid ${filter==='active'?'var(--accent)':'var(--border)'};background:${filter==='active'?'var(--accent)':'var(--surface2)'};color:${filter==='active'?'#000':'var(--text)'};font-weight:600;cursor:pointer;font-size:13px" onclick="_renderAllItemsPanel('active')">Active (${activeItems.length})</button>
-    </div>
-    <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">${items.length} items</div>
-    ${items.map(i=>{
-      const prof=i.dateSold?calcGrossProfit(i):null;
-      const roi=calcROI(i);
-      return`<div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="closePanel();openItemDetail('${i.month}','${i.id}')">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <div style="flex:1;font-weight:600;font-size:14px">${esc(i.item)}</div>
-          <div class="item-badge ${i.dateSold?'sold':'listed'}">${i.month}</div>
-        </div>
-        <div style="display:flex;gap:12px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap">
-          <span>${fmt(i.salePrice)}</span>
-          ${prof!==null?`<span style="color:var(--green);font-weight:600">${fmt(prof)}</span>`:''}
-          ${roi!==null?`<span style="color:var(--muted)">ROI ${roi.toFixed(1)}%</span>`:''}
-          ${i.category?`<span>📁 ${esc(i.category)}</span>`:''}
-        </div>
-      </div>`;
-    }).join('')}`;
-  openPanel('All Items',html);
-}
-
 // BUYER PROTECTION FEE (Tiered eBay UK formula)
 // calcBuyerProtectionFee: now uses unified iterative calcEbayBPF
 function calcBuyerProtectionFee(p){return calcEbayBPF(p);}
@@ -654,22 +548,166 @@ function updateBPFPreview(){
   }
 }
 
-function showFilteredItems(filter){
+// SUMMARY PAGE
+function toggleSellThroughBar(card,byCat){
+  const bd=card.querySelector('.st-breakdown');
+  if(bd.style.display==='none'){
+    bd.style.display='block';
+    if(!byCat||!byCat.length){bd.innerHTML='<div style="font-size:12px;color:var(--muted)">No category data yet</div>';return;}
+    bd.innerHTML=byCat.map(c=>`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;cursor:pointer;border-radius:6px;padding:4px;transition:background 0.15s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''" onclick="showCategoryItems(${JSON.stringify(c.cat).replace(/"/g,'&quot;')})">
+        <div style="width:130px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(c.cat)}">${esc(c.cat)}</div>
+        <div style="flex:1;background:var(--surface2);border-radius:4px;height:8px;overflow:hidden">
+          <div style="width:${c.pct}%;background:var(--accent);height:100%;border-radius:4px"></div>
+        </div>
+        <div style="width:36px;text-align:right;font-weight:600">${c.pct}%</div>
+        <div style="width:36px;text-align:right;color:var(--muted)">${c.sold}/${c.total}</div>
+        <div style="color:var(--muted);font-size:10px">›</div>
+      </div>
+    `).join('');
+  }else{
+    bd.style.display='none';
+  }
+}
+
+function showCategoryItems(cat){
+  let items=[];
+  MONTHS.forEach(m=>{
+    (DB[m]||[]).forEach(i=>{
+      if((i.item||'').trim().toUpperCase()==='MONTH END')return;
+      if((i.category||'Other')===cat)items.push({...i,month:m});
+    });
+  });
+  const sold=items.filter(i=>i.dateSold&&!i.isReturned);
+  const active=items.filter(i=>!i.dateSold&&!i.isReturned);
+  const totalProfit=sold.reduce((s,i)=>s+calcGrossProfit(i),0);
+  const html=`
+    <div style="margin-bottom:16px;background:var(--surface2);border-radius:10px;padding:14px">
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px">${esc(cat)}</div>
+      <div style="display:flex;gap:16px;font-size:13px;color:var(--text-secondary);flex-wrap:wrap">
+        <span>${items.length} total</span>
+        <span style="color:var(--green)">${sold.length} sold · ${fmt(totalProfit)} profit</span>
+        <span style="color:var(--muted)">${active.length} active</span>
+      </div>
+    </div>
+    ${items.map(i=>{
+      const status=i.isReturned?'returned':i.dateSold?'sold':'listed';
+      const prof=i.dateSold&&!i.isReturned?calcGrossProfit(i):null;
+      return`
+        <div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="closePanel();openItemDetail('${i.month}','${i.id}')">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <div style="flex:1;font-weight:600;font-size:14px">${esc(i.item)}</div>
+            <div class="item-badge ${status}">${status}</div>
+            <div style="font-size:11px;color:var(--muted)">${i.month}</div>
+          </div>
+          <div style="display:flex;gap:12px;font-size:12px;color:var(--text-secondary)">
+            <span>${fmt(i.salePrice)}</span>
+            ${prof!==null?`<span style="color:var(--green);font-weight:600">${fmt(prof)}</span>`:''}
+            ${i.dateSold&&!i.isReturned&&calcROI(i)!==null?`<span style="color:var(--muted)">ROI ${calcROI(i).toFixed(1)}%</span>`:''}
+          </div>
+        </div>
+      `;
+    }).join('')}
+  `;
+  openPanel(esc(cat),html);
+}
+
+function autoCategory(name){
+  if(!name)return'';
+  const n=name.toLowerCase();
+  const rules=[
+    ['Electronics & Computers',['laptop','macbook','pc ','computer','monitor','keyboard','mouse','gpu','graphics card','router','tablet','ipad','kindle','printer','scanner','webcam','headset','headphones','earphones','earbuds','speaker','amplifier','receiver','projector','tv ','television','camera','canon','nikon','sony','fuji','olympus','pentax','dslr','mirrorless','lens','flash','tripod','drone','gopro','dashcam','phone','mobile','iphone','samsung','nokia','motorola','blackberry','htc','huawei','pixel','oneplus','android','smartphone','smartwatch','fitbit','garmin','apple watch','geforce','radeon','gtx','rtx','nvidia','amd','intel','asus','msi','gigabyte','corsair','logitech','razer','steelseries','nest','echo','alexa','smart home','thermostat','cctv','security camera','wifi','bluetooth','usb','hdmi','charger','power bank','acer','dell','lenovo','toshiba','surface','chromebook','joystick','gamepad','controller','docking','walkman','stereo','hi-fi','hifi','dect','landline','bt4600','netgear','smarter','fridgecam','geermac','saitek','azatom','yamaha']],
+    ['Toys & Games',['lego','playmobil','toy','doll','action figure','board game','puzzle','jigsaw','card game','chess','monopoly','scrabble','jenga','nerf','hot wheels','matchbox','barbie','figurine','soft toy','teddy','plush','baby toy','rc car','train set','meccano','pokemon','warhammer','dice','playset','blocks','building set','mr potato','potato head','power rangers','singing machine','saturn v']],
+    ['Books & Media',['book','novel','paperback','hardback','hardcover','comic','manga','graphic novel','magazine','dvd','blu-ray','blu ray','vhs','cassette','vinyl','record','cd ','audiobook','box set','trilogy','collection','encyclopedia','dictionary','textbook','manual','guide','biography','cookbook','star wars','lord of the rings','lotr','harry potter','band of brothers','game of thrones','george rr martin','dk illustrated']],
+    ['Collectibles & Art',['collectible','collectable','antique','vintage','retro','rare','limited edition','signed','memorabilia','stamp','coin','badge','pin','medal','trophy','ornament','vase','pottery','ceramic','china','silver','gold','jewellery','jewelry','watch','clock','postcard','poster','print','painting','art','sculpture','model kit','die cast','diecast','miniature']],
+    ['Clothing & Fashion',['shirt','t-shirt','jumper','hoodie','jacket','coat','trousers','jeans','dress','skirt','suit','tie','scarf','gloves','hat','cap','boots','shoes','trainers','sneakers','sandals','bag','handbag','purse','wallet','belt','socks','underwear','swimwear','sportswear','activewear','shoe care','shoe shine','top shine']],
+    ['Sports & Leisure',['golf','tennis','football','rugby','cricket','cycling','bike','bicycle','fishing','camping','hiking','climbing','weights','dumbbell','barbell','treadmill','rowing','kayak','surfboard','skateboard','ski','snowboard','yoga','pilates','exercise','fitness','swimming','diving','archery','darts','snooker','table tennis','badminton','boxing','martial arts']],
+    ['Home & Garden',['sofa','chair','table','desk','shelving','shelf','bookcase','wardrobe','drawer','cabinet','mirror','lamp','light','bulb','curtain','blind','rug','carpet','cushion','pillow','duvet','bedding','towel','cookware','pan','pot','kettle','toaster','microwave','blender','mixer','juicer','coffee','cutlery','crockery','plates','mugs','glasses','storage','box','bin','basket','garden','plant','hose','lawnmower','spade','rake','power tool','drill','saw','hammer','wrench','screwdriver','toolbox','ladder','paint','tile','flooring','shower','tap','toilet','sink','radiator','heater','fan','vacuum','dyson','hoover','mop','broom','cleaning','laundry','iron','sewing','torch','mag-lite','maglite']],
+    ['Vehicle Parts & Accessories',['car','van','truck','motorbike','motorcycle','scooter','tyre','tire','wheel','alloy','brake','clutch','engine','exhaust','suspension','car battery','alternator','sat nav','car audio','roof rack','tow bar','trailer','caravan','bike rack','jump leads','tyre chains','husky']],
+    ['Health & Beauty',['shampoo','conditioner','hair','makeup','cosmetic','skincare','moisturiser','serum','toner','cleanser','sunscreen','perfume','aftershave','cologne','deodorant','razor','shaving','nail','manicure','lipstick','mascara','foundation','eyeshadow','supplement','vitamin','protein','medicine','first aid','bandage','thermometer','blood pressure','dental','toothbrush','hearing aid','glasses','massage','spa']],
+    ['Pet Supplies',['dog','cat','pet','hamster','rabbit','fish','bird','reptile','aquarium','cage','kennel','lead','collar','harness','pet food','treat','litter','scratch post','pet bed','grooming']],
+    ['Business & Industrial',['industrial','commercial','office','filing','franking','till','cash register','scales','label','barcode','trade','wholesale','catering','laboratory','workshop','safety','hi-vis','compressor','generator','welder','pallet','racking']],
+  ];
+  for(const[cat,kws]of rules){if(kws.some(k=>n.includes(k)))return cat;}
+  return'Other';
+}
+
+function showROIItems(){
   let items=[];
   MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    const sold=i.dateSold&&!i.isReturned;
-    if(filter==='revenue'&&sold)items.push({...i,month:m});
-    else if(filter==='realised'&&sold)items.push({...i,month:m});
-    else if(filter==='unrealised'&&!sold&&!i.isReturned)items.push({...i,month:m});
-    else if(filter==='stock'&&!sold&&!i.isReturned)items.push({...i,month:m});
+    if(i.dateSold&&!i.isReturned){const roi=calcROI(i);if(roi!==null)items.push({...i,month:m,_roi:roi});}
   });});
-  const titles={revenue:'Total Revenue',realised:'Realised Profit',unrealised:'Unrealised Profit',stock:'Stock Value'};
-  let summaryVal='',summaryLabel='',summaryColor='var(--accent)';
-  if(filter==='revenue'){summaryVal=fmt(items.reduce((s,i)=>s+(i.salePrice||0),0));summaryLabel=`${items.length} sold items`;summaryColor='var(--accent)';}
-  else if(filter==='realised'){const t=items.reduce((s,i)=>s+calcGrossProfit(i),0);const r=items.length?items.reduce((s,i)=>s+(calcROI(i)||0),0)/items.length:0;summaryVal=fmt(t);summaryLabel=`${items.length} items · Avg ROI ${r.toFixed(1)}%`;summaryColor='var(--green)';}
-  else if(filter==='unrealised'){summaryVal=fmt(items.reduce((s,i)=>s+(calcGrossProfit(i)||0),0));summaryLabel=`${items.length} active listings`;summaryColor='var(--purple)';}
-  else if(filter==='stock'){summaryVal=fmt(items.reduce((s,i)=>s+(i.salePrice||0),0));summaryLabel=`${items.length} items listed`;summaryColor='var(--blue)';}
+  items.sort((a,b)=>b._roi-a._roi);
+  const avg=items.length?items.reduce((s,i)=>s+i._roi,0)/items.length:0;
+  const html=`
+    <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:10px;padding:14px">
+      <div style="font-size:28px;font-weight:700;color:var(--accent)">${avg.toFixed(1)}%</div>
+      <div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Average ROI</div><div style="font-size:13px;color:var(--text-secondary)">${items.length} items calculated</div></div>
+    </div>
+    ${items.map(i=>`
+      <div style="padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer;border-left:3px solid ${i._roi>=50?'var(--green)':i._roi>=20?'var(--accent)':'var(--muted)'}" onclick="closePanel();openItemDetail('${i.month}','${i.id}')">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div style="flex:1;font-weight:600;font-size:14px">${esc(i.item)}</div>
+          <div style="font-size:16px;font-weight:700;color:${i._roi>=50?'var(--green)':i._roi>=20?'var(--accent)':'var(--text)'}">${i._roi.toFixed(1)}%</div>
+        </div>
+        <div style="display:flex;gap:16px;font-size:12px;color:var(--text-secondary)">
+          <span>Sale: <strong>${fmt(i.salePrice)}</strong></span>
+          <span>Profit: <strong style="color:var(--green)">${fmt(calcGrossProfit(i))}</strong></span>
+          <span style="color:var(--muted)">${i.month}</span>
+        </div>
+      </div>
+    `).join('')}`;
+  openPanel('Avg ROI — All Items',html);
+}
+
+function showAllItemsPanel(defaultFilter){_renderAllItemsPanel(defaultFilter||'sold');}
+function _renderAllItemsPanel(filter){
+  let soldItems=[],activeItems=[];
+  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
+    if((i.item||'').trim().toUpperCase()==='MONTH END')return;
+    if(i.dateSold&&!i.isReturned)soldItems.push({...i,month:m});
+    else if(!i.isReturned)activeItems.push({...i,month:m});
+  });});
+  const items=filter==='sold'?soldItems:activeItems;
+  const html=`
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button style="flex:1;padding:10px;border-radius:8px;border:2px solid ${filter==='sold'?'var(--accent)':'var(--border)'};background:${filter==='sold'?'var(--accent)':'var(--surface2)'};color:${filter==='sold'?'#000':'var(--text)'};font-weight:600;cursor:pointer;font-size:13px" onclick="_renderAllItemsPanel('sold')">Sold (${soldItems.length})</button>
+      <button style="flex:1;padding:10px;border-radius:8px;border:2px solid ${filter==='active'?'var(--accent)':'var(--border)'};background:${filter==='active'?'var(--accent)':'var(--surface2)'};color:${filter==='active'?'#000':'var(--text)'};font-weight:600;cursor:pointer;font-size:13px" onclick="_renderAllItemsPanel('active')">Active (${activeItems.length})</button>
+    </div>
+    <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">${items.length} items</div>
+    ${items.map(i=>{
+      const prof=i.dateSold?calcGrossProfit(i):null;
+      const roi=calcROI(i);
+      return`<div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="closePanel();openItemDetail('${i.month}','${i.id}')">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div style="flex:1;font-weight:600;font-size:14px">${esc(i.item)}</div>
+          <div class="item-badge ${i.dateSold?'sold':'listed'}">${i.month}</div>
+        </div>
+        <div style="display:flex;gap:12px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap">
+          <span>${fmt(i.salePrice)}</span>
+          ${prof!==null?`<span style="color:var(--green);font-weight:600">${fmt(prof)}</span>`:''}
+          ${roi!==null?`<span style="color:var(--muted)">ROI ${roi.toFixed(1)}%</span>`:''}
+          ${i.category?`<span>📁 ${esc(i.category)}</span>`:''}
+        </div>
+      </div>`;
+    }).join('')}`;
+  openPanel('All Items',html);
+}
+
+function showFilteredItems(filter){
+  let items=[];
+  MONTHS.forEach(m=>{
+    (DB[m]||[]).forEach(i=>{
+      if((i.item||"").trim().toUpperCase()==="MONTH END")return;
+      const sold=i.dateSold&&!i.isReturned;
+      if(filter==='revenue'&&sold)items.push({...i,month:m});
+      else if(filter==='realised'&&sold)items.push({...i,month:m});
+      else if(filter==='unrealised'&&!sold&&!i.isReturned)items.push({...i,month:m});
+      else if(filter==='stock'&&!sold&&!i.isReturned)items.push({...i,month:m});
+    });
+  });
+  const titles={revenue:'Sold Items — Revenue',realised:'Sold Items — Realised Profit',unrealised:'Active Listings — Unrealised Profit',stock:'Active Stock'};
   const cols={
     revenue:i=>`<div style="font-size:12px;margin-top:4px;color:var(--muted)">${i.dateSold} · ${fmt(i.salePrice)}</div>`,
     realised:i=>`<div style="font-size:12px;margin-top:4px"><span style="color:var(--green);font-weight:600">${fmt(calcGrossProfit(i))}</span> · ROI ${calcROI(i)!==null?calcROI(i).toFixed(1)+'%':'—'}</div>`,
@@ -677,10 +715,7 @@ function showFilteredItems(filter){
     stock:i=>`<div style="font-size:12px;margin-top:4px;color:var(--muted)">Listed: ${fmt(i.salePrice)} · Cost: ${fmt(i.costPrice)}</div>`,
   };
   const html=`
-    <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:10px;padding:14px">
-      <div style="font-size:28px;font-weight:700;color:${summaryColor}">${summaryVal}</div>
-      <div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">${titles[filter]}</div><div style="font-size:13px;color:var(--text-secondary)">${summaryLabel}</div></div>
-    </div>
+    <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">${items.length} items</div>
     ${items.map(i=>`
       <div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="closePanel();openItemDetail('${i.month}','${i.id}')">
         <div style="display:flex;align-items:center;gap:8px">
@@ -689,11 +724,11 @@ function showFilteredItems(filter){
         </div>
         ${cols[filter](i)}
       </div>
-    `).join('')}`;
+    `).join('')}
+  `;
   openPanel(titles[filter]||'Items',html);
 }
 
-// SUMMARY PAGE
 function renderSummary(){
   const stats=calcYearlyStats();
   const stPct=Math.min(stats.sellThrough,100);
@@ -827,7 +862,6 @@ function renderSummary(){
   `;
   document.getElementById('p-summary').innerHTML=html;
 }
-
 function goToMonth(m){
   SELECTED_MONTH=m;
   goToTab('monthly');
@@ -1007,7 +1041,7 @@ function openItemDetail(m,id){
       <button class="btn btn-p" onclick="closePanel();editItem('${m}','${id}')">✏️ Edit</button>
       ${!i.dateSold?`<button class="btn btn-s" onclick="closePanel();markSold('${m}','${id}')">✅ Mark Sold</button>`:''}
       ${i.dateSold&&!i.isReturned?`<button class="btn btn-s" onclick="closePanel();openReturn('${m}','${id}')">↩️ Log Return</button>`:''}
-      <button class="btn btn-s" onclick="closePanel();duplicateItem('${m}','${id}')">📋 Duplicate</button>
+      <button class="btn btn-s" onclick="duplicateItem('${m}','${id}')">📋 Duplicate</button>
       <button class="btn btn-s danger" onclick="closePanel();deleteItem('${m}','${id}')">🗑️ Delete</button>
     </div>
   `;
@@ -1439,13 +1473,14 @@ function processExcelFile(file){
             ex.promoPercent=incoming.promoPercent;
             ex.dateSold=incoming.dateSold;
             ex.location=incoming.location||ex.location;
+            if(!ex.category)ex.category=autoCategory(ex.item);
             updateCount++;
           }else{
             // NEW item
             DB[month].push({
               id:'xl_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),
               gid:'G007-'+String(getNextGID()).padStart(4,'0'),
-              source:'',category:'',notes:'',parts:[],
+              source:'',category:autoCategory(itemName),notes:'',parts:[],
               returnData:null,returnHistory:[],isReturned:false,
               ...incoming
             });
@@ -1612,20 +1647,28 @@ function deleteItem(m,id){
 function duplicateItem(m,id){
   const item=(DB[m]||[]).find(i=>i.id===id);
   if(!item)return;
+  // Count existing copies to number them
+  const baseName=item.item.replace(/\s*\(copy( \d+)?\)\s*$/,'');
+  const existingCopies=(DB[m]||[]).filter(i=>i.item.startsWith(baseName+' (copy')).length;
+  const copyLabel=existingCopies===0?'(copy)':`(copy ${existingCopies+1})`;
   const copy=JSON.parse(JSON.stringify(item));
   copy.id='dup_'+Date.now();
   copy.gid='G007-'+String(getNextGID()).padStart(4,'0');
   copy.dateSold=null;
   copy.grossProfit=null;
   copy.isReturned=false;
+  copy.returnHistory=[];
   delete copy.returnData;
-  copy.item=item.item+' (copy)';
+  copy.item=baseName+' '+copyLabel;
   DB[m].push(copy);
   saveDB();
-  toast('Item duplicated');
+  toast(`Duplicated → ${copy.item}`);
+  // Refresh page then open the new item
   const cur=document.querySelector('.page.on').id;
   if(cur==='p-monthly')renderMonth();
   else if(cur==='p-stock')renderStock();
+  // Open the duplicate's detail panel
+  openItemDetail(m,copy.id);
 }
 
 function openReturn(m,id){
@@ -1761,27 +1804,37 @@ function toggleNavMore(){
 
 // Handle responsive navigation
 function handleNavResize(){
-  const navInner=document.querySelector('.nav-inner');
-  const brand=document.querySelector('.brand');
   const tabs=document.querySelector('.tabs');
-  const navRight=document.querySelector('.nav-right');
-  const moreWrap=document.querySelector('.nav-more');
-  const moreMenu=document.getElementById('nav-more-menu');
-  const tabButtons=Array.from(tabs.querySelectorAll('.tab'));
-  if(!navInner||!moreWrap||!moreMenu)return;
+  const tabButtons=tabs.querySelectorAll('.tab');
+  const moreBtn=tabs.querySelector('.nav-more-btn');
+  const moreMenu=tabs.querySelector('.nav-more-menu');
+  
+  if(!tabs||!moreBtn||!moreMenu)return;
+  
+  // Reset visibility
   tabButtons.forEach(t=>t.style.display='');
-  moreWrap.style.display='none';
+  moreBtn.classList.remove('has-items');
   moreMenu.innerHTML='';
-  const available=navInner.offsetWidth-(brand?.offsetWidth||0)-(navRight?.offsetWidth||0)-80;
-  let used=0;
-  const toHide=[];
+  
+  // Check if tabs overflow
+  const navRight=document.querySelector('.nav-right');
+  const brandWidth=document.querySelector('.brand')?.offsetWidth||0;
+  const navRightWidth=navRight?.offsetWidth||0;
+  const availableWidth=tabs.parentElement.offsetWidth - brandWidth - navRightWidth - 100;
+  
+  let totalWidth=0;
+  const hiddenTabs=[];
+  
   tabButtons.forEach((tab,idx)=>{
-    used+=tab.offsetWidth+4;
-    if(used+80>available&&idx>=1)toHide.push(tab);
+    totalWidth+=tab.offsetWidth+4;
+    if(totalWidth>availableWidth && idx>=2){
+      hiddenTabs.push(tab);
+    }
   });
-  if(toHide.length>0){
-    moreWrap.style.display='flex';
-    toHide.forEach(tab=>{
+  
+  if(hiddenTabs.length>0){
+    moreBtn.classList.add('has-items');
+    hiddenTabs.forEach(tab=>{
       tab.style.display='none';
       const btn=document.createElement('button');
       btn.textContent=tab.textContent;
