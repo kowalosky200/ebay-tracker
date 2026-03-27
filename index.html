@@ -35,6 +35,14 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .tab{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;white-space:nowrap;}
 .tab:hover{color:var(--text);background:var(--surface2);}
 .tab.on{background:var(--accent);color:#000;}
+.nav-more{position:relative;}
+.nav-more-btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;display:none;}
+.nav-more-btn:hover{color:var(--text);background:var(--surface2);}
+.nav-more-menu{display:none;position:absolute;top:calc(100% + 4px);right:0;min-width:150px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px var(--shadow-md);z-index:100;overflow:hidden;}
+.nav-more.open .nav-more-menu{display:block;}
+.nav-more-menu button{width:100%;padding:10px 16px;background:none;border:none;text-align:left;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-secondary);transition:all 0.15s;}
+.nav-more-menu button:hover{background:var(--surface2);color:var(--text);}
+.nav-more-menu button.on{background:var(--accent);color:#000;}
 .nav-right{display:flex;align-items:center;gap:12px;}
 .search-wrap{position:relative;width:200px;}
 .search-wrap input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 36px;color:var(--text);font-size:13px;width:100%;transition:all 0.15s;}
@@ -232,7 +240,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
   <div class="nav-inner">
     <div class="brand" onclick="goToTab('summary')">
       <div class="brand-text">
-        <span class="brand-general">GENERAL</span><span class="brand-007">-007</span>
+        <span class="brand-general">GENERAL</span><span class="brand-007"> 007</span>
       </div>
     </div>
     <div class="tabs">
@@ -241,6 +249,10 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
       <button class="tab" onclick="goToTab('stock')">Stock</button>
       <button class="tab" onclick="goToTab('expenses')">Expenses</button>
       <button class="tab" onclick="goToTab('data')">Data</button>
+      <div class="nav-more">
+        <button class="nav-more-btn" onclick="event.stopPropagation();toggleNavMore()">More ▾</button>
+        <div class="nav-more-menu" id="nav-more-menu"></div>
+      </div>
     </div>
     <div class="nav-right">
       <div class="search-wrap">
@@ -337,10 +349,24 @@ function initDB(){
   const raw=localStorage.getItem(STORAGE_KEY);
   if(raw){
     try{DB=JSON.parse(raw);}catch(e){DB={};}
+  }else{
+    // First time - check if we should load sample/imported data
+    DB={};
   }
   MONTHS.forEach(m=>{if(!DB[m])DB[m]=[];});
   if(!DB.trips)DB.trips=[];
   if(!DB.expenses)DB.expenses=[];
+  
+  // If database is completely empty, offer to import from Excel
+  const totalItems=MONTHS.reduce((sum,m)=>(DB[m]||[]).length,0);
+  if(totalItems===0 && !sessionStorage.getItem('import_offered')){
+    sessionStorage.setItem('import_offered','1');
+    setTimeout(()=>{
+      if(confirm('Welcome! Would you like to import your existing data from an Excel file?')){
+        document.getElementById('import-excel').click();
+      }
+    },1000);
+  }
 }
 function saveDB(){
   localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
@@ -1106,49 +1132,60 @@ function processExcelFile(file){
       const workbook=XLSX.read(data,{type:'array',cellDates:true});
       let importCount=0;
       let skipCount=0;
+      
+      function safeFloat(val){
+        if(val===null||val===undefined||val==='')return 0;
+        if(typeof val==='number')return val;
+        if(typeof val==='string'&&val.startsWith('#'))return 0; // Excel errors
+        try{return parseFloat(val)||0;}catch{return 0;}
+      }
+      
       MONTHS.forEach(month=>{
         const sheetName=month+'-26';
-        if(workbook.SheetNames.includes(sheetName)){
-          const worksheet=workbook.Sheets[sheetName];
-          const jsonData=XLSX.utils.sheet_to_json(worksheet,{header:1,raw:false,dateNF:'yyyy-mm-dd'});
-          const headerRow=jsonData[2]||[];
-          const dataRows=jsonData.slice(3);
-          const colMap={};
-          headerRow.forEach((header,idx)=>{if(header)colMap[header]=idx;});
-          dataRows.forEach(row=>{
-            if(!row||row.length===0)return;
-            const dateListedStr=row[colMap['Date Listed']];
-            const itemName=row[colMap['Item Name']];
-            const dateSoldStr=row[colMap['Date Sold']];
-            if(!dateListedStr||!itemName)return;
-            const dateListed=parseExcelDate(dateListedStr);
-            const dateSold=dateSoldStr?parseExcelDate(dateSoldStr):null;
-            const exists=(DB[month]||[]).some(i=>i.item===itemName && i.dateListed===dateListed);
-            if(exists){skipCount++;return;}
-            const item={
-              id:'excel_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),
-              gid:'G007-'+String(getNextGID()).padStart(4,'0'),
-              dateListed:dateListed,
-              item:itemName||'Untitled',
-              source:'',
-              category:'',
-              location:row[colMap['Location']]||'',
-              costPrice:parseFloat(row[colMap['Item Cost']])||0,
-              salePrice:parseFloat(row[colMap['Sale Price']])||0,
-              postage:parseFloat(row[colMap['Postage Fee']])||0,
-              shippingCost:parseFloat(row[colMap['Shipping Cost']])||0,
-              packagingCost:parseFloat(row[colMap['Packeging Cost']])||0,
-              promoPercent:parseFloat(row[colMap['Promotion %']])*100||0,
-              dateSold:dateSold,
-              grossProfit:null,
-              isReturned:false
-            };
-            if(item.dateSold){item.grossProfit=calcGrossProfit(item);}
-            if(!DB[month])DB[month]=[];
-            DB[month].push(item);
-            importCount++;
-          });
-        }
+        if(!workbook.SheetNames.includes(sheetName))return;
+        
+        const worksheet=workbook.Sheets[sheetName];
+        const jsonData=XLSX.utils.sheet_to_json(worksheet,{header:1,raw:false,dateNF:'yyyy-mm-dd'});
+        const headerRow=jsonData[2]||[];
+        const dataRows=jsonData.slice(3);
+        const colMap={};
+        headerRow.forEach((header,idx)=>{if(header)colMap[header]=idx;});
+        
+        dataRows.forEach(row=>{
+          if(!row||row.length===0)return;
+          const dateListedStr=row[colMap['Date Listed']];
+          const itemName=row[colMap['Item Name']];
+          const dateSoldStr=row[colMap['Date Sold']];
+          if(!dateListedStr||!itemName)return;
+          
+          const dateListed=parseExcelDate(dateListedStr);
+          const dateSold=dateSoldStr?parseExcelDate(dateSoldStr):null;
+          const exists=(DB[month]||[]).some(i=>i.item===itemName && i.dateListed===dateListed);
+          if(exists){skipCount++;return;}
+          
+          const item={
+            id:'excel_'+Date.now()+'_'+Math.random().toString(36).substr(2,9),
+            gid:'G007-'+String(getNextGID()).padStart(4,'0'),
+            dateListed:dateListed,
+            item:itemName||'Untitled',
+            source:'',
+            category:'',
+            location:row[colMap['Location']]||'',
+            costPrice:safeFloat(row[colMap['Item Cost']]),
+            salePrice:safeFloat(row[colMap['Sale Price']]),
+            postage:safeFloat(row[colMap['Postage Fee']]),
+            shippingCost:safeFloat(row[colMap['Shipping Cost']]),
+            packagingCost:safeFloat(row[colMap['Packeging Cost']]),
+            promoPercent:safeFloat(row[colMap['Promotion %']])*100,
+            dateSold:dateSold,
+            grossProfit:null,
+            isReturned:false
+          };
+          if(item.dateSold){item.grossProfit=calcGrossProfit(item);}
+          if(!DB[month])DB[month]=[];
+          DB[month].push(item);
+          importCount++;
+        });
       });
       saveDB();
       toast(`Imported ${importCount} items, skipped ${skipCount} duplicates`);
@@ -1446,7 +1483,60 @@ document.addEventListener('click',function(e){
   if(!e.target.closest('.ddwrap')){
     document.querySelectorAll('.ddwrap.open').forEach(d=>d.classList.remove('open'));
   }
+  if(!e.target.closest('.nav-more')){
+    document.querySelector('.nav-more')?.classList.remove('open');
+  }
 });
+
+function toggleNavMore(){
+  document.querySelector('.nav-more')?.classList.toggle('open');
+}
+
+// Handle responsive navigation
+function handleNavResize(){
+  const tabs=document.querySelector('.tabs');
+  const tabButtons=tabs.querySelectorAll('.tab');
+  const moreBtn=tabs.querySelector('.nav-more-btn');
+  const moreMenu=tabs.querySelector('.nav-more-menu');
+  const moreWrapper=tabs.querySelector('.nav-more');
+  
+  if(!tabs||!moreBtn||!moreMenu)return;
+  
+  // Reset visibility
+  tabButtons.forEach(t=>t.style.display='');
+  moreBtn.style.display='none';
+  moreMenu.innerHTML='';
+  
+  // Check if tabs overflow
+  const tabsWidth=tabs.offsetWidth;
+  const navRight=document.querySelector('.nav-right');
+  const availableWidth=tabs.parentElement.offsetWidth - navRight.offsetWidth - 200; // 200px for brand
+  
+  let totalWidth=0;
+  const hiddenTabs=[];
+  
+  tabButtons.forEach((tab,idx)=>{
+    totalWidth+=tab.offsetWidth+4; // +4 for gap
+    if(totalWidth>availableWidth && idx>1){ // Keep at least 2 tabs visible
+      hiddenTabs.push(tab);
+    }
+  });
+  
+  if(hiddenTabs.length>0){
+    moreBtn.style.display='';
+    hiddenTabs.forEach(tab=>{
+      tab.style.display='none';
+      const btn=document.createElement('button');
+      btn.textContent=tab.textContent;
+      btn.className=tab.className;
+      btn.onclick=tab.onclick;
+      moreMenu.appendChild(btn);
+    });
+  }
+}
+
+window.addEventListener('resize',handleNavResize);
+window.addEventListener('load',handleNavResize);
 
 function fmt(n){
   if(n===null||n===undefined)return'£0.00';
