@@ -46,6 +46,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .nav-more-menu button:hover{background:var(--surface2);color:var(--text);}
 .nav-more-menu button.on{background:var(--accent);color:#000;}
 .nav-right{display:flex;align-items:center;gap:12px;}
+.nav-row1{display:contents;}
 .search-wrap{position:relative;width:220px;}
 .search-wrap input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 32px 8px 36px;color:var(--text);font-size:13px;width:100%;transition:all 0.15s;}
 .search-wrap input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,0.1);}
@@ -55,7 +56,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .search-clear.show{display:block;}
 .search-clear:hover{color:var(--text);}
 /* Search dropdown */
-.item-full-page{max-width:720px;margin:0 auto;padding:20px 24px;}
+.item-full-page{max-width:1100px;margin:0 auto;padding:20px 24px;}
 .item-full-section{background:var(--surface2);border-radius:12px;padding:16px;margin-bottom:14px;}
 .item-full-section-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;}
 .history-entry{padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
@@ -64,6 +65,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .history-badge{font-size:11px;font-weight:700;border-radius:4px;padding:2px 7px;}
 .history-badge.listed{background:rgba(100,116,139,0.15);color:var(--muted);}
 .history-badge.sale{background:rgba(34,197,94,0.15);color:var(--green);}
+.history-badge.resale{background:rgba(139,92,246,0.15);color:var(--purple);}
 .history-badge.return-full{background:rgba(239,68,68,0.15);color:var(--red);}
 .history-badge.return-partial{background:rgba(245,158,11,0.15);color:var(--accent);}
 .pnl-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border);}
@@ -184,6 +186,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .item-badge.listed{background:rgba(59,130,246,0.15);color:var(--blue);}
 .item-badge.sold{background:rgba(16,185,129,0.15);color:var(--green);}
 .item-badge.returned{background:rgba(239,68,68,0.15);color:var(--red);}
+.item-badge.resold{background:rgba(139,92,246,0.15);color:var(--purple);}
 .item-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-secondary);}
 .item-meta-item{display:flex;align-items:center;gap:6px;}
 .item-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
@@ -247,10 +250,16 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 
 /* MOBILE */
 @media (max-width:768px){
-  .nav-inner{flex-direction:column;gap:12px;}
-  .tabs{justify-content:center;width:100%;}
-  .nav-right{width:100%;justify-content:center;}
-  .search-wrap{max-width:300px;}
+  /* Nav — single compact row: brand left, search+theme right, tabs below */
+  .nav-inner{flex-direction:column;gap:8px;padding:8px 16px;}
+  .nav-row1{display:flex;align-items:center;justify-content:space-between;width:100%;}
+  .tabs{justify-content:flex-start;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{flex-shrink:0;padding:6px 12px;font-size:12px;}
+  .nav-more-btn{flex-shrink:0;padding:6px 12px;font-size:12px;}
+  .nav-right{gap:8px;}
+  .search-wrap{width:160px;}
+  /* Content */
   .kgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
   .kgrid-3{grid-template-columns:1fr 1fr!important;}
   .insights{grid-template-columns:1fr 1fr;}
@@ -264,6 +273,27 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
   .item-actions{justify-content:flex-end;}
   .fab{bottom:80px;right:20px;width:52px;height:52px;}
   .slide-panel{width:100%;right:-100%;}
+  /* Item full page */
+  .item-full-page{padding:14px 16px;}
+}
+
+@media (max-width:600px){
+  /* Add form — stack all 2-col grids to 1 col */
+  .form-grid-2{grid-template-columns:1fr!important;}
+  /* Item page details grid — stack to 1 col */
+  .ip-details-grid{grid-template-columns:1fr!important;}
+  .ip-field-num{width:100%;}
+  /* BPF preview — stack fee breakdown and profit vertically */
+  .bpf-preview-inner{flex-direction:column!important;gap:8px!important;}
+  .bpf-breakdown{flex-direction:column;gap:4px;}
+  .bpf-profit-right{text-align:left!important;}
+  /* Return fields */
+  .return-fields{grid-template-columns:1fr;}
+  .rtn-grid{grid-template-columns:1fr;}
+  /* Search dropdown */
+  .search-dropdown{min-width:0;left:-40px;right:-40px;}
+  /* Slide panel padding */
+  .slide-panel{padding:16px;}
 }
 
 /* EXTRAS */
@@ -412,6 +442,61 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .ip-field-num{width:90px;}
 .ip-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px;}
 .ip-row{display:flex;flex-direction:column;gap:1px;}
+
+/* Item page layout */
+.ip-topbar{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.ip-back{flex-shrink:0;}
+.ip-title-wrap{flex:1;min-width:0;}
+.ip-title{font-size:19px;font-weight:700;line-height:1.3;word-break:break-word;margin-bottom:6px;}
+.ip-meta-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.ip-chip{font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:3px;}
+.ip-chip.mono{font-family:'JetBrains Mono',monospace;}
+.ip-chip-select{padding:0;overflow:hidden;}
+.ip-select{background:var(--surface2);border:none;color:var(--text);font-size:11px;font-family:inherit;cursor:pointer;padding:3px 6px;outline:none;appearance:none;-webkit-appearance:none;max-width:140px;border-radius:6px;}
+.ip-select:hover{background:var(--border);}
+.ip-select:focus{color:var(--text);background:var(--border);}
+.ip-select option{background:var(--surface);color:var(--text);}
+.ip-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;}
+.ip-act-btn{padding:7px 12px;font-size:13px;gap:5px;}
+.ip-act-btn .ip-act-label{}
+.ip-act-danger{color:var(--red)!important;}
+.ip-act-danger:hover{background:rgba(239,68,68,0.1)!important;border-color:var(--red)!important;color:var(--red)!important;}
+/* KPI strip */
+.ip-kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.ip-kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;}
+.ip-kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--border);}
+.ip-kpi.pos::after{background:var(--green);}
+.ip-kpi.neg::after{background:var(--red);}
+.ip-kpi-label{font-size:10px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
+.ip-kpi-val{font-size:22px;font-weight:700;line-height:1;letter-spacing:-0.02em;cursor:default;}
+.ip-kpi-val .inline-val{font-size:22px;}
+.ip-kpi-val .inline-input{font-size:22px;}
+.ip-kpi.pos .ip-kpi-val{color:var(--green);}
+.ip-kpi.neg .ip-kpi-val{color:var(--red);}
+.ip-kpi-sub{font-size:11px;color:var(--text-secondary);margin-top:5px;}
+/* Two-column body */
+.ip-body{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
+.ip-col-main{display:flex;flex-direction:column;gap:14px;}
+.ip-col-side{display:flex;flex-direction:column;gap:14px;}
+.ip-section{background:var(--surface2);border-radius:12px;padding:14px 16px;}
+.ip-section-pnl{background:var(--surface);border:1px solid var(--border);box-shadow:0 1px 4px var(--shadow);}
+.ip-section-timeline{opacity:0.9;}
+.ip-field-select{width:100%;padding:3px 4px;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-family:inherit;font-size:13px;cursor:pointer;border-radius:4px;appearance:none;-webkit-appearance:none;transition:all 0.15s;}
+.ip-field-select:hover{background:var(--surface2);border-bottom-color:var(--border2);}
+.ip-field-select:focus{outline:none;background:var(--surface2);border-bottom-color:var(--accent);}
+@media(max-width:900px){
+  .ip-body{grid-template-columns:1fr;}
+  .ip-kpi-strip{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:600px){
+  .ip-topbar{flex-direction:column;gap:10px;}
+  .ip-actions{width:100%;}
+  .ip-act-label{display:none;}
+  .ip-kpi-strip{grid-template-columns:repeat(2,1fr);gap:8px;}
+  .ip-kpi{padding:10px 12px;}
+  .ip-kpi-val{font-size:18px;}
+  .ip-kpi-val .inline-val{font-size:18px;}
+}
 .inline-val:hover{background:var(--surface2);}
 .inline-val:hover::after{content:' ✎';font-size:14px;color:var(--muted);font-weight:400;}
 .inline-input{font-size:20px;font-weight:700;letter-spacing:-0.02em;width:120px;border:none;border-bottom:2px solid var(--accent);background:transparent;color:var(--text);font-family:inherit;outline:none;padding:0;}
@@ -421,9 +506,25 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 
 <nav>
   <div class="nav-inner">
-    <div class="brand" onclick="goToTab('summary')">
-      <div class="brand-text">
-        <span class="brand-general">GENERAL</span><span class="brand-007">007</span>
+    <div class="nav-row1">
+      <div class="brand" onclick="goToTab('summary')">
+        <div class="brand-text">
+          <span class="brand-general">GENERAL</span><span class="brand-007">007</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="global-search" placeholder="Search items..." autocomplete="off"
+                 oninput="handleSearch(this.value)"
+                 onkeydown="handleSearchKey(event)"
+                 onfocus="if(this.value.trim())showSearchDropdown(this.value)">
+          <div class="search-dropdown" id="search-dropdown"></div>
+          <button class="search-clear" onclick="clearSearch()">×</button>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+          <span id="theme-icon">🌙</span>
+        </button>
       </div>
     </div>
     <div class="tabs">
@@ -440,20 +541,6 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
         </button>
         <div class="nav-more-menu" id="nav-more-menu"></div>
       </div>
-    </div>
-    <div class="nav-right">
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="global-search" placeholder="Search items..." autocomplete="off"
-               oninput="handleSearch(this.value)"
-               onkeydown="handleSearchKey(event)"
-               onfocus="if(this.value.trim())showSearchDropdown(this.value)">
-        <div class="search-dropdown" id="search-dropdown"></div>
-        <button class="search-clear" onclick="clearSearch()">×</button>
-      </div>
-      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
-        <span id="theme-icon">🌙</span>
-      </button>
     </div>
   </div>
 </nav>
@@ -503,6 +590,29 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
     <div style="display:flex;gap:10px">
       <button class="btn btn-success" onclick="confirmSold()" style="flex:1">Confirm</button>
       <button class="btn btn-s" onclick="closeModal()" style="flex:1">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="resale-modal" style="display:none;position:fixed;inset:0;background:var(--overlay);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:340px;max-width:90vw;box-shadow:0 8px 32px var(--shadow-md)">
+    <div style="font-weight:700;font-size:16px;margin-bottom:4px">Re-sold</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Second sale after return — enter new details</div>
+    <div class="fg">
+      <label>Date Sold</label>
+      <input type="date" id="resale-date">
+    </div>
+    <div class="fg">
+      <label>Sale Price (£)</label>
+      <input type="number" id="resale-price" step="0.01" placeholder="0.00">
+    </div>
+    <div class="fg" style="margin-bottom:16px">
+      <label>Your Shipping Cost (£)</label>
+      <input type="number" id="resale-shipping" step="0.01" placeholder="0.00">
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-success" onclick="confirmResale()" style="flex:1">Confirm</button>
+      <button class="btn btn-s" onclick="closeResaleModal()" style="flex:1">Cancel</button>
     </div>
   </div>
 </div>
@@ -671,6 +781,14 @@ function openItemPage(m,id,origin){
 function exitItemPage(){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   const origin=_itemPageOrigin||'p-summary';
+  if(origin==='returns'){
+    document.getElementById('p-summary').classList.add('on');
+    const tab=document.querySelector('.tab[onclick*="summary"]');
+    if(tab)tab.classList.add('on');
+    renderSummary();
+    showReturnedItems();
+    return;
+  }
   document.getElementById(origin).classList.add('on');
   const tabMap={'p-summary':'summary','p-monthly':'monthly','p-stock':'stock','p-expenses':'expenses','p-tax':'tax','p-data':'data'};
   const tabName=tabMap[origin];
@@ -680,6 +798,17 @@ function exitItemPage(){
   else if(origin==='p-summary')renderSummary();
   else if(origin==='p-search')renderSearchResults();
 }
+
+
+
+
+
+
+
+
+
+
+
 
 function renderItemPage(m,id){
   const i=(DB[m]||[]).find(x=>x.id===id);
@@ -691,7 +820,7 @@ function renderItemPage(m,id){
   const promoCost=grossInc*(i.promoPercent||0)*1.20;
   const profit=calcGrossProfit(i);
   const roi=calcROI(i);
-  const status=i.isReturned?'returned':i.dateSold?'sold':'active';
+  const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'active';
   const hasReturn=(i.returnHistory||[]).length>0;
   const totalRefunded=(i.returnHistory||[]).reduce((s,r)=>s+(r.refundAmount||0),0);
   const totalReturnPostage=(i.returnHistory||[]).reduce((s,r)=>s+(r.returnPostage||0),0);
@@ -713,6 +842,15 @@ function renderItemPage(m,id){
       detail:'Sale price: '+fmt(i.salePrice)+' → You received: '+fmt(grossInc)+' after BPF'
     });
   }
+  if(i.resaleSalePrice){
+    const rBPF=calcEbayBPF(i.resaleSalePrice);
+    timeline.push({
+      date:i.resaleDateSold||'',
+      badge:'resale',
+      label:'Re-sold',
+      detail:'Sale price: '+fmt(i.resaleSalePrice)+' → You received: '+fmt(i.resaleSalePrice-rBPF)+' after BPF'
+    });
+  }
   (i.returnHistory||[]).forEach(function(r,rtnIdx){
     const lbl={
       full_seller:'Full refund — seller handled',
@@ -726,15 +864,25 @@ function renderItemPage(m,id){
     if(r.notes)parts.push('Note: '+esc(r.notes));
     timeline.push({date:r.loggedAt||'',badge:bc,label:lbl[r.type]||r.type,detail:parts.join(' · '),rtnIdx:rtnIdx});
   });
-  timeline.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
+  const typeOrder={listed:0,sale:1,'return-full':2,'return-partial':2,resale:3};
+  timeline.sort(function(a,b){
+    if(a.date<b.date)return -1;
+    if(a.date>b.date)return 1;
+    return (typeOrder[a.badge]??1)-(typeOrder[b.badge]??1);
+  });
 
-  const badgeLbl={listed:'listed',sale:'sold','return-full':'full return','return-partial':'partial return'};
-  const timelineHTML=timeline.map(function(t){
+  const badgeLbl={listed:'listed',sale:'sold',resale:'re-sold','return-full':'full return','return-partial':'partial return'};
+  const timelineHTML=timeline.map(function(t,idx){
+    const isLast=idx===timeline.length-1;
     let undoBtn='';
-    if(t.badge==='sale'){
-      undoBtn='<button onclick="event.stopPropagation();undoSale(\''+m+'\',\''+id+'\')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--muted);cursor:pointer">✕ undo</button>';
-    } else if(t.badge==='return-full'||t.badge==='return-partial'){
-      undoBtn='<button onclick="event.stopPropagation();undoReturnEntry(\''+m+'\',\''+id+'\','+t.rtnIdx+')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--muted);cursor:pointer">✕ undo</button>';
+    if(isLast){
+      if(t.badge==='sale'){
+        undoBtn='<button onclick="event.stopPropagation();undoSale(\''+m+'\',\''+id+'\')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--muted);cursor:pointer">✕ undo</button>';
+      } else if(t.badge==='resale'){
+        undoBtn='<button onclick="event.stopPropagation();undoResale(\''+m+'\',\''+id+'\')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--muted);cursor:pointer">✕ undo</button>';
+      } else if(t.badge==='return-full'||t.badge==='return-partial'){
+        undoBtn='<button onclick="event.stopPropagation();undoReturnEntry(\''+m+'\',\''+id+'\','+t.rtnIdx+')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--muted);cursor:pointer">✕ undo</button>';
+      }
     }
     return '<div class="history-entry">'
       +'<div class="history-entry-header">'
@@ -770,20 +918,44 @@ function renderItemPage(m,id){
   if(hasReturn){
     pnl+='<div class="pnl-row" style="border-top:2px dashed var(--border);margin-top:4px;padding-top:8px"><span style="color:var(--accent);font-weight:600">Return impact</span><span></span></div>';
     (i.returnHistory||[]).forEach(function(r){
-      const sh=(r.type==='full_seller'||r.type==='partial_seller');
-      const netRefund=sh?Math.max(0,(r.refundAmount||0)-bpf):(r.refundAmount||0);
-      const lbl={full_seller:'Full refund — you handled',full_ebay:'Full refund — eBay involved',partial_seller:'Partial refund — you handled',partial_ebay:'Partial refund — eBay involved'}[r.type]||r.type;
+      const fullReturn=(r.type==='full_seller'||r.type==='full_ebay');
+      const netRefund=fullReturn?Math.max(0,(r.refundAmount||0)-bpf):(r.refundAmount||0);
+      const lbl={full_seller:'Full refund — you handled',full_ebay:'Full refund — eBay involved',partial_seller:'Partial refund — you handled',partial_ebay:'Partial refund — eBay decided'}[r.type]||r.type;
       pnl+='<div class="pnl-row"><span style="color:var(--accent)">'+lbl+'</span><span style="color:var(--red)">−'+fmt(r.refundAmount||0)+'</span></div>';
-      if(sh)pnl+='<div class="pnl-row"><span style="color:var(--muted);font-size:12px">  eBay refunds BPF back to you</span><span style="color:var(--green);font-size:12px">+'+fmt(bpf)+'</span></div>';
+      if(fullReturn)pnl+='<div class="pnl-row"><span style="color:var(--muted);font-size:12px">  eBay refunds BPF back to you</span><span style="color:var(--green);font-size:12px">+'+fmt(bpf)+'</span></div>';
       if((r.returnPostage||0)>0)pnl+='<div class="pnl-row"><span style="color:var(--accent)">Return postage</span><span style="color:var(--red)">−'+fmt(r.returnPostage)+'</span></div>';
     });
   }
-  pnl+='<div class="pnl-row total"><span>Net profit / loss</span><span style="color:'+(profit>=0?'var(--green)':'var(--red)')+'">'+fmt(profit)+'</span></div>';
-  if(roi!==null)pnl+='<div class="pnl-row"><span style="color:var(--muted)">ROI</span><span style="color:var(--muted)">'+roi.toFixed(1)+'%</span></div>';
+  // Sale 1 net in isolation (without resale revenue) for display purposes
+  const sale1Net=i.resaleSalePrice?(+( (i.salePrice+(i.postage||0)-calcEbayBPF(i.salePrice)) - ((i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+calcPartsCost(i)) - (i.returnHistory||[]).reduce(function(s,r){const f=(r.type==='full_seller'||r.type==='full_ebay');return s+(f?Math.max(0,(r.refundAmount||0)-calcEbayBPF(i.salePrice)):(r.refundAmount||0))+(r.returnPostage||0);},0) ).toFixed(2)):profit;
 
-  // ── Re-list projection (returned items only) ──────────────────────
+  pnl+='<div class="pnl-row total"><span>'+(i.resaleSalePrice?'Sale 1 net':'Net profit / loss')+'</span><span style="color:'+(sale1Net>=0?'var(--green)':'var(--red)')+'">'+fmt(sale1Net)+'</span></div>';
+  if(roi!==null&&!i.resaleSalePrice)pnl+='<div class="pnl-row"><span style="color:var(--muted)">ROI</span><span style="color:var(--muted)">'+roi.toFixed(1)+'%</span></div>';
+
+  // Second sale block for resold items
+  let resaleHTML='';
+  if(i.resaleSalePrice){
+    const rBPF=calcEbayBPF(i.resaleSalePrice);
+    const rRev=i.resaleSalePrice-rBPF-(i.resaleShippingCost||0);
+    const lifetimeProfit=profit; // calcGrossProfit already includes both sales
+    resaleHTML='<div class="ip-section ip-section-pnl" style="border-left:3px solid var(--purple);margin-top:0">';
+    resaleHTML+='<div class="item-full-section-title" style="color:var(--purple)">Sale 2 — Re-sold '+esc(i.resaleDateSold||'')+'</div>';
+    resaleHTML+='<div class="pnl-row"><span>Sale price</span><span style="color:var(--green)">'+fmt(i.resaleSalePrice)+'</span></div>';
+    resaleHTML+='<div class="pnl-row"><span>eBay BPF</span><span style="color:var(--red)">−'+fmt(rBPF)+'</span></div>';
+    if((i.resaleShippingCost||0)>0)resaleHTML+='<div class="pnl-row"><span>Postage (outbound)</span><span style="color:var(--red)">−'+fmt(i.resaleShippingCost)+'</span></div>';
+    resaleHTML+='<div class="pnl-row"><span style="color:var(--muted)">Item cost (already sunk)</span><span style="color:var(--muted)">—</span></div>';
+    resaleHTML+='<div class="pnl-row total"><span>Sale 2 net</span><span style="color:'+(rRev>=0?'var(--green)':'var(--red)')+'">'+fmt(rRev)+'</span></div>';
+    resaleHTML+='<div class="pnl-row" style="margin-top:8px;padding:10px 0 2px 0;border-top:2px solid var(--border)">';
+    resaleHTML+='<span style="font-weight:700;font-size:14px">Lifetime P&amp;L</span>';
+    resaleHTML+='<span style="font-weight:700;font-size:18px;color:'+(lifetimeProfit>=0?'var(--green)':'var(--red)')+'">'+fmt(lifetimeProfit)+'</span>';
+    resaleHTML+='</div>';
+    if(roi!==null)resaleHTML+='<div class="pnl-row"><span style="color:var(--muted)">Overall ROI</span><span style="color:var(--muted)">'+roi.toFixed(1)+'%</span></div>';
+    resaleHTML+='</div>';
+  }
+
+  // ── Re-list projection (returned items only, not yet resold) ──────────────────────
   let relistHTML='';
-  if(i.isReturned){
+  if(i.isReturned&&!i.resaleSalePrice){
     const rlBPF=calcEbayBPF(i.salePrice||0);
     const rlGrossInc=(i.salePrice||0)-rlBPF;
     const rlPromo=rlGrossInc*(i.promoPercent||0)*1.20;
@@ -804,62 +976,76 @@ function renderItemPage(m,id){
     relistHTML+='</div>';
   }
 
-  // ── Action buttons ────────────────────────────────────────────────────
-  let actions='';
-  actions+='<button class="btn btn-p" onclick="editItem(\''+m+'\',\''+id+'\')">✏️ Edit</button>';
-  if(!i.dateSold&&!i.isReturned)actions+=' <button class="btn btn-s" onclick="markSold(\''+m+'\',\''+id+'\')"><svg width="14" height="14" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg> Mark Sold</button>';
-  if(i.dateSold&&!i.isReturned)actions+=' <button class="btn btn-s" onclick="openReturn(\''+m+'\',\''+id+'\')">↩️ Log Return</button>';
-  actions+=' <button class="btn btn-s" onclick="duplicateItem(\''+m+'\',\''+id+'\')">📋 Duplicate</button>';
-  actions+=' <button class="btn btn-s danger" onclick="deleteItem(\''+m+'\',\''+id+'\')">🗑️ Delete</button>';
+  // ── Build category/source selects for inline editing ─────────────────
+  const catOpts=ITEM_CATEGORIES.map(c=>'<option value="'+c+'"'+(c===i.category?' selected':'')+'>'+c+'</option>').join('');
+  const srcOpts=ITEM_SOURCES.map(s=>'<option value="'+s+'"'+(s===i.source?' selected':'')+'>'+s+'</option>').join('');
 
   // ── Render ────────────────────────────────────────────────────────────
   let html='<div class="item-full-page">';
 
-  // Header
-  html+='<div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap">';
-  html+='<button class="btn btn-s" onclick="exitItemPage()">← Back</button>';
-  html+='<div style="font-size:20px;font-weight:700;flex:1;min-width:0;word-break:break-word">'+esc(i.item)+'</div>';
+  // ── Top bar: back + title + status badges + action buttons ────────────
+  html+='<div class="ip-topbar">';
+  html+='<button class="btn btn-s ip-back" onclick="exitItemPage()">← Back</button>';
+  html+='<div class="ip-title-wrap">';
+  html+='<div class="ip-title">'+esc(i.item)+'</div>';
+  html+='<div class="ip-meta-chips">';
+  if(i.gid)html+='<span class="ip-chip mono">'+esc(i.gid)+'</span>';
+  html+='<span class="ip-chip">'+m+'</span>';
+  html+='<div class="ip-chip ip-chip-select" title="Change category"><select class="ip-select" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'category\',this.value)"><option value="" disabled'+(i.category?'':' selected')+'>📂 Category…</option>'+catOpts+'</select></div>';
+  html+='<div class="ip-chip ip-chip-select" title="Change source"><select class="ip-select" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'source\',this.value)"><option value="" disabled'+(i.source?'':' selected')+'>🏷 Source…</option>'+srcOpts+'</select></div>';
+  if(i.location)html+='<span class="ip-chip">📍 '+esc(i.location)+'</span>';
   html+='<div class="item-badge '+status+'">'+status+'</div>';
   html+='</div>';
-
-  // Sub-header
-  html+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:20px;flex-wrap:wrap">';
-  if(i.gid)html+='<span style="font-size:12px;color:var(--muted);font-family:monospace">'+esc(i.gid)+'</span>';
-  html+='<span style="font-size:12px;color:var(--muted)">'+m+'</span>';
-  if(i.category)html+='<span style="font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;color:var(--muted)">'+esc(i.category)+'</span>';
   html+='</div>';
-
-  // KPI cards
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">';
-  html+='<div class="kcard"><div class="klabel">Sale Price <span style="font-size:10px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(click to edit)</span></div>'
-    +'<div class="kval" id="ip-sale-'+i.id+'" style="font-size:20px" onclick="startInlineEdit(\''+m+'\',\''+i.id+'\',\'salePrice\','+i.salePrice+')" title="Click to edit">'
-    +'<span class="inline-val">'+fmt(i.salePrice||0)+'</span>'
-    +'</div><div class="ksub">Buyer pays</div></div>';
-  html+='<div class="kcard"><div class="klabel">Item Cost <span style="font-size:10px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(click to edit)</span></div>'
-    +'<div class="kval" id="ip-cost-'+i.id+'" style="font-size:20px" onclick="startInlineEdit(\''+m+'\',\''+i.id+'\',\'costPrice\','+i.costPrice+')" title="Click to edit">'
-    +'<span class="inline-val">'+fmt(i.costPrice||0)+'</span>'
-    +'</div><div class="ksub">What you paid</div></div>';
-  html+='<div class="kcard '+(profit>=0?'g':'r')+'"><div class="klabel">Net Profit</div><div class="kval" style="font-size:20px">'+fmt(profit)+'</div><div class="ksub">'+(hasReturn?'After return impact':'After all fees')+'</div></div>';
-  if(roi!==null)html+='<div class="kcard"><div class="klabel">ROI</div><div class="kval" style="font-size:20px">'+roi.toFixed(1)+'%</div><div class="ksub">Return on investment</div></div>';
+  // Action buttons — always visible in top bar
+  html+='<div class="ip-actions">';
+  html+='<button class="btn btn-s ip-act-btn" onclick="editItem(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="ip-act-label">Edit</span></button>';
+  if(!i.dateSold||i.isReturned)html+='<button class="btn btn-p ip-act-btn" onclick="markSold(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 15 15" fill="none"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg><span class="ip-act-label">Mark Sold</span></button>';
+  if(i.dateSold&&!i.isReturned)html+='<button class="btn btn-s ip-act-btn" onclick="openReturn(\''+m+'\',\''+id+'\')">↩ <span class="ip-act-label">Return</span></button>';
+  html+='<button class="btn btn-s ip-act-btn" onclick="duplicateItem(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 11V3a1 1 0 011-1h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="ip-act-label">Dupe</span></button>';
+  html+='<button class="btn btn-s ip-act-btn ip-act-danger" onclick="deleteItem(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
   html+='</div>';
+  html+='</div>'; // ip-topbar
 
-  // Timeline section
-  html+='<div class="item-full-section">';
-  html+='<div class="item-full-section-title">Item Timeline</div>';
-  html+=timelineHTML||'<div style="color:var(--muted);font-size:13px">No history yet</div>';
-  html+='</div>';
+  // ── KPI strip ─────────────────────────────────────────────────────────
+  html+='<div class="ip-kpi-strip">';
+  html+='<div class="ip-kpi"><div class="ip-kpi-label">Sale Price</div>'
+    +'<div class="ip-kpi-val" id="ip-sale-'+i.id+'" onclick="startInlineEdit(\''+m+'\',\''+i.id+'\',\'salePrice\','+i.salePrice+')" title="Tap to edit"><span class="inline-val">'+fmt(i.salePrice||0)+'</span></div>'
+    +'<div class="ip-kpi-sub">Buyer pays</div></div>';
+  html+='<div class="ip-kpi"><div class="ip-kpi-label">Item Cost</div>'
+    +'<div class="ip-kpi-val" id="ip-cost-'+i.id+'" onclick="startInlineEdit(\''+m+'\',\''+i.id+'\',\'costPrice\','+i.costPrice+')" title="Tap to edit"><span class="inline-val">'+fmt(i.costPrice||0)+'</span></div>'
+    +'<div class="ip-kpi-sub">What you paid</div></div>';
+  html+='<div class="ip-kpi '+(profit>=0?'pos':'neg')+'"><div class="ip-kpi-label">Net Profit</div>'
+    +'<div class="ip-kpi-val">'+fmt(profit)+'</div>'
+    +'<div class="ip-kpi-sub">'+(hasReturn?'After return':'After fees')+'</div></div>';
+  if(roi!==null)html+='<div class="ip-kpi"><div class="ip-kpi-label">ROI</div>'
+    +'<div class="ip-kpi-val">'+roi.toFixed(1)+'%</div>'
+    +'<div class="ip-kpi-sub">Return on invest.</div></div>';
+  html+='</div>'; // ip-kpi-strip
 
-  // P&L section
-  html+='<div class="item-full-section">';
-  html+='<div class="item-full-section-title">P&L Breakdown</div>';
+  // ── Two-column body ───────────────────────────────────────────────────
+  html+='<div class="ip-body">';
+
+  // Left / main col: P&L + Sale 2 + Timeline
+  html+='<div class="ip-col-main">';
+  html+='<div class="ip-section ip-section-pnl">';
+  html+='<div class="item-full-section-title">P&amp;L Breakdown</div>';
   html+=pnl;
   html+='</div>';
+  if(resaleHTML)html+=resaleHTML;
   if(relistHTML)html+=relistHTML;
+  html+='<div class="ip-section ip-section-timeline">';
+  html+='<div class="item-full-section-title">Timeline</div>';
+  html+=timelineHTML||'<div style="color:var(--muted);font-size:13px">No history yet</div>';
+  html+='</div>';
+  html+='</div>'; // ip-col-main
 
-  // Details section — always-editable inline fields
-  html+='<div class="item-full-section">';
-  html+='<div class="item-full-section-title">Details</div>';
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 16px">';
+  // Right / side col: Info + Costs + Parts
+  html+='<div class="ip-col-side">';
+
+  html+='<div class="ip-section">';
+  html+='<div class="item-full-section-title">Info</div>';
+  html+='<div class="ip-details-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px 14px">';
   html+='<div class="ip-row" style="grid-column:1/-1"><div class="ip-label">Item Name</div>'
     +'<input class="ip-field" id="ipf-item" value="'+esc(i.item)+'" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'item\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
   html+='<div class="ip-row"><div class="ip-label">Date Listed</div>'
@@ -869,29 +1055,34 @@ function renderItemPage(m,id){
   html+='<div class="ip-row"><div class="ip-label">Location</div>'
     +'<input class="ip-field" id="ipf-location" value="'+esc(i.location||'')+'" placeholder="e.g. A101" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'location\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
   html+='<div class="ip-row"><div class="ip-label">Source</div>'
-    +'<input class="ip-field" id="ipf-source" value="'+esc(i.source||'')+'" placeholder="e.g. Car boot" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'source\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
-  html+='<div class="ip-row"><div class="ip-label">Your Shipping Cost (£)</div>'
+    +'<select class="ip-field ip-field-select" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'source\',this.value)"><option value="">—</option>'+srcOpts+'</select></div>';
+  html+='<div class="ip-row" style="grid-column:1/-1"><div class="ip-label">Category</div>'
+    +'<select class="ip-field ip-field-select" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'category\',this.value)"><option value="">—</option>'+catOpts+'</select></div>';
+  html+='<div class="ip-row" style="grid-column:1/-1"><div class="ip-label">Notes</div>'
+    +'<input class="ip-field" id="ipf-notes" value="'+esc(i.notes||'')+'" placeholder="Any notes..." onchange="ipSave(\''+m+'\',\''+i.id+'\',\'notes\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
+  html+='</div></div>';
+
+  html+='<div class="ip-section">';
+  html+='<div class="item-full-section-title">Costs</div>';
+  html+='<div class="ip-details-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px 14px">';
+  html+='<div class="ip-row"><div class="ip-label">Your Shipping (£)</div>'
     +'<input class="ip-field ip-field-num" type="number" step="0.01" id="ipf-shippingCost" value="'+(i.shippingCost||0)+'" onchange="ipSaveNum(\''+m+'\',\''+i.id+'\',\'shippingCost\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
   html+='<div class="ip-row"><div class="ip-label">Packaging (£)</div>'
     +'<input class="ip-field ip-field-num" type="number" step="0.01" id="ipf-packagingCost" value="'+(i.packagingCost||0)+'" onchange="ipSaveNum(\''+m+'\',\''+i.id+'\',\'packagingCost\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
   html+='<div class="ip-row"><div class="ip-label">Promo %</div>'
     +'<input class="ip-field ip-field-num" type="number" step="0.1" id="ipf-promoPercent" value="'+((i.promoPercent||0)*100).toFixed(1).replace(/\.0$/,'')+'" onchange="ipSavePromo(\''+m+'\',\''+i.id+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
-  html+='<div class="ip-row"><div class="ip-label">Postage Charged to Buyer (£)</div>'
+  html+='<div class="ip-row"><div class="ip-label">Postage to Buyer (£)</div>'
     +'<input class="ip-field ip-field-num" type="number" step="0.01" id="ipf-postage" value="'+(i.postage||0)+'" onchange="ipSaveNum(\''+m+'\',\''+i.id+'\',\'postage\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
-  html+='<div class="ip-row" style="grid-column:1/-1"><div class="ip-label">Notes</div>'
-    +'<input class="ip-field" id="ipf-notes" value="'+esc(i.notes||'')+'" placeholder="Any notes..." onchange="ipSave(\''+m+'\',\''+i.id+'\',\'notes\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
-  html+='</div>';
-  html+='</div>';
+  html+='</div></div>';
 
-  // Parts & Expenses
-  html+='<div class="item-full-section">';
+  html+='<div class="ip-section">';
   html+='<div class="item-full-section-title">Parts &amp; Expenses</div>';
   html+=partsHTML(m,id,'page');
   html+='</div>';
 
-  // Actions
-  html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">'+actions+'</div>';
-  html+='</div>';
+  html+='</div>'; // ip-col-side
+  html+='</div>'; // ip-body
+  html+='</div>'; // item-full-page
 
   page.innerHTML=html;
 }
@@ -927,8 +1118,8 @@ function searchAllItems(q){
   // Sort: active first, then sold, then returned
   const order={listed:0,sold:1,returned:2};
   results.sort((a,b)=>{
-    const sa=a.isReturned?'returned':a.dateSold?'sold':'listed';
-    const sb=b.isReturned?'returned':b.dateSold?'sold':'listed';
+    const sa=a.isReturned?'returned':a.resaleSalePrice?'resold':a.dateSold?'sold':'listed';
+    const sb=b.isReturned?'returned':b.resaleSalePrice?'resold':b.dateSold?'sold':'listed';
     return (order[sa]??1)-(order[sb]??1);
   });
   return results;
@@ -960,7 +1151,7 @@ function showSearchDropdown(q){
     return;
   }
   const rows=shown.map((i,idx)=>{
-    const status=i.isReturned?'returned':i.dateSold?'sold':'active';
+    const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'active';
     const icon=CATEGORY_ICONS[i.category]||'📦';
     const price=i.salePrice?fmt(i.salePrice):'—';
     return`<div class="search-result" data-idx="${idx}" onclick="selectSearchResult(${idx})" onmouseenter="setSearchActive(${idx})">
@@ -1047,7 +1238,7 @@ function renderSearchResults(q){
   const totalProfit=soldItems.reduce((s,i)=>s+calcGrossProfit(i),0);
 
   const rows=results.map(i=>{
-    const status=i.isReturned?'returned':i.dateSold?'sold':'listed';
+    const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'listed';
     const profit=i.dateSold&&!i.isReturned?calcGrossProfit(i):null;
     const roi=calcROI(i);
     const icon=CATEGORY_ICONS[i.category]||'📦';
@@ -1210,7 +1401,7 @@ function formHTML(){
       <label>Location (optional)</label>
       <input type="text" id="qa-location" placeholder="e.g. A101, Boot sale">
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="fg">
         <label>Cost Price (£)</label>
         <input type="number" id="qa-cost" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
@@ -1221,7 +1412,7 @@ function formHTML(){
       </div>
     </div>
     <div id="bpf-preview" class="bpf-info" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div class="bpf-preview-inner" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
         <div>
           <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Fee breakdown</div>
           <div class="bpf-breakdown">
@@ -1230,14 +1421,14 @@ function formHTML(){
             <span style="color:var(--green)">= You receive: <strong id="bpf-total">£0.00</strong></span>
           </div>
         </div>
-        <div id="profit-preview" style="display:none;text-align:right">
+        <div id="profit-preview" class="bpf-profit-right" style="display:none;text-align:right">
           <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Est. profit</div>
           <div id="profit-val" style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1">£0.00</div>
           <div id="profit-roi" style="font-size:11px;color:var(--text-secondary);margin-top:2px"></div>
         </div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="fg">
         <label>Postage Charged to Buyer (£)</label>
         <input type="number" id="qa-postage" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
@@ -1247,7 +1438,7 @@ function formHTML(){
         <input type="number" id="qa-shipping" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="fg">
         <label>Packaging (£)</label>
         <input type="number" id="qa-packaging" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
@@ -1344,7 +1535,7 @@ function showCategoryItems(cat){
       </div>
     </div>
     ${items.map(i=>{
-      const status=i.isReturned?'returned':i.dateSold?'sold':'listed';
+      const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'listed';
       const prof=i.dateSold&&!i.isReturned?calcGrossProfit(i):null;
       return`<div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="openItemDetail('${i.month}','${i.id}')">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
@@ -1395,9 +1586,10 @@ function showReturnedItems(){
   let items=[];
   MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    if(i.isReturned)items.push({...i,month:m});
+    const hasFullReturn=(i.returnHistory||[]).some(r=>r.type==='full_seller'||r.type==='full_ebay');
+    if(i.isReturned||hasFullReturn)items.push({...i,month:m});
   });});
-  const totalLoss=items.reduce((s,i)=>s+calcGrossProfit(i),0);
+  const totalLoss=items.reduce((s,i)=>s+(calcGrossProfit(i)||0),0);
   const html=`
     <div style="margin-bottom:16px;background:var(--surface2);border-radius:10px;padding:14px">
       <div style="display:flex;align-items:center;gap:12px">
@@ -1411,14 +1603,20 @@ function showReturnedItems(){
     ${items.length===0?'<div style="text-align:center;padding:40px;color:var(--muted)">No returns logged</div>':
     items.map(i=>{
       const profit=calcGrossProfit(i);
-      return`<div style="padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer;border-left:3px solid var(--red)" onclick="openItemDetail('${i.month}','${i.id}')">
+      const isResold=!!i.resaleSalePrice;
+      const hasFullReturn=(i.returnHistory||[]).some(r=>r.type==='full_seller'||r.type==='full_ebay');
+      const badge=isResold?'resold':hasFullReturn?'returned':'partial return';
+      const badgeCls=isResold?'resold':hasFullReturn?'returned':'return-partial';
+      const borderCol=isResold?'var(--purple)':hasFullReturn?'var(--red)':'var(--accent)';
+      return`<div style="padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer;border-left:3px solid ${borderCol}" onclick="closePanel();openItemPage('${i.month}','${i.id}','returns')">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <div style="flex:1;font-weight:600;font-size:14px">${esc(i.item)}</div>
-          <div class="item-badge returned">returned</div>
+          <div class="item-badge ${badgeCls}">${badge}</div>
           <div style="font-size:11px;color:var(--muted)">${i.month}</div>
         </div>
         <div style="display:flex;gap:12px;font-size:12px;color:var(--text-secondary)">
-          <span>Listed: ${fmt(i.salePrice)}</span>
+          <span>Sale 1: ${fmt(i.salePrice)}</span>
+          ${isResold?`<span>Sale 2: ${fmt(i.resaleSalePrice)}</span>`:''}
           <span style="color:${profit>=0?'var(--green)':'var(--red)'};font-weight:600">Net: ${fmt(profit)}</span>
         </div>
       </div>`;
@@ -1885,7 +2083,7 @@ function renderMonth(){
 
 function renderItemRow(m,i){
   const selected=SELECTED_ITEMS.has(i.id);
-  const status=i.isReturned?'returned':i.dateSold?'sold':'listed';
+  const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'listed';
   const today=new Date().toISOString().split('T')[0];
   const daysListed=i.dateSold?daysBetween(i.dateListed,i.dateSold):daysBetween(i.dateListed,today);
   const profit=calcGrossProfit(i);
@@ -1971,7 +2169,7 @@ function openItemDetail(m,id){
   const promoCost=grossInc*(i.promoPercent||0)*1.20;
   const profit=calcGrossProfit(i);
   const roi=calcROI(i);
-  const status=i.isReturned?'returned':i.dateSold?'sold':'listed';
+  const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'listed';
   const html=`
     <div style="margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
@@ -2721,7 +2919,7 @@ function editItem(m,id){
       <label>Date Listed</label>
       <input type="date" id="edit-date" value="${item.dateListed}">
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="fg">
         <label>Cost Price</label>
         <input type="number" id="edit-cost" step="0.01" value="${item.costPrice}">
@@ -2731,7 +2929,7 @@ function editItem(m,id){
         <input type="number" id="edit-price" step="0.01" value="${item.salePrice}">
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="fg">
         <label>Postage Charged to Buyer</label>
         <input type="number" id="edit-postage" step="0.01" value="${item.postage||0}">
@@ -2741,7 +2939,7 @@ function editItem(m,id){
         <input type="number" id="edit-shipping" step="0.01" value="${item.shippingCost||0}">
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="fg">
         <label>Packaging</label>
         <input type="number" id="edit-packaging" step="0.01" value="${item.packagingCost||0}">
@@ -2781,33 +2979,71 @@ function saveEdit(m,id){
 }
 
 function markSold(m,id){
-  MODAL_CALLBACK=function(date){
-    const item=(DB[m]||[]).find(i=>i.id===id);
-    if(!item)return;
-    item.dateSold=date;
-    item.grossProfit=calcGrossProfit(item);
-    saveDB();
-    toast('Marked as sold');
-    const cur=document.querySelector('.page.on').id;
-    if(cur==='p-monthly')renderMonth();
-    else if(cur==='p-stock')renderStock();
-    // If slide panel was open, refresh it
-    if(document.getElementById('slide-panel').classList.contains('on')){
-      openItemDetail(m,id);
-    }
-  };
-  document.getElementById('modal-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('sold-modal').style.display='flex';
+  const item=(DB[m]||[]).find(i=>i.id===id);
+  if(!item)return;
+  const hasFullReturn=(item.returnHistory||[]).some(r=>r.type==='full_seller'||r.type==='full_ebay');
+  const today=new Date().toISOString().split('T')[0];
+
+  if(hasFullReturn){
+    // Resale flow — different modal with price + shipping
+    MODAL_CALLBACK=function(date,price,shipping){
+      item.resaleDateSold=date;
+      item.resaleSalePrice=price;
+      item.resaleShippingCost=shipping;
+      item.isReturned=false;
+      item.grossProfit=calcGrossProfit(item);
+      saveDB();
+      toast('Re-sold logged');
+      const cur=document.querySelector('.page.on').id;
+      if(cur==='p-item'){renderItemPage(m,id);return;}
+      if(cur==='p-monthly')renderMonth();
+      else if(cur==='p-stock')renderStock();
+      if(document.getElementById('slide-panel').classList.contains('on')){openItemDetail(m,id);}
+    };
+    document.getElementById('resale-date').value=today;
+    document.getElementById('resale-price').value=(item.salePrice||'').toString();
+    document.getElementById('resale-shipping').value=(item.shippingCost||0).toString();
+    document.getElementById('resale-modal').style.display='flex';
+  } else {
+    // Standard first sale
+    MODAL_CALLBACK=function(date){
+      item.dateSold=date;
+      item.isReturned=false;
+      item.grossProfit=calcGrossProfit(item);
+      saveDB();
+      toast('Marked as sold');
+      const cur=document.querySelector('.page.on').id;
+      if(cur==='p-item'){renderItemPage(m,id);return;}
+      if(cur==='p-monthly')renderMonth();
+      else if(cur==='p-stock')renderStock();
+      if(document.getElementById('slide-panel').classList.contains('on')){openItemDetail(m,id);}
+    };
+    document.getElementById('modal-date').value=today;
+    document.getElementById('sold-modal').style.display='flex';
+  }
 }
 
 function confirmSold(){
   const date=document.getElementById('modal-date').value;
-  if(date && MODAL_CALLBACK){MODAL_CALLBACK(date);}
+  if(date&&MODAL_CALLBACK){MODAL_CALLBACK(date);}
   closeModal();
 }
 
 function closeModal(){
   document.getElementById('sold-modal').style.display='none';
+  MODAL_CALLBACK=null;
+}
+
+function confirmResale(){
+  const date=document.getElementById('resale-date').value;
+  const price=parseFloat(document.getElementById('resale-price').value)||0;
+  const shipping=parseFloat(document.getElementById('resale-shipping').value)||0;
+  if(date&&MODAL_CALLBACK){MODAL_CALLBACK(date,price,shipping);}
+  closeResaleModal();
+}
+
+function closeResaleModal(){
+  document.getElementById('resale-modal').style.display='none';
   MODAL_CALLBACK=null;
 }
 
@@ -2909,6 +3145,12 @@ function saveReturn(m,id){
   };
 
   if(!i.returnHistory)i.returnHistory=[];
+
+  // If logging a full return, remove any existing partial entries — they're superseded
+  if(type==='full_seller'||type==='full_ebay'){
+    i.returnHistory=i.returnHistory.filter(r=>r.type==='full_seller'||r.type==='full_ebay');
+  }
+
   i.returnHistory.push(entry);
 
   // Mark as fully returned only for full refund types
@@ -2919,7 +3161,7 @@ function saveReturn(m,id){
   saveDB();
   toast('Return logged');
   closePanel();
-  openItemPage(m,id);
+  renderItemPage(m,id);
 }
 
 
@@ -2965,6 +3207,19 @@ function undoSale(m,id){
   saveDB();
   renderItemPage(m,id);
   toast('Sale undone — item back to Listed');
+}
+
+function undoResale(m,id){
+  const i=(DB[m]||[]).find(x=>x.id===id);
+  if(!i)return;
+  delete i.resaleSalePrice;
+  delete i.resaleDateSold;
+  delete i.resaleShippingCost;
+  i.isReturned=true;
+  i.grossProfit=calcGrossProfit(i);
+  saveDB();
+  renderItemPage(m,id);
+  toast('Re-sale undone — item back to Returned');
 }
 
 // ── Returned items panel (opened from KPI card) ────────────────────────────
@@ -3289,20 +3544,27 @@ function calcGrossProfit(i){
   const grossInc=i.salePrice-bpf;
   const promoCost=grossInc*(i.promoPercent||0)*1.20;
   const rev=i.salePrice+(i.postage||0)-bpf;
-  // Seller-handled returns: eBay refunds BPF back to seller, so net cash out = refund - BPF
-  // eBay-handled returns: eBay keeps BPF, net cash out = full refund
+  // Full returns only: eBay refunds BPF back to seller (transaction fully reversed)
+  // Partial returns: no BPF refund — eBay keeps the fee, buyer keeps the item
   const returnCost=(i.returnHistory||[]).reduce(function(s,r){
-    const sellerHandled=(r.type==='full_seller'||r.type==='partial_seller');
-    const netRefund=sellerHandled?Math.max(0,(r.refundAmount||0)-bpf):(r.refundAmount||0);
+    const fullReturn=(r.type==='full_seller'||r.type==='full_ebay');
+    const netRefund=fullReturn?Math.max(0,(r.refundAmount||0)-bpf):(r.refundAmount||0);
     return s+netRefund+(r.returnPostage||0);
   },0);
   const partsCost=calcPartsCost(i);
   const cost=(i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+returnCost+partsCost;
-  return+(rev-cost).toFixed(2);
+  let profit=rev-cost;
+  // Second sale (resold after return)
+  if(i.resaleSalePrice){
+    const rBPF=calcEbayBPF(i.resaleSalePrice);
+    const rRev=i.resaleSalePrice-rBPF-(i.resaleShippingCost||0);
+    profit+=rRev;
+  }
+  return+profit.toFixed(2);
 }
 
 function calcROI(i){
-  if(!i.dateSold&&!i.isReturned)return null;
+  if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice)return null;
   const bpf=calcEbayBPF(i.salePrice||0);
   const grossInc=(i.salePrice||0)-bpf;
   const promoCost=grossInc*(i.promoPercent||0)*1.20;
