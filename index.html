@@ -36,11 +36,11 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .tab:hover{color:var(--text);background:var(--surface2);}
 .tab.on{background:var(--accent);color:#000;}
 .nav-more{position:relative;}
-.nav-more-btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;display:flex;align-items:center;gap:4px;}
+.nav-more-btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;display:none;align-items:center;gap:4px;flex-shrink:0;min-height:40px;}
 .nav-more-btn:hover{color:var(--text);background:var(--surface2);}
 .nav-more-btn.on{background:var(--accent);color:#000;}
 .nav-more-btn.has-items{display:flex;}
-.nav-more-menu{display:none;position:absolute;top:calc(100% + 4px);right:0;min-width:150px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px var(--shadow-md);z-index:100;overflow:hidden;}
+.nav-more-menu{display:none;position:absolute;top:calc(100% + 4px);right:0;min-width:150px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px var(--shadow-md);z-index:300;overflow:hidden;}
 .nav-more.open .nav-more-menu{display:block;}
 .nav-more-menu button{width:100%;padding:10px 16px;background:none;border:none;text-align:left;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-secondary);transition:all 0.15s;}
 .nav-more-menu button:hover{background:var(--surface2);color:var(--text);}
@@ -254,7 +254,8 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
   /* Nav — single compact row: brand left, search+theme right, tabs below */
   .nav-inner{flex-direction:column;gap:8px;padding:8px 16px;}
   .nav-row1{display:flex;align-items:center;justify-content:space-between;width:100%;}
-  .tabs{justify-content:flex-start;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:none;}
+  .tabs-row{display:flex;align-items:center;width:100%;}
+  .tabs{justify-content:flex-start;flex:1;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:none;}
   .tabs::-webkit-scrollbar{display:none;}
   .tab{flex-shrink:0;padding:6px 12px;font-size:12px;}
   .nav-more-btn{flex-shrink:0;padding:6px 12px;font-size:12px;}
@@ -1013,8 +1014,8 @@ function renderItemPage(m,id){
   // Action buttons — always visible in top bar
   html+='<div class="ip-actions">';
   html+='<button class="btn btn-s ip-act-btn" onclick="editItem(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="ip-act-label">Edit</span></button>';
-  if(!i.dateSold||i.isReturned)html+='<button class="btn btn-p ip-act-btn" onclick="markSold(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 15 15" fill="none"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg><span class="ip-act-label">Mark Sold</span></button>';
-  if(i.dateSold&&!i.isReturned)html+='<button class="btn btn-s ip-act-btn" onclick="openReturn(\''+m+'\',\''+id+'\')">↩ <span class="ip-act-label">Return</span></button>';
+  if((!i.dateSold&&!i.resaleSalePrice)||i.isReturned)html+='<button class="btn btn-p ip-act-btn" onclick="markSold(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 15 15" fill="none"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg><span class="ip-act-label">Mark Sold</span></button>';
+  if((i.dateSold||i.resaleSalePrice)&&!i.isReturned)html+='<button class="btn btn-s ip-act-btn" onclick="openReturn(\''+m+'\',\''+id+'\')">↩ <span class="ip-act-label">Return</span></button>';
   html+='<button class="btn btn-s ip-act-btn" onclick="duplicateItem(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 11V3a1 1 0 011-1h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="ip-act-label">Dupe</span></button>';
   html+='<button class="btn btn-s ip-act-btn ip-act-danger" onclick="deleteItem(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
   html+='</div>';
@@ -1247,12 +1248,12 @@ function renderSearchResults(q){
   if(!q){page.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted)">No search query</div>';return;}
   const results=searchAllItems(q);
   const total=results.length;
-  const soldItems=results.filter(i=>i.dateSold&&!i.isReturned);
+  const soldItems=results.filter(i=>(i.dateSold||i.resaleSalePrice)&&!i.isReturned);
   const totalProfit=soldItems.reduce((s,i)=>s+calcGrossProfit(i),0);
 
   const rows=results.map(i=>{
     const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'listed';
-    const profit=i.dateSold&&!i.isReturned?calcGrossProfit(i):null;
+    const profit=(i.dateSold||i.resaleSalePrice)&&!i.isReturned?calcGrossProfit(i):null;
     const roi=calcROI(i);
     const icon=CATEGORY_ICONS[i.category]||'📦';
     return`<div class="item-row" onclick="openItemPage('${i.month}','${i.id}','p-search')">
@@ -1633,8 +1634,8 @@ function showCategoryItems(cat){
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
     if((i.category||'Other')===cat)items.push({...i,month:m});
   });});
-  const sold=items.filter(i=>i.dateSold&&!i.isReturned);
-  const active=items.filter(i=>!i.dateSold&&!i.isReturned);
+  const sold=items.filter(i=>(i.dateSold||i.resaleSalePrice)&&!i.isReturned);
+  const active=items.filter(i=>!i.dateSold&&!i.isReturned&&!i.resaleSalePrice);
   const totalProfit=sold.reduce((s,i)=>s+calcGrossProfit(i),0);
   const avgDays=sold.length?Math.round(sold.reduce((s,i)=>s+daysBetween(i.dateListed,i.dateSold),0)/sold.length):null;
   const html=`
@@ -1650,10 +1651,10 @@ function showCategoryItems(cat){
     ${items.map(i=>{
       const _today=new Date().toISOString().split('T')[0];
       const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'listed';
-      const prof=i.dateSold&&!i.isReturned?calcGrossProfit(i):null;
-      const daysToSell=i.dateSold&&!i.isReturned?daysBetween(i.dateListed,i.dateSold):null;
+      const prof=(i.dateSold||i.resaleSalePrice)&&!i.isReturned?calcGrossProfit(i):null;
+      const daysToSell=(i.dateSold||i.resaleSalePrice)&&!i.isReturned?daysBetween(i.dateListed,i.dateSold):null;
       const daysColor=daysToSell===null?'var(--muted)':daysToSell<=14?'var(--green)':daysToSell<=30?'var(--warn)':'var(--red)';
-      const isStale=!i.dateSold&&!i.isReturned&&i.dateListed&&daysBetween(i.dateListed,_today)>=30;
+      const isStale=!i.dateSold&&!i.isReturned&&!i.resaleSalePrice&&i.dateListed&&daysBetween(i.dateListed,_today)>=30;
       const daysListed=isStale?daysBetween(i.dateListed,_today):null;
       return`<div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer${isStale?';border-left:2px solid var(--warn)':''}" onclick="openItemDetail('${i.month}','${i.id}')">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
@@ -1666,7 +1667,7 @@ function showCategoryItems(cat){
         <div style="display:flex;gap:12px;font-size:12px;color:var(--text-secondary)">
           <span>${fmt(i.salePrice)}</span>
           ${prof!==null?`<span style="color:var(--green);font-weight:600">${fmt(prof)}</span>`:''}
-          ${i.dateSold&&!i.isReturned&&calcROI(i)!==null?`<span style="color:var(--muted)">ROI ${calcROI(i).toFixed(1)}%</span>`:''}
+          ${(i.dateSold||i.resaleSalePrice)&&!i.isReturned&&calcROI(i)!==null?`<span style="color:var(--muted)">ROI ${calcROI(i).toFixed(1)}%</span>`:''}
           ${isStale&&daysListed!==null?`<span style="color:var(--warn)">${daysListed}d listed</span>`:''}
         </div>
       </div>`;
@@ -1678,7 +1679,7 @@ function showROIItems(){
   let items=[];
   MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    if(i.dateSold&&!i.isReturned){const roi=calcROI(i);if(roi!==null)items.push({...i,month:m,_roi:roi});}
+    if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){const roi=calcROI(i);if(roi!==null)items.push({...i,month:m,_roi:roi});}
   });});
   items.sort((a,b)=>b._roi-a._roi);
   const avg=items.length?items.reduce((s,i)=>s+i._roi,0)/items.length:0;
@@ -1703,47 +1704,6 @@ function showROIItems(){
   openPanel('Avg ROI — All Items',html);
 }
 
-function showReturnedItems(){
-  let items=[];
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
-    if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    const hasFullReturn=(i.returnHistory||[]).some(r=>r.type==='full_seller'||r.type==='full_ebay');
-    if(i.isReturned||hasFullReturn)items.push({...i,month:m});
-  });});
-  const totalLoss=items.reduce((s,i)=>s+(calcGrossProfit(i)||0),0);
-  const html=`
-    <div style="margin-bottom:16px;background:var(--surface2);border-radius:10px;padding:14px">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="font-size:28px;font-weight:700;color:var(--red)">${items.length}</div>
-        <div>
-          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Total Returns</div>
-          <div style="font-size:13px;color:var(--text-secondary)">Net impact: <span style="color:${totalLoss>=0?'var(--green)':'var(--red)'};font-weight:600">${fmt(totalLoss)}</span></div>
-        </div>
-      </div>
-    </div>
-    ${items.length===0?'<div style="text-align:center;padding:40px;color:var(--muted)">No returns logged</div>':
-    items.map(i=>{
-      const profit=calcGrossProfit(i);
-      const isResold=!!i.resaleSalePrice;
-      const hasFullReturn=(i.returnHistory||[]).some(r=>r.type==='full_seller'||r.type==='full_ebay');
-      const badge=isResold?'resold':hasFullReturn?'returned':'partial return';
-      const badgeCls=isResold?'resold':hasFullReturn?'returned':'return-partial';
-      const borderCol=isResold?'var(--purple)':hasFullReturn?'var(--red)':'var(--accent)';
-      return`<div style="padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer;border-left:3px solid ${borderCol}" onclick="closePanel();openItemPage('${i.month}','${i.id}','returns')">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <div style="flex:1;font-weight:600;font-size:14px">${esc(i.item)}</div>
-          <div class="item-badge ${badgeCls}">${badge}</div>
-          <div style="font-size:11px;color:var(--muted)">${i.month}</div>
-        </div>
-        <div style="display:flex;gap:12px;font-size:12px;color:var(--text-secondary)">
-          <span>Sale 1: ${fmt(i.salePrice)}</span>
-          ${isResold?`<span>Sale 2: ${fmt(i.resaleSalePrice)}</span>`:''}
-          <span style="color:${profit>=0?'var(--green)':'var(--red)'};font-weight:600">Net: ${fmt(profit)}</span>
-        </div>
-      </div>`;
-    }).join('')}`;
-  openPanel('Returns',html);
-}
 
 function showAvgCostItems(){
   let items=[];
@@ -1786,8 +1746,8 @@ function _renderAllItemsPanel(filter){
   let soldItems=[],activeItems=[];
   MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    if(i.dateSold&&!i.isReturned)soldItems.push({...i,month:m});
-    else if(!i.isReturned)activeItems.push({...i,month:m});
+    if((i.dateSold||i.resaleSalePrice)&&!i.isReturned)soldItems.push({...i,month:m});
+    else if(!i.isReturned&&!i.resaleSalePrice)activeItems.push({...i,month:m});
   });});
   const items=filter==='sold'?soldItems:activeItems;
   const html=`
@@ -1819,7 +1779,7 @@ function showFilteredItems(filter){
   let items=[];
   MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    const sold=i.dateSold&&!i.isReturned;
+    const sold=(i.dateSold||i.resaleSalePrice)&&!i.isReturned;
     if(filter==='revenue'&&sold)items.push({...i,month:m});
     else if(filter==='realised'&&sold)items.push({...i,month:m});
     else if(filter==='unrealised'&&!sold&&!i.isReturned)items.push({...i,month:m});
@@ -1971,7 +1931,7 @@ function renderSummary(){
     ${(()=>{
       const sold=[];
       MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{
-        if(i.dateSold&&!i.isReturned){
+        if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){
           const profit=calcGrossProfit(i);
           const roi=calcROI(i);
           if(profit!==null)sold.push({...i,month:m,profit,roi});
@@ -2105,14 +2065,14 @@ function renderMonth(){
 
   // Counts for chips
   const cAll=allItems.length;
-  const cListed=allItems.filter(i=>!i.dateSold&&!i.isReturned).length;
-  const cSold=allItems.filter(i=>i.dateSold&&!i.isReturned).length;
+  const cListed=allItems.filter(i=>!i.dateSold&&!i.isReturned&&!i.resaleSalePrice).length;
+  const cSold=allItems.filter(i=>(i.dateSold||i.resaleSalePrice)&&!i.isReturned).length;
   const cReturned=allItems.filter(i=>i.isReturned).length;
 
   // Apply filter
   let items=allItems;
-  if(MONTH_FILTER==='listed')items=allItems.filter(i=>!i.dateSold&&!i.isReturned);
-  else if(MONTH_FILTER==='sold')items=allItems.filter(i=>i.dateSold&&!i.isReturned);
+  if(MONTH_FILTER==='listed')items=allItems.filter(i=>!i.dateSold&&!i.isReturned&&!i.resaleSalePrice);
+  else if(MONTH_FILTER==='sold')items=allItems.filter(i=>(i.dateSold||i.resaleSalePrice)&&!i.isReturned);
   else if(MONTH_FILTER==='returned')items=allItems.filter(i=>i.isReturned);
 
   // Apply sort
@@ -2247,7 +2207,7 @@ function renderItemRow(m,i){
   const daysListed=i.dateSold?daysBetween(i.dateListed,i.dateSold):daysBetween(i.dateListed,today);
   const profit=calcGrossProfit(i);
   const roi=calcROI(i);
-  const isStale=!i.dateSold&&!i.isReturned&&daysListed>=30;
+  const isStale=!i.dateSold&&!i.isReturned&&!i.resaleSalePrice&&daysListed>=30;
 
   // Status-aware meta — minimum useful info per status
   const metaParts=[];
@@ -2266,11 +2226,11 @@ function renderItemRow(m,i){
 
   // Right column — price + profit/ROI
   let profitEl='';
-  if(i.dateSold&&!i.isReturned){
+  if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){
     const cls=profit>=0?'pos':'neg';
     profitEl='<div class="item-row-profit '+cls+'">'+fmt(profit)+'</div>';
     if(roi!==null)profitEl+='<div class="item-row-roi">'+roi.toFixed(1)+'% ROI</div>';
-  }else if(!i.dateSold&&!i.isReturned&&profit!==null){
+  }else if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice&&profit!==null){
     profitEl='<div class="item-row-profit est">est. profit '+fmt(profit)+'</div>';
   }else if(i.isReturned){
     const cls=profit>=0?'pos':'neg';
@@ -2292,8 +2252,8 @@ function renderItemRow(m,i){
     '<div class="ddmenu">'+
       '<button onclick="event.stopPropagation();openItemPage(\''+m+'\',\''+i.id+'\')">📄 Full page</button>'+
       '<button onclick="event.stopPropagation();editItem(\''+m+'\',\''+i.id+'\')">✏️ Edit</button>'+
-      (!i.dateSold?'<button onclick="event.stopPropagation();markSold(\''+m+'\',\''+i.id+'\')"><svg width="14" height="14" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg> Mark Sold</button>':'')+
-      (i.dateSold&&!i.isReturned?'<button onclick="event.stopPropagation();openReturn(\''+m+'\',\''+i.id+'\')">↩️ Log Return</button>':'')+
+      (!i.dateSold&&!i.resaleSalePrice?'<button onclick="event.stopPropagation();markSold(\''+m+'\',\''+i.id+'\')"><svg width="14" height="14" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg> Mark Sold</button>':'')+
+      ((i.dateSold||i.resaleSalePrice)&&!i.isReturned?'<button onclick="event.stopPropagation();openReturn(\''+m+'\',\''+i.id+'\')">↩️ Log Return</button>':'')+
       '<button onclick="event.stopPropagation();duplicateItem(\''+m+'\',\''+i.id+'\')">📋 Duplicate</button>'+
       '<button class="danger" onclick="event.stopPropagation();deleteItem(\''+m+'\',\''+i.id+'\')">🗑️ Delete</button>'+
     '</div></div>';
@@ -2377,11 +2337,11 @@ function openItemDetail(m,id,noHistory){
         </div>
         <div class="fg" style="margin-bottom:0">
           <label style="margin-bottom:4px">Cost price (£)</label>
-          <input type="number" id="pd-cost" step="0.01" value="${i.costPrice||0}" onchange="savePanelQuickEdit('${m}','${id}',true)" onblur="savePanelQuickEdit('${m}','${id}',true)">
+          <input type="number" id="pd-cost" step="0.01" value="${i.costPrice||0}" onchange="savePanelQuickEdit('${m}','${id}',true)">
         </div>
         <div class="fg" style="margin-bottom:0">
           <label style="margin-bottom:4px">Sale price (£)</label>
-          <input type="number" id="pd-price" step="0.01" value="${i.salePrice||0}" onchange="savePanelQuickEdit('${m}','${id}',true)" onblur="savePanelQuickEdit('${m}','${id}',true)">
+          <input type="number" id="pd-price" step="0.01" value="${i.salePrice||0}" onchange="savePanelQuickEdit('${m}','${id}',true)">
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-top:10px;align-items:center;justify-content:space-between;">
@@ -2419,8 +2379,8 @@ function openItemDetail(m,id,noHistory){
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
       <button class="btn btn-p" onclick="closePanel();openItemPage('${m}','${id}')">📄 Full Page</button>
       <button class="btn btn-s" onclick="editItem('${m}','${id}')">✏️ Edit</button>
-      ${!i.dateSold?`<button class="btn btn-s" onclick="markSold('${m}','${id}')"><svg width="14" height="14" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg> Mark Sold</button>`:''}
-      ${i.dateSold&&!i.isReturned?`<button class="btn btn-s" onclick="openReturn('${m}','${id}')">↩️ Log Return</button>`:''}
+      ${(!i.dateSold&&!i.resaleSalePrice)?`<button class="btn btn-s" onclick="markSold('${m}','${id}')"><svg width="14" height="14" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg> Mark Sold</button>`:''}
+      ${(i.dateSold||i.resaleSalePrice)&&!i.isReturned?`<button class="btn btn-s" onclick="openReturn('${m}','${id}')">↩️ Log Return</button>`:''}
       <button class="btn btn-s" onclick="duplicateItem('${m}','${id}','panel')">📋 Duplicate</button>
       <button class="btn btn-s danger" onclick="deleteItem('${m}','${id}')">🗑️ Delete</button>
     </div>
@@ -2444,8 +2404,8 @@ function selectAllMonth(){
   // Select all items visible in current filter
   const allItems=(DB[SELECTED_MONTH]||[]);
   let items=allItems;
-  if(MONTH_FILTER==='listed')items=allItems.filter(i=>!i.dateSold&&!i.isReturned);
-  else if(MONTH_FILTER==='sold')items=allItems.filter(i=>i.dateSold&&!i.isReturned);
+  if(MONTH_FILTER==='listed')items=allItems.filter(i=>!i.dateSold&&!i.isReturned&&!i.resaleSalePrice);
+  else if(MONTH_FILTER==='sold')items=allItems.filter(i=>(i.dateSold||i.resaleSalePrice)&&!i.isReturned);
   else if(MONTH_FILTER==='returned')items=allItems.filter(i=>i.isReturned);
   const allSelected=items.length>0&&items.every(i=>SELECTED_ITEMS.has(i.id));
   if(allSelected){items.forEach(i=>SELECTED_ITEMS.delete(i.id));}
@@ -2499,7 +2459,7 @@ function selectAllStockVisible(){
   const today=new Date().toISOString().split('T')[0];
   let allListed=[];
   MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{
-    if(!i.dateSold&&!i.isReturned)allListed.push({...i,month:m});
+    if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice)allListed.push({...i,month:m});
   }));
   let items=allListed;
   if(STOCK_FILTER==='stale')items=allListed.filter(i=>daysBetween(i.dateListed,today)>=30);
@@ -2551,7 +2511,7 @@ function renderStock(){
   const today=new Date().toISOString().split('T')[0];
   let allListed=[];
   MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{
-    if(!i.dateSold&&!i.isReturned)allListed.push({...i,month:m});
+    if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice)allListed.push({...i,month:m});
   }));
 
   // Counts
@@ -3165,6 +3125,7 @@ function saveEdit(m,id){
   const cur=document.querySelector('.page.on').id;
   if(cur==='p-monthly')renderMonth();
   else if(cur==='p-stock')renderStock();
+  else if(cur==='p-item')renderItemPage(m,id);
   // Re-open detail panel so user stays in context
   openItemDetail(m,id,true);
 }
@@ -3172,13 +3133,22 @@ function saveEdit(m,id){
 function savePanelQuickEdit(m,id,silent){
   const item=(DB[m]||[]).find(i=>i.id===id);
   if(!item)return;
-  const listedRaw=(document.getElementById('pd-date-listed')||{}).value||'';
-  item.dateListed=listedRaw||new Date().toISOString().split('T')[0];
-  item.location=((document.getElementById('pd-location')||{}).value||'').trim();
-  item.source=(document.getElementById('pd-source')||{}).value||'';
-  item.category=(document.getElementById('pd-category')||{}).value||'';
-  item.costPrice=parseFloat((document.getElementById('pd-cost')||{}).value)||0;
-  item.salePrice=parseFloat((document.getElementById('pd-price')||{}).value)||0;
+  // Only read fields that are currently in the DOM (panel may have changed)
+  const fListed=document.getElementById('pd-date-listed');
+  const fLocation=document.getElementById('pd-location');
+  const fSource=document.getElementById('pd-source');
+  const fCat=document.getElementById('pd-category');
+  const fCost=document.getElementById('pd-cost');
+  const fPrice=document.getElementById('pd-price');
+  // Guard: if key fields aren't present, the panel has been replaced - abort
+  if(!fListed&&!fCost&&!fPrice)return;
+  if(fListed)item.dateListed=fListed.value||new Date().toISOString().split('T')[0];
+  if(fLocation)item.location=fLocation.value.trim();
+  if(fSource&&fSource.value)item.source=fSource.value;
+  if(fCat&&fCat.value)item.category=fCat.value;
+  // Only overwrite numeric fields if the value is a valid non-empty number
+  if(fCost&&fCost.value!==''){const v=parseFloat(fCost.value);if(!isNaN(v))item.costPrice=v;}
+  if(fPrice&&fPrice.value!==''){const v=parseFloat(fPrice.value);if(!isNaN(v))item.salePrice=v;}
   if(item.dateSold)item.grossProfit=calcGrossProfit(item);
   saveDB();
   if(!silent)toast('Quick edits saved');
@@ -3401,7 +3371,12 @@ function saveReturn(m,id){
   saveDB();
   toast('Return logged');
   closePanel();
-  renderItemPage(m,id);
+  // Re-render based on context
+  const _rp=document.querySelector('.page.on');
+  if(_rp&&_rp.id==='p-item'){renderItemPage(m,id);}
+  else if(_rp&&_rp.id==='p-monthly'){renderMonth();}
+  else if(_rp&&_rp.id==='p-stock'){renderStock();}
+  else if(_rp&&_rp.id==='p-summary'){renderSummary();}
 }
 
 
@@ -3417,6 +3392,8 @@ function panelDeleteReturn(m,id,rtnIdx){
   }
   saveDB();
   toast('Return removed');
+  const _pg=document.querySelector('.page.on');
+  if(_pg&&_pg.id==='p-item')renderItemPage(m,id);
   openItemDetail(m,id);
 }
 
@@ -3512,7 +3489,7 @@ function showReturnedItems(){
     ? summary+rows
     : '<div style="padding:30px;text-align:center;color:var(--muted)">No returns logged yet</div>';
 
-  openPanel('Returns — '+items.length+' item'+(items.length!==1?'s':''),content);
+  openPanel('Refunds — '+items.length+' item'+(items.length!==1?'s':''),content);
 }
 
 // ── TAX / SA103 ──────────────────────────────────────────────────────────────
@@ -3530,7 +3507,7 @@ function renderTax(){
   const soldItems=[];
   MONTHS.forEach(function(m){(DB[m]||[]).forEach(function(i){
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    if(i.dateSold&&!i.isReturned&&inTaxYear(i.dateSold))soldItems.push(i);
+    if((i.dateSold||i.resaleSalePrice)&&!i.isReturned&&inTaxYear(i.dateSold))soldItems.push(i);
   });});
   const totalIncome=soldItems.reduce(function(s,i){return s+(i.salePrice||0);},0);
   const saleCount=soldItems.length;
@@ -3680,13 +3657,14 @@ function calcYearlyStats(){
       if(i.isReturned){
         returnCount++;
       }
-      if(i.dateSold && !i.isReturned){
+      if((i.dateSold||i.resaleSalePrice) && !i.isReturned){
         soldCount++;
         const prof=calcGrossProfit(i);
         totalRev+=(i.totalRev||i.salePrice||0);
+        if(i.resaleSalePrice)totalRev+=i.resaleSalePrice;
         realisedProfit+=prof;
         soldItems.push({...i,profit:prof});
-      }else if(!i.isReturned){
+      }else if(!i.isReturned&&!i.resaleSalePrice){
         listedCount++;
         stockValue+=i.salePrice||0;
         unrealisedProfit+=calcGrossProfit(i)||0;
@@ -3730,14 +3708,14 @@ function calcYearlyStats(){
       const cat=i.category||'Uncategorised';
       if(!catMap[cat])catMap[cat]={sold:0,total:0,daysSum:0,stale:0,fast:0,avgS:0,slow:0};
       catMap[cat].total++;
-      if(i.dateSold&&!i.isReturned){
+      if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){
         catMap[cat].sold++;
         const d=daysBetween(i.dateListed,i.dateSold);
         catMap[cat].daysSum+=d;
         if(d<=14)catMap[cat].fast++;
         else if(d<=30)catMap[cat].avgS++;
         else catMap[cat].slow++;
-      } else if(!i.dateSold&&!i.isReturned){
+      } else if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice){
         const d=daysBetween(i.dateListed,today3);
         if(d>=30)catMap[cat].stale++;
       }
@@ -3864,9 +3842,10 @@ function toggleNavMore(){
 // Handle responsive navigation
 function handleNavResize(){
   const tabs=document.querySelector('.tabs');
-  const tabButtons=tabs.querySelectorAll('.tab');
-  const moreBtn=tabs.querySelector('.nav-more-btn');
-  const moreMenu=tabs.querySelector('.nav-more-menu');
+  const tabsRow=document.querySelector('.tabs-row')||tabs;
+  const tabButtons=tabs?tabs.querySelectorAll('.tab'):[];
+  const moreBtn=tabsRow?tabsRow.querySelector('.nav-more-btn'):null;
+  const moreMenu=tabsRow?tabsRow.querySelector('.nav-more-menu'):null;
   
   if(!tabs||!moreBtn||!moreMenu)return;
   
@@ -3938,8 +3917,17 @@ function ipSave(m,id,field,val){
   const i=(DB[m]||[]).find(x=>x.id===id);
   if(!i)return;
   i[field]=val;
-  if(field==='dateSold'&&val)i.grossProfit=calcGrossProfit(i);
+  // Recalc profit when sale date changes
+  if(field==='dateSold'){
+    if(val){i.grossProfit=calcGrossProfit(i);}
+    else{i.grossProfit=null;}
+  }
   saveDB();
+  // Re-render item page for fields that affect the P&L display
+  if(field==='dateSold'||field==='dateListed'){
+    const pg=document.querySelector('.page.on');
+    if(pg&&pg.id==='p-item')renderItemPage(m,id);
+  }
 }
 function ipSaveNum(m,id,field,val){
   const i=(DB[m]||[]).find(x=>x.id===id);
