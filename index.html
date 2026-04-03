@@ -149,14 +149,14 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .sl::after{content:'';flex:1;height:1px;background:var(--border);}
 
 /* MONTH GRID */
-.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:32px;}
-.mcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 3px var(--shadow);}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:32px;}
+.mcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 3px var(--shadow);}
 .mcard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow-md);}
 .mcard-empty{opacity:0.45;pointer-events:none;}
-.mname{font-weight:600;font-size:14px;margin-bottom:8px;color:var(--text);}
-.mval{font-size:24px;font-weight:700;letter-spacing:-0.01em;}
+.mname{font-weight:600;font-size:14px;margin-bottom:10px;color:var(--text);}
+.mval{font-size:26px;font-weight:700;letter-spacing:-0.01em;}
 .mval.pos{color:var(--green);}.mval.nil{color:var(--muted);}
-.msub{font-size:11px;color:var(--text-secondary);margin-top:4px;}
+.msub{font-size:11px;color:var(--text-secondary);margin-top:5px;}
 
 /* CHART */
 .chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px;margin-bottom:32px;box-shadow:0 1px 3px var(--shadow);}
@@ -314,6 +314,10 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
   #panel-title{font-size:18px;line-height:1.2;}
   /* Badges — slightly larger on mobile for readability */
   .item-badge{font-size:11px;padding:4px 8px;white-space:nowrap;}
+  /* Filter chips — stack to full-width rows on mobile */
+  .filter-chips{flex-direction:column;width:100%;max-width:100%;gap:2px;}
+  .chip{justify-content:space-between;width:100%;border-radius:7px;}
+  .chip .chip-count{margin-left:auto;}
 }
 
 /* EXTRAS */
@@ -1973,21 +1977,21 @@ function renderSummary(){
       <div class="insight-card">
         <div class="insight-icon">💰</div>
         <div>
-          <div class="insight-label">Avg Sale</div>
+          <div class="insight-label">Avg Sale Price</div>
           <div class="insight-val">${fmt(stats.avgSale)}</div>
         </div>
       </div>
       <div class="insight-card">
         <div class="insight-icon">🏷️</div>
         <div>
-          <div class="insight-label">Avg Cost</div>
+          <div class="insight-label">Avg Buy Price</div>
           <div class="insight-val">${fmt(stats.avgCostPrice)}</div>
         </div>
       </div>
       <div class="insight-card">
         <div class="insight-icon">📦</div>
         <div>
-          <div class="insight-label">Avg Profit</div>
+          <div class="insight-label">Avg Profit (net)</div>
           <div class="insight-val" style="color:var(--green)">${fmt(stats.avgProfit)}</div>
         </div>
       </div>
@@ -3814,7 +3818,7 @@ function calcYearlyStats(){
   const sellThrough14=eligible14.length?sold14Count/eligible14.length*100:0;
   const soldWithDate=soldItems.filter(i=>i.dateSold&&i.dateListed);
   const avgDays=soldWithDate.length?Math.round(soldWithDate.reduce((s,i)=>s+daysBetween(i.dateListed,i.dateSold),0)/soldWithDate.length):0;
-  // Avg cost price across all items ever sourced (sold + listed + returned)
+  // Avg buy price: all items ever sourced — buying discipline metric regardless of outcome
   const allSourcingItems=[];
   MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{if((i.item||'').trim().toUpperCase()!=='MONTH END')allSourcingItems.push(i);});});
   const avgCostPrice=allSourcingItems.length?allSourcingItems.reduce((s,i)=>s+(i.costPrice||0),0)/allSourcingItems.length:0;
@@ -3928,7 +3932,11 @@ function calcROI(i){
   const bpf=calcEbayBPF(i.salePrice||0);
   const grossInc=(i.salePrice||0)-bpf;
   const promoCost=grossInc*(i.promoPercent||0)*1.20;
-  const totalInvested=(i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+bpf+promoCost;
+  let totalInvested=(i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+bpf+promoCost;
+  // For resold items: also invest Sale2 BPF and resale shipping
+  if(i.resaleSalePrice){
+    totalInvested+=calcEbayBPF(i.resaleSalePrice)+(i.resaleShippingCost||0);
+  }
   if(totalInvested<=0)return null;
   return+((calcGrossProfit(i)/totalInvested)*100).toFixed(1);
 }
