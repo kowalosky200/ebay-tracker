@@ -652,7 +652,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 <script>
 const MONTHS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 const MONTH_NAMES={JAN:'January',FEB:'February',MAR:'March',APR:'April',MAY:'May',JUN:'June',JUL:'July',AUG:'August',SEP:'September',OCT:'October',NOV:'November',DEC:'December'};
-const STORAGE_KEY='ebay_db_v5';
+const STORAGE_KEY='ebay_db_v6';
 const THEME_KEY='ebay_theme';
 
 const ITEM_SOURCES=[
@@ -729,7 +729,7 @@ function updateThemeIcon(theme){
 // DATABASE
 function initDB(){
   // Preloaded data from Excel
-  const preloadedData = {"JAN":[],"FEB":[{"id":"feb_1","gid":"G007-0002","item":"Grand Turismo 1997 PS1","category":"Electronics & Tech","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-18","dateSold":"2026-02-21","salePrice":9.99,"postage":0.0,"costPrice":1.5,"shippingCost":2.7,"packagingCost":0.0,"promoPercent":0.0},{"id":"feb_2","gid":"G007-0003","item":"Mag-Lite Torch","category":"Home & Garden","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-19","dateSold":"2026-03-03","salePrice":26.0,"postage":0.0,"costPrice":3.25,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.03},{"id":"feb_3","gid":"G007-0004","item":"Band of Brothers","category":"Books & Media","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-19","dateSold":null,"salePrice":9.99,"postage":0.0,"costPrice":3.0,"shippingCost":2.7,"packagingCost":0.0,"promoPercent":0.05},{"id":"feb_4","gid":"G007-0005","item":"Nokia 3410 - Green Mint","category":"Electronics & Tech","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-22","dateSold":"2026-03-13","salePrice":11.0,"postage":0.0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0.0,"promoPercent":0.05},{"id":"feb_5","gid":"G007-0006","item":"Sony Ericsson T610","category":"Electronics & Tech","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-22","dateSold":"2026-03-11","salePrice":10.5,"postage":0.0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0.0,"promoPercent":0.05},{"id":"feb_6","gid":"G007-0007","item":"Motorolla W377 Pink","category":"Electronics & Tech","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-22","dateSold":"2026-03-04","salePrice":24.99,"postage":0.0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0.0,"promoPercent":0.05},{"id":"feb_7","gid":"G007-0008","item":"Blackberry Curve 9320","category":"Electronics & Tech","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-22","dateSold":"2026-02-27","salePrice":14.99,"postage":0.0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0.0,"promoPercent":0.05},{"id":"feb_8","gid":"G007-0009","item":"LOTR Blue Ray Set - 1 Disc Missing","category":"Books & Media","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-22","dateSold":"2026-03-06","salePrice":23.47,"postage":0.0,"costPrice":5.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"feb_9","gid":"G007-0010","item":"Canon 550D - Complete Kit","category":"Cameras & Photography","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-25","dateSold":"2026-02-28","salePrice":149.99,"postage":0.0,"costPrice":80.0,"shippingCost":4.88,"packagingCost":0.0,"promoPercent":0.03},{"id":"feb_10","gid":"G007-0011","item":"Kids Music Piano Book","category":"Audio & Music","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-25","dateSold":"2026-03-14","salePrice":5.99,"postage":2.94,"costPrice":0.2,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"feb_11","gid":"G007-0012","item":"Star Wars Trilogy VHS Special Edition","category":"Books & Media","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-25","dateSold":null,"salePrice":12.99,"postage":0.0,"costPrice":2.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"feb_12","gid":"G007-0013","item":"Top Shine Elite Shoe Care Kit","category":"Clothing & Fashion","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-25","dateSold":null,"salePrice":39.99,"postage":0.0,"costPrice":6.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"feb_13","gid":"G007-0014","item":"Toy Story 3 Mr Potato Tub","category":"Toys & Games","location":"Wardrobe","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-26","dateSold":"2026-03-01","salePrice":22.99,"postage":0.0,"costPrice":2.5,"shippingCost":3.88,"packagingCost":0.0,"promoPercent":0.05},{"id":"feb_14","gid":"G007-0015","item":"Grand Turismo PS1 - Manual Only","category":"Electronics & Tech","location":"Wardrobe","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-02-27","dateSold":null,"salePrice":4.99,"postage":0.0,"costPrice":2.5,"shippingCost":1.0,"packagingCost":0.0,"promoPercent":0.05}],"MAR":[{"id":"mar_1","gid":"G007-0017","item":"Power Rangers Complete Season 1","category":"Books & Media","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-02","dateSold":null,"salePrice":24.99,"postage":0.0,"costPrice":6.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_2","gid":"G007-0018","item":"Google Nest Mini Gen 1 - 1","category":"Electronics & Tech","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-02","dateSold":"2026-03-04","salePrice":23.99,"postage":0.0,"costPrice":10.15,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_3","gid":"G007-0019","item":"The Singing Machine Lights SML283BK","category":"Audio & Music","location":"Wardrobe","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-03","dateSold":null,"salePrice":49.99,"postage":0.0,"costPrice":15.0,"shippingCost":3.71,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_4","gid":"G007-0020","item":"George RR Martin Book Set","category":"Books & Media","location":"Bedroom","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-03","dateSold":"2026-03-06","salePrice":29.99,"postage":0.0,"costPrice":7.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_5","gid":"G007-0021","item":"Mr & Mrs Potato Head Bundle","category":"Toys & Games","location":"Bedroom","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-03","dateSold":"2026-03-09","salePrice":19.99,"postage":0.0,"costPrice":2.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_6","gid":"G007-0022","item":"DK Illustrated Family Encyclopedia 16 Books","category":"Books & Media","location":"Wardrobe","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-07","dateSold":null,"salePrice":24.99,"postage":0.0,"costPrice":6.0,"shippingCost":5.88,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_7","gid":"G007-0023","item":"Google Nest Mini Gen 1 - 2","category":"Electronics & Tech","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-07","dateSold":"2026-03-18","salePrice":22.82,"postage":0.0,"costPrice":11.2,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_8","gid":"G007-0024","item":"Google Nest Mini Gen 1 - 3","category":"Electronics & Tech","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-07","dateSold":"2026-03-27","salePrice":23.0,"postage":0.0,"costPrice":12.25,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_9","gid":"G007-0025","item":"Acer Aspire E5-571","category":"Electronics & Tech","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-08","dateSold":"2026-03-18","salePrice":114.99,"postage":0.0,"costPrice":48.59,"shippingCost":5.88,"packagingCost":0.0,"promoPercent":0.03},{"id":"mar_10","gid":"G007-0026","item":"Canon 600D Astro Mod","category":"Cameras & Photography","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-08","dateSold":"2026-03-11","salePrice":189.99,"postage":0.0,"costPrice":66.85,"shippingCost":4.88,"packagingCost":0.0,"promoPercent":0.03},{"id":"mar_11","gid":"G007-0027","item":"MSI GeForce GTX 770 4GB Twin Frozr","category":"Electronics & Tech","location":"Bedroom","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-09","dateSold":null,"salePrice":54.99,"postage":0.0,"costPrice":21.7,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_12","gid":"G007-0028","item":"Playstation Backpack - Blue","category":"Electronics & Tech","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-10","dateSold":null,"salePrice":24.99,"postage":0.0,"costPrice":5.5,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_13","gid":"G007-0029","item":"Salus RT500RF Wireless Thermostat","category":"Electronics & Tech","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-11","dateSold":"2026-03-16","salePrice":65.0,"postage":0.0,"costPrice":10.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.03},{"id":"mar_14","gid":"G007-0030","item":"Siemens Remote Control 13A Adaptor 3 Pack","category":"Electronics & Tech","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-12","dateSold":"2026-03-18","salePrice":39.99,"postage":0.0,"costPrice":2.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_15","gid":"G007-0031","item":"Canon 1300D Full Kit and Lens","category":"Cameras & Photography","location":"Wardrobe","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-13","dateSold":"2026-03-18","salePrice":189.99,"postage":0.0,"costPrice":120.99,"shippingCost":4.88,"packagingCost":0.0,"promoPercent":0.03},{"id":"mar_16","gid":"G007-0032","item":"Apple Magic Touchpad","category":"Electronics & Tech","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-15","dateSold":"2026-03-15","salePrice":22.99,"postage":0.0,"costPrice":10.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.03},{"id":"mar_17","gid":"G007-0033","item":"Apple Magic Keyboard 1314 - 1","category":"Electronics & Tech","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-15","dateSold":null,"salePrice":19.99,"postage":0.0,"costPrice":10.0,"shippingCost":4.88,"packagingCost":0.0,"promoPercent":0.03},{"id":"mar_18","gid":"G007-0034","item":"Apple Magic Keyboard 1314 -2 (sold 2 - 1 rtn)","category":"Electronics & Tech","location":"A101","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-15","dateSold":"2026-03-18","salePrice":19.99,"postage":0.0,"costPrice":10.0,"shippingCost":4.63,"packagingCost":0.0,"promoPercent":0.03},{"id":"mar_19","gid":"G007-0035","item":"Job Lot Magic Keyboards 1314/1255/1655 (one returned)","category":"Electronics & Tech","location":"Bag","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-15","dateSold":null,"salePrice":14.99,"postage":2.94,"costPrice":2.94,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.03},{"id":"mar_20","gid":"G007-0036","item":"HUSKY Tyre Chains","category":"Home & Garden","location":"Bedroom","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-16","dateSold":null,"salePrice":39.99,"postage":0.0,"costPrice":15.0,"shippingCost":5.21,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_21","gid":"G007-0037","item":"Samsung TV with remote","category":"Electronics & Tech","location":"Bedroom","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-17","dateSold":null,"salePrice":47.5,"postage":0.0,"costPrice":7.5,"shippingCost":5.21,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_22","gid":"G007-0038","item":"Geermac Amplidect 295","category":"Audio & Music","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-19","dateSold":"2026-03-26","salePrice":34.99,"postage":0.0,"costPrice":10.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_23","gid":"G007-0039","item":"Sony Walkman Docking Speaker","category":"Audio & Music","location":"Desk","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-20","dateSold":null,"salePrice":19.99,"postage":0.0,"costPrice":2.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_24","gid":"G007-0040","item":"Monopoly Original Hasbro Board Game","category":"Toys & Games","location":"Desk","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-20","dateSold":null,"salePrice":19.99,"postage":0.0,"costPrice":3.33,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_25","gid":"G007-0041","item":"Azatom Docking Station HouseDance-Max","category":"Audio & Music","location":"Desk","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-20","dateSold":null,"salePrice":24.99,"postage":0.0,"costPrice":5.99,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_26","gid":"G007-0042","item":"Saitek Cyborg Evo USB Joystick","category":"Electronics & Tech","location":"Desk","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-20","dateSold":null,"salePrice":24.99,"postage":0.0,"costPrice":5.99,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.03},{"id":"mar_27","gid":"G007-0043","item":"BT4600 Twin Landline Phone","category":"Audio & Music","location":"Desk","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-20","dateSold":null,"salePrice":24.99,"postage":0.0,"costPrice":2.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.03},{"id":"mar_28","gid":"G007-0044","item":"Saturn V Space Rocket Blocks Building Set","category":"Toys & Games","location":"Wardrobe","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-20","dateSold":"2026-03-28","salePrice":34.0,"postage":0.0,"costPrice":10.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_29","gid":"G007-0045","item":"Big Button Phone for Elderly - 1","category":"Audio & Music","location":"Desk","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-20","dateSold":null,"salePrice":29.99,"postage":0.0,"costPrice":3.33,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_30","gid":"G007-0046","item":"Big Button Phone for Elderly - 2","category":"Audio & Music","location":"Desk","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-20","dateSold":null,"salePrice":29.99,"postage":0.0,"costPrice":3.33,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_31","gid":"G007-0047","item":"Chad Valley Chess Board","category":"Toys & Games","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-21","dateSold":null,"salePrice":9.99,"postage":2.94,"costPrice":1.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_32","gid":"G007-0048","item":"Sony WH-100XM4 WIreless","category":"Audio & Music","location":"Desk","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-22","dateSold":"2026-03-23","salePrice":85.0,"postage":0.0,"costPrice":35.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.03},{"id":"mar_33","gid":"G007-0049","item":"Solar Powered 1080p Security Camera","category":"Cameras & Photography","location":"Desk","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-22","dateSold":"2026-03-24","salePrice":25.0,"postage":0.0,"costPrice":2.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_34","gid":"G007-0050","item":"Yamaha PSR-75 No PSU","category":"Audio & Music","location":"Bedroom","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-22","dateSold":"2026-03-25","salePrice":19.0,"postage":0.0,"costPrice":3.0,"shippingCost":3.71,"packagingCost":0.0,"promoPercent":0.05},{"id":"mar_35","gid":"G007-0051","item":"Netgear N300 Wireless Router","category":"Electronics & Tech","location":"Bed","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-25","dateSold":null,"salePrice":19.99,"postage":0.0,"costPrice":5.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.03},{"id":"mar_36","gid":"G007-0052","item":"Smarter FridgeCam","category":"Electronics & Tech","location":"Desk","source":"","notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"dateListed":"2026-03-25","dateSold":null,"salePrice":24.99,"postage":0.0,"costPrice":0.0,"shippingCost":2.94,"packagingCost":0.0,"promoPercent":0.03}],"APR":[],"MAY":[],"JUN":[],"JUL":[],"AUG":[],"SEP":[],"OCT":[],"NOV":[],"DEC":[]};
+  const preloadedData = {"JAN":[],"FEB":[{"id":"feb_1","gid":"G007-0002","item":"Grand Turismo 1997 PS1","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-02-18","dateSold":"2026-02-21","salePrice":9.99,"postage":0,"costPrice":1.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_2","gid":"G007-0003","item":"Mag-Lite Torch","category":"Home & Garden","location":"Bed","source":"","dateListed":"2026-02-19","dateSold":"2026-03-03","salePrice":26,"postage":0,"costPrice":3.25,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_3","gid":"G007-0004","item":"Band of Brothers","category":"Books & Media","location":"Bed","source":"","dateListed":"2026-02-19","dateSold":null,"salePrice":9.99,"postage":0,"costPrice":3,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_4","gid":"G007-0005","item":"Nokia 3410 - Green Mint","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-03-13","salePrice":11,"postage":0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_5","gid":"G007-0006","item":"Sony Ericsson T610","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-03-11","salePrice":10.5,"postage":0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_6","gid":"G007-0007","item":"Motorolla W377 Pink","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-03-04","salePrice":24.99,"postage":0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[{"loggedAt":"2026-03-25","type":"full_seller","refundAmount":24.99,"returnPostage":2.94,"notes":""}],"isReturned":true,"_shippingMigrated":true,"grossProfit":-9.54},{"id":"feb_7","gid":"G007-0008","item":"Blackberry Curve 9320","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-02-27","salePrice":14.99,"postage":0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_8","gid":"G007-0009","item":"LOTR Blue Ray Set - 1 Disc Missing","category":"Books & Media","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-03-06","salePrice":23.47,"postage":0,"costPrice":5,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_9","gid":"G007-0010","item":"Canon 550D - Complete Kit","category":"Cameras & Photography","location":"Bed","source":"","dateListed":"2026-02-25","dateSold":"2026-02-28","salePrice":149.99,"postage":0,"costPrice":80,"shippingCost":4.88,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_10","gid":"G007-0011","item":"Kids Music Piano Book","category":"Audio & Music","location":"Bed","source":"","dateListed":"2026-02-25","dateSold":"2026-03-14","salePrice":5.99,"postage":2.94,"costPrice":0.2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_11","gid":"G007-0012","item":"Star Wars Trilogy VHS Special Edition","category":"Books & Media","location":"A101","source":"","dateListed":"2026-02-25","dateSold":null,"salePrice":12.99,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_12","gid":"G007-0013","item":"Top Shine Elite Shoe Care Kit","category":"Clothing & Fashion","location":"Bed","source":"Charity Shop","dateListed":"2026-02-25","dateSold":"2026-04-01","salePrice":29.99,"postage":0,"costPrice":6,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":17.53},{"id":"feb_13","gid":"G007-0014","item":"Toy Story 3 Mr Potato Tub","category":"Toys & Games","location":"Wardrobe","source":"","dateListed":"2026-02-26","dateSold":"2026-03-01","salePrice":22.99,"postage":0,"costPrice":2.5,"shippingCost":3.88,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_14","gid":"G007-0015","item":"Grand Turismo PS1 - Manual Only","category":"Electronics & Tech","location":"Wardrobe","source":"","dateListed":"2026-02-27","dateSold":null,"salePrice":4.99,"postage":0,"costPrice":2.5,"shippingCost":1,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false}],"MAR":[{"id":"mar_1","gid":"G007-0017","item":"Power Rangers Complete Season 1","category":"Books & Media","location":"A101","source":"","dateListed":"2026-03-02","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":6,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_2","gid":"G007-0018","item":"Google Nest Mini Gen 1 - 1","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-02","dateSold":"2026-03-04","salePrice":23.99,"postage":0,"costPrice":10.15,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_3","gid":"G007-0019","item":"The Singing Machine Lights SML283BK","category":"Audio & Music","location":"Wardrobe","source":"","dateListed":"2026-03-03","dateSold":null,"salePrice":37.99,"postage":0,"costPrice":15,"shippingCost":3.71,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_4","gid":"G007-0020","item":"George RR Martin Book Set","category":"Books & Media","location":"Bedroom","source":"","dateListed":"2026-03-03","dateSold":"2026-03-06","salePrice":29.99,"postage":0,"costPrice":7,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_5","gid":"G007-0021","item":"Mr & Mrs Potato Head Bundle","category":"Toys & Games","location":"Bedroom","source":"","dateListed":"2026-03-03","dateSold":"2026-03-09","salePrice":19.99,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_6","gid":"G007-0022","item":"DK Illustrated Family Encyclopedia 16 Books","category":"Books & Media","location":"Wardrobe","source":"","dateListed":"2026-03-07","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":6,"shippingCost":5.88,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_7","gid":"G007-0023","item":"Google Nest Mini Gen 1 - 2","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-07","dateSold":"2026-03-18","salePrice":22.82,"postage":0,"costPrice":11.2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_8","gid":"G007-0024","item":"Google Nest Mini Gen 1 - 3","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-07","dateSold":"2026-03-27","salePrice":23,"postage":0,"costPrice":12.25,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_9","gid":"G007-0025","item":"Acer Aspire E5-571","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-08","dateSold":"2026-03-18","salePrice":114.99,"postage":0,"costPrice":48.59,"shippingCost":5.88,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_10","gid":"G007-0026","item":"Canon 600D Astro Mod","category":"Cameras & Photography","location":"Bed","source":"","dateListed":"2026-03-08","dateSold":"2026-03-11","salePrice":189.99,"postage":0,"costPrice":66.85,"shippingCost":4.88,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_11","gid":"G007-0027","item":"MSI GeForce GTX 770 4GB Twin Frozr","category":"Electronics & Tech","location":"Bedroom","source":"","dateListed":"2026-03-09","dateSold":null,"salePrice":49.99,"postage":0,"costPrice":21.7,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_12","gid":"G007-0028","item":"Playstation Backpack - Blue","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-10","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":5.5,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_13","gid":"G007-0029","item":"Salus RT500RF Wireless Thermostat","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-11","dateSold":"2026-03-16","salePrice":65,"postage":0,"costPrice":10,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_14","gid":"G007-0030","item":"Siemens Remote Control 13A Adaptor 3 Pack","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-12","dateSold":"2026-03-18","salePrice":39.99,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_15","gid":"G007-0031","item":"Canon 1300D Full Kit and Lens","category":"Cameras & Photography","location":"Wardrobe","source":"","dateListed":"2026-03-13","dateSold":"2026-03-18","salePrice":189.99,"postage":0,"costPrice":120.99,"shippingCost":4.88,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[{"loggedAt":"2026-03-30","type":"full_seller","refundAmount":189.99,"returnPostage":4.26,"notes":""}],"isReturned":true,"_shippingMigrated":true},{"id":"mar_16","gid":"G007-0032","item":"Apple Magic Touchpad","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-15","dateSold":"2026-03-15","salePrice":22.99,"postage":0,"costPrice":6,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":11.72},{"id":"mar_18","gid":"G007-0034","item":"Apple Magic Keyboard 1314 - 2","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-15","dateSold":"2026-03-18","salePrice":19.99,"postage":0,"costPrice":6,"shippingCost":4.63,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":7.29},{"id":"mar_19","gid":"G007-0035","item":"Job Lot Apple Magic Keyboard 1314/1255/1655","category":"Electronics & Tech","location":"Bag","source":"Car Boot Sale","dateListed":"2026-03-25","dateSold":"2026-04-02","salePrice":12,"postage":2.94,"costPrice":6,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":4.72},{"id":"mar_20","gid":"G007-0036","item":"HUSKY Tyre Chains","category":"Home & Garden","location":"Bedroom","source":"","dateListed":"2026-03-16","dateSold":null,"salePrice":37.99,"postage":0,"costPrice":15,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_21","gid":"G007-0037","item":"Samsung TV with remote","category":"Electronics & Tech","location":"Bedroom","source":"","dateListed":"2026-03-17","dateSold":null,"salePrice":47.5,"postage":0,"costPrice":7.5,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_22","gid":"G007-0038","item":"Geermac Amplidect 295","category":"Audio & Music","location":"Bed","source":"","dateListed":"2026-03-19","dateSold":"2026-03-26","salePrice":34.99,"postage":0,"costPrice":10,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_23","gid":"G007-0039","item":"Sony Walkman Docking Speaker","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":19.99,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_24","gid":"G007-0040","item":"Monopoly Original Hasbro Board Game","category":"Toys & Games","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":19.99,"postage":0,"costPrice":3.33,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_25","gid":"G007-0041","item":"Azatom Docking Station HouseDance-Max","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":5.99,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_26","gid":"G007-0042","item":"Saitek Cyborg Evo USB Joystick","category":"Electronics & Tech","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":5.99,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_27","gid":"G007-0043","item":"BT4600 Twin Landline Phone","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":"2026-03-30","salePrice":23,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":15.73},{"id":"mar_28","gid":"G007-0044","item":"Saturn V Space Rocket Blocks Building Set","category":"Toys & Games","location":"Wardrobe","source":"","dateListed":"2026-03-20","dateSold":"2026-03-28","salePrice":34,"postage":0,"costPrice":10,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":-14.86},{"id":"mar_29","gid":"G007-0045","item":"Big Button Phone for Elderly - 1","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":29.99,"postage":0,"costPrice":3.33,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_30","gid":"G007-0046","item":"Big Button Phone for Elderly - 2","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":29.99,"postage":0,"costPrice":3.33,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_31","gid":"G007-0047","item":"Chad Valley Chess Board","category":"Toys & Games","location":"Bed","source":"","dateListed":"2026-03-21","dateSold":null,"salePrice":9.99,"postage":2.94,"costPrice":1,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_32","gid":"G007-0048","item":"Sony WH-100XM4 WIreless","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-22","dateSold":"2026-03-23","salePrice":85,"postage":0,"costPrice":35,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_33","gid":"G007-0049","item":"Solar Powered 1080p Security Camera","category":"Cameras & Photography","location":"Desk","source":"","dateListed":"2026-03-22","dateSold":"2026-03-24","salePrice":25,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[{"loggedAt":"2026-03-30","type":"partial_seller","refundAmount":3,"returnPostage":0,"notes":"missing 1/4\" mount"}],"isReturned":false,"_shippingMigrated":true},{"id":"mar_34","gid":"G007-0050","item":"Yamaha PSR-75 No PSU","category":"Audio & Music","location":"Bedroom","source":"","dateListed":"2026-03-22","dateSold":"2026-03-25","salePrice":19,"postage":0,"costPrice":3,"shippingCost":3.71,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_35","gid":"G007-0051","item":"Netgear N300 Wireless Router","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-25","dateSold":null,"salePrice":19.99,"postage":0,"costPrice":5,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_36","gid":"G007-0052","item":"Smarter FridgeCam","category":"Electronics & Tech","location":"Desk","source":"Charity Shop","dateListed":"2026-03-25","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":10,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"dup_1774817929412","gid":"G007-0053","item":"Apple Magic Keyboard 1314 - 3","category":"Electronics & Tech","location":"A101","source":"Car Boot Sale","dateListed":"2026-03-29","dateSold":"2026-03-31","salePrice":19.99,"postage":0,"costPrice":5,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnHistory":[],"isReturned":false,"grossProfit":9.98},{"id":"qa_1774818261436","gid":"G007-0054","dateListed":"2026-03-29","item":"Philips HiFi Headphones","source":"Car Boot Sale","category":"Audio & Music","location":"","costPrice":15,"salePrice":49.99,"postage":2.94,"shippingCost":0,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false},{"id":"qa_1774873047959","gid":"G007-0055","dateListed":"2026-03-30","item":"Humax PVR-9150T","source":"Car Boot Sale","category":"Other","location":"Desk","costPrice":6.33,"salePrice":24.99,"postage":0,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"dup_1774876804923","gid":"G007-0056","dateListed":"2026-03-30","item":"Humax PVR-9150T - 2","source":"Car Boot Sale","category":"Other","location":"Desk","costPrice":6.33,"salePrice":24.99,"postage":0,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"dup_1774876808161","gid":"G007-0057","dateListed":"2026-03-30","item":"Humax PVR-9150T - 3","source":"Car Boot Sale","category":"Other","location":"Desk","costPrice":6.33,"salePrice":24.99,"postage":0,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"qa_1774877366631","gid":"G007-0058","dateListed":"2026-03-30","item":"Nokia 130 RM-1037","source":"Car Boot Sale","category":"Electronics & Tech","location":"Shelves","costPrice":3,"salePrice":12.99,"postage":0,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"dup_1774878350769","gid":"G007-0059","dateListed":"2026-03-30","item":"Nokia 1616 w/ charger","source":"Car Boot Sale","category":"Electronics & Tech","location":"Shelves","costPrice":3,"salePrice":9.99,"postage":0,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.03,"dateSold":"2026-04-02","grossProfit":3.21,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"qa_1774878463614","gid":"G007-0060","dateListed":"2026-03-30","item":"Baofeng UV-9R Pro","source":"Car Boot Sale","category":"Other","location":"Desk","costPrice":10,"salePrice":24.99,"postage":0,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"qa_1774959068462","gid":"G007-0061","dateListed":"2026-03-15","item":"Apple Magic Keybaord 1655","source":"Car Boot Sale","category":"Electronics & Tech","location":"Wardrobe","costPrice":6,"salePrice":24.99,"postage":0,"shippingCost":2.94,"packagingCost":0,"promoPercent":0,"dateSold":null,"grossProfit":14.42,"isReturned":true,"notes":"","parts":[],"returnHistory":[{"loggedAt":"2026-03-31","type":"full_seller","refundAmount":24.99,"returnPostage":0,"notes":"cmd,z,x keys not working"}],"_shippingMigrated":true},{"id":"dup_1774959352719","gid":"G007-0062","item":"Apple Magic Keyboard 1314 - 1","category":"Electronics & Tech","location":"A101","source":"Car Boot Sale","dateListed":"2026-03-15","dateSold":null,"salePrice":19.99,"postage":0,"costPrice":6,"shippingCost":0,"packagingCost":0,"promoPercent":0.03,"notes":"Bundled with (Apple Magic Keyboard 1314),  postage costs on there","parts":[],"returnHistory":[{"loggedAt":"2026-03-31","type":"full_seller","refundAmount":19.99,"returnPostage":0,"notes":"missing screw"}],"isReturned":false,"grossProfit":8.98,"_shippingMigrated":true,"resaleDateSold":"2026-03-31","resaleSalePrice":19.99,"resaleShippingCost":2.94}],"APR":[],"MAY":[],"JUN":[],"JUL":[],"AUG":[],"SEP":[],"OCT":[],"NOV":[],"DEC":[]};
   
   const stored = localStorage.getItem(STORAGE_KEY);
   if(!stored){
@@ -739,14 +739,18 @@ function initDB(){
   }else{
     DB = JSON.parse(stored);
     let changed=false;
-    const RAW_FIELDS=['salePrice','costPrice','postage','shippingCost','packagingCost','promoPercent','dateSold','location'];
-    MONTHS.forEach(function(m){
-      (preloadedData[m]||[]).forEach(function(pre){
-        const live=(DB[m]||[]).find(function(i){return i.id===pre.id;});
-        if(!live)return;
-        RAW_FIELDS.forEach(function(field){if(live[field]!==pre[field]){live[field]=pre[field];changed=true;}});
+    // Only sync preloadedData fields back if the user hasn't imported their own data.
+    // Once _userOwned is true, localStorage is the source of truth — never overwrite it.
+    if(!DB._userOwned){
+      const RAW_FIELDS=['salePrice','costPrice','postage','shippingCost','packagingCost','promoPercent','dateSold','location'];
+      MONTHS.forEach(function(m){
+        (preloadedData[m]||[]).forEach(function(pre){
+          const live=(DB[m]||[]).find(function(i){return i.id===pre.id;});
+          if(!live)return;
+          RAW_FIELDS.forEach(function(field){if(live[field]!==pre[field]){live[field]=pre[field];changed=true;}});
+        });
       });
-    });
+    }
     MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{
       const fresh=autoCategory(i.item);
       if(i.category!==fresh){i.category=fresh;changed=true;}
@@ -760,6 +764,7 @@ function initDB(){
   }
 }
 function saveDB(){
+  DB._userOwned=true;
   localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
   refreshActivePage();
 }
@@ -1845,7 +1850,6 @@ function showFilteredItems(filter){
     const sold=(i.dateSold||i.resaleSalePrice)&&!i.isReturned;
     if((filter==='revenue'||filter==='realised')&&sold){
       if(i.resaleSalePrice){
-        // Sale 1: original sale — profit = everything up to but not including resale revenue
         const bpf=calcEbayBPF(i.salePrice);
         const grossInc=i.salePrice-bpf;
         const promoCost=grossInc*(i.promoPercent||0)*1.20;
@@ -1858,11 +1862,18 @@ function showFilteredItems(filter){
         const partsCost=calcPartsCost(i);
         const cost=(i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+returnCost+partsCost;
         const sale1Profit=+(rev-cost).toFixed(2);
-        // Sale 2: resale — net revenue after BPF and shipping
         const rBPF=calcEbayBPF(i.resaleSalePrice);
         const sale2Profit=+(i.resaleSalePrice-rBPF-(i.resaleShippingCost||0)).toFixed(2);
-        items.push({...i,month:m,_entryType:'sale1',_displayPrice:i.salePrice,_displayDate:i.dateSold||'',_entryProfit:sale1Profit});
-        items.push({...i,month:m,_entryType:'sale2',_displayPrice:i.resaleSalePrice,_displayDate:i.resaleDateSold||'',_entryProfit:sale2Profit});
+        if(filter==='revenue'){
+          // Revenue: two real cash transactions — show both
+          items.push({...i,month:m,_entryType:'sale1',_displayPrice:i.salePrice,_displayDate:i.dateSold||(i.returnHistory&&i.returnHistory[0]?i.returnHistory[0].loggedAt:'')||'',_entryProfit:sale1Profit});
+          items.push({...i,month:m,_entryType:'sale2',_displayPrice:i.resaleSalePrice,_displayDate:i.resaleDateSold||'',_entryProfit:sale2Profit});
+        }else{
+          // Realised P&L: one lifetime entry — the full story
+          const lifetimeProfit=calcGrossProfit(i);
+          const saleDate=i.resaleDateSold||(i.returnHistory&&i.returnHistory[0]?i.returnHistory[0].loggedAt:'')||'';
+          items.push({...i,month:m,_entryType:'resold',_displayPrice:i.resaleSalePrice,_displayDate:saleDate,_entryProfit:lifetimeProfit});
+        }
       } else {
         items.push({...i,month:m,_entryType:'normal',_displayPrice:i.salePrice,_displayDate:i.dateSold||'',_entryProfit:calcGrossProfit(i)});
       }
@@ -1879,6 +1890,7 @@ function showFilteredItems(filter){
   let summaryVal='',summaryLabel='',summaryColor='var(--accent)';
   const uniqueItemCount=new Set(items.map(i=>i.id)).size;
   const returnEntryCount=items.filter(i=>i._entryType==='sale1').length;
+  const resoldEntryCount=items.filter(i=>i._entryType==='resold').length;
   if(filter==='revenue'){
     summaryVal=fmt(items.reduce((s,i)=>s+(i._displayPrice||0),0));
     summaryLabel=`${items.length} transactions · ${uniqueItemCount} items`;
@@ -1886,7 +1898,9 @@ function showFilteredItems(filter){
   } else if(filter==='realised'){
     const t=items.reduce((s,i)=>s+(i._entryProfit||0),0);
     summaryVal=fmt(t);
-    summaryLabel=`${items.length} transactions · ${uniqueItemCount} items${returnEntryCount>0?' · '+returnEntryCount+' return'+(returnEntryCount>1?'s':''):''}`;
+    const extras=[];
+    if(resoldEntryCount>0)extras.push(`${resoldEntryCount} resold`);
+    summaryLabel=`${items.length} items${extras.length?' · '+extras.join(' · '):''}`;
     summaryColor='var(--green)';
   } else if(filter==='unrealised'){
     summaryVal=fmt(items.reduce((s,i)=>s+(calcGrossProfit(i)||0),0));
@@ -1898,21 +1912,29 @@ function showFilteredItems(filter){
     summaryColor='var(--blue)';
   }
   function renderEntryRow(i){
-    const isResoldEntry=i._entryType==='sale1'||i._entryType==='sale2';
     const entryLabel=esc(i.item);
     const badgeHTML=i._entryType==='sale1'
       ?`<div style="display:flex;gap:4px"><div class="item-badge" style="background:var(--warn);color:#000">sold & returned</div><div class="item-badge" style="background:var(--warn);color:#000;opacity:0.75">S1</div></div>`
       :i._entryType==='sale2'
       ?`<div style="display:flex;gap:4px"><div class="item-badge" style="background:var(--purple);color:#fff">resold</div><div class="item-badge" style="background:var(--purple);color:#fff;opacity:0.75">S2</div></div>`
+      :i._entryType==='resold'
+      ?`<div class="item-badge" style="background:var(--purple);color:#fff">↻ resold</div>`
       :`<div class="item-badge ${i.dateSold?'sold':'listed'}">${i.month}</div>`;
     let subRow='';
     if(filter==='revenue'){
       subRow=`<div style="font-size:12px;margin-top:4px;color:var(--muted)">${i._displayDate||'—'} · ${fmt(i._displayPrice)}</div>`;
     } else if(filter==='realised'){
       const profColor=(i._entryProfit||0)>=0?'var(--green)':'var(--red)';
-      subRow=`<div style="font-size:12px;margin-top:4px"><span style="color:${profColor};font-weight:600">${fmt(i._entryProfit)}</span>${i._entryType==='normal'&&calcROI(i)!==null?' · ROI '+calcROI(i).toFixed(1)+'%':''}</div>`;
+      const roiStr=i._entryType==='resold'&&calcROI(i)!==null
+        ?`<span style="color:var(--purple);font-weight:600;margin-left:6px">${calcROI(i).toFixed(1)}% ROI</span>`
+        :i._entryType==='normal'&&calcROI(i)!==null
+        ?`<span style="color:var(--muted);margin-left:6px">${calcROI(i).toFixed(1)}% ROI</span>`
+        :'';
+      const dateStr=i._displayDate?`<span style="color:var(--muted);margin-left:6px">${i._displayDate}</span>`:'';
+      subRow=`<div style="font-size:12px;margin-top:4px;display:flex;align-items:center;flex-wrap:wrap;gap:2px"><span style="color:${profColor};font-weight:600">${fmt(i._entryProfit)}</span>${roiStr}${dateStr}</div>`;
     }
-    return`<div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer${i._entryType==='sale2'?';border-left:3px solid var(--purple)':i._entryType==='sale1'?';border-left:3px solid var(--warn)':''}" onclick="openItemDetail('${i.month}','${i.id}')">
+    const borderStyle=i._entryType==='sale2'?';border-left:3px solid var(--purple)':i._entryType==='sale1'?';border-left:3px solid var(--warn)':i._entryType==='resold'?';border-left:3px solid var(--purple)':'';
+    return`<div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer${borderStyle}" onclick="openItemDetail('${i.month}','${i.id}')">
       <div style="display:flex;align-items:center;gap:8px">
         <div style="flex:1;font-weight:600;font-size:14px">${entryLabel}</div>
         ${badgeHTML}
@@ -2346,6 +2368,9 @@ function renderItemRow(m,i){
   }else if(status==='sold'){
     if(i.dateSold)metaParts.push('sold '+i.dateSold);
     if(daysListed)metaParts.push(daysListed+'d to sell');
+  }else if(status==='resold'){
+    if(i.resaleDateSold)metaParts.push('resold '+i.resaleDateSold);
+    else if(i.dateSold)metaParts.push('sold '+i.dateSold);
   }else if(status==='returned'){
     if(i.dateSold)metaParts.push('sold '+i.dateSold);
   }
@@ -2458,8 +2483,8 @@ function openItemDetail(m,id,noHistory){
           <label style="margin-bottom:4px">Date listed</label>
           <input type="date" id="pd-date-listed" value="${i.dateListed||''}" onchange="savePanelQuickEdit('${m}','${id}',true)" onblur="savePanelQuickEdit('${m}','${id}',true)">
         </div>`:`<div class="fg" style="margin-bottom:0">
-          <label style="margin-bottom:4px">Date sold</label>
-          <div style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-secondary)">${i.dateSold||i.resaleDateSold||'—'}</div>
+          <label style="margin-bottom:4px">${i.resaleSalePrice?'Resold':'Date sold'}</label>
+          <div style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-secondary)">${i.resaleSalePrice?(i.resaleDateSold||'—'):(i.dateSold||'—')}</div>
         </div>`}
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:right">Auto-saves on change</div>
@@ -2977,22 +3002,82 @@ function importDB(e){
   const file=e.target.files[0];
   if(!file)return;
   const reader=new FileReader();
-  reader.onload=async function(e){
+  reader.onload=function(ev){
     try{
-      const imported=JSON.parse(e.target.result);
-      const doImport=await showConfirm('Replace all data?','This will overwrite your current database with the imported file.',{icon:'📤',okLabel:'Import & replace',danger:false});
-      if(doImport){
-        DB=imported;
-        MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{i.category=autoCategory(i.item);}));
-        saveDB();
-        toast('Database imported');
-        renderSummary();
+      const imported=JSON.parse(ev.target.result);
+
+      // Diff: what would change
+      let willAdd=0,willUpdate=0,willRemove=0;
+      const addedItems=[],updatedItems=[],removedItems=[];
+      const TRACKED=['salePrice','costPrice','dateSold','shippingCost','postage','packagingCost','promoPercent','location','item'];
+      MONTHS.forEach(m=>{
+        const inc=(imported[m]||[]).filter(i=>(i.item||'').trim().toUpperCase()!=='MONTH END');
+        const cur=(DB[m]||[]).filter(i=>(i.item||'').trim().toUpperCase()!=='MONTH END');
+        inc.forEach(a=>{
+          const b=cur.find(c=>c.id===a.id||(c.item===a.item&&c.dateListed===a.dateListed));
+          if(!b){willAdd++;addedItems.push({m,item:a.item,dateListed:a.dateListed});}
+          else if(TRACKED.some(f=>String(b[f]??'')!==String(a[f]??''))){willUpdate++;updatedItems.push({m,item:a.item,dateListed:a.dateListed});}
+        });
+        cur.forEach(b=>{
+          if(!inc.find(a=>a.id===b.id||(a.item===b.item&&a.dateListed===b.dateListed))){willRemove++;removedItems.push({m,item:b.item,dateListed:b.dateListed});}
+        });
+      });
+
+      function diffRows(items,icon){
+        if(!items.length)return'';
+        const rows=items.slice(0,20).map(r=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${icon} ${esc(r.item)}</span><span style="color:var(--muted);flex-shrink:0;margin-left:8px">${r.m} · ${r.dateListed||'—'}</span></div>`).join('');
+        return rows+(items.length>20?`<div style="font-size:11px;color:var(--muted);padding:5px 0">…and ${items.length-20} more</div>`:'');
       }
+
+      // Store imported JSON on window for confirm button to access
+      window._pendingImport=imported;
+
+      const html=`
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+          <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:var(--green)">${willAdd}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">New items</div>
+          </div>
+          <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:var(--blue)">${willUpdate}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Updated</div>
+          </div>
+          <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:var(--red)">${willRemove}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Removed</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;padding:10px 12px;background:var(--surface2);border-radius:8px;line-height:1.6">
+          This will <strong style="color:var(--text)">fully replace</strong> your current database. All returns, notes, and resale data from the imported file are preserved.
+          ${willRemove>0?`<br><span style="color:var(--red)">⚠️ ${willRemove} item${willRemove!==1?'s':''} currently in your DB will be removed.</span>`:''}
+        </div>
+        ${addedItems.length?`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">New items (${addedItems.length})</div><div style="margin-bottom:14px">${diffRows(addedItems,'＋')}</div>`:''}
+        ${updatedItems.length?`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Updated (${updatedItems.length})</div><div style="margin-bottom:14px">${diffRows(updatedItems,'↻')}</div>`:''}
+        ${removedItems.length?`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Will be removed (${removedItems.length})</div><div style="margin-bottom:14px">${diffRows(removedItems,'−')}</div>`:''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;padding-top:12px;border-top:1px solid var(--border)">
+          <button class="btn btn-s" onclick="closePanel()">Cancel</button>
+          <button class="btn btn-p" onclick="_confirmJSONImport()">Confirm import</button>
+        </div>`;
+      openPanel('Review Import',html);
     }catch(err){
-      toast('Import failed: Invalid file','err');
+      toast('Import failed: Invalid JSON file','err');
     }
   };
   reader.readAsText(file);
+}
+
+function _confirmJSONImport(){
+  const imported=window._pendingImport;
+  if(!imported){toast('No pending import','err');return;}
+  DB=imported;
+  DB._userOwned=true;
+  MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{i.category=autoCategory(i.item);}));
+  saveDB();
+  window._pendingImport=null;
+  closePanel();
+  toast('Database imported successfully');
+  goToTab('summary',document.querySelector('[data-tab="summary"]'));
+  renderSummary();
 }
 
 function importExcel(e){
@@ -3014,11 +3099,10 @@ function processExcelFile(file){
   reader.onload=function(e){
     try{
       const data=new Uint8Array(e.target.result);
-      // cellDates:true + raw:true gives JS Date objects for date cells - most reliable
       const workbook=XLSX.read(data,{type:'array',cellDates:true,raw:true});
-      let importCount=0;
-      let updateCount=0;
-      let skipCount=0;
+      // Per-month results for summary
+      const monthResults={};
+      const addedItems=[],updatedItems=[],skippedItems=[];
 
       function safeFloat(val){
         if(val===null||val===undefined||val==='')return 0;
@@ -3026,27 +3110,18 @@ function processExcelFile(file){
         if(typeof val==='string'&&val.startsWith('#'))return 0;
         try{return parseFloat(String(val).replace(/[^0-9.-]/g,''))||0;}catch{return 0;}
       }
-
       function toDateStr(val){
         if(!val)return null;
-        // JS Date object (from cellDates:true)
         if(val instanceof Date){
           if(isNaN(val.getTime()))return null;
-          const y=val.getFullYear();
-          const m=String(val.getMonth()+1).padStart(2,'0');
-          const d=String(val.getDate()).padStart(2,'0');
+          const y=val.getFullYear(),m=String(val.getMonth()+1).padStart(2,'0'),d=String(val.getDate()).padStart(2,'0');
           return `${y}-${m}-${d}`;
         }
-        // Already a yyyy-mm-dd string
         if(typeof val==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(val))return val;
-        // Excel serial number
         const serial=parseFloat(val);
         if(!isNaN(serial)&&serial>40000){
           const d=new Date(Math.round((serial-25569)*86400*1000));
-          const y=d.getUTCFullYear();
-          const mo=String(d.getUTCMonth()+1).padStart(2,'0');
-          const dy=String(d.getUTCDate()).padStart(2,'0');
-          return `${y}-${mo}-${dy}`;
+          return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
         }
         return null;
       }
@@ -3054,34 +3129,27 @@ function processExcelFile(file){
       MONTHS.forEach(month=>{
         const sheetName=`${month}-26`;
         if(!workbook.SheetNames.includes(sheetName))return;
-
         const worksheet=workbook.Sheets[sheetName];
-        // raw:true preserves types; defval:'' fills empty cells
         const jsonData=XLSX.utils.sheet_to_json(worksheet,{header:1,raw:true,defval:''});
-
-        // Row 1=blank, Row 2=section headers, Row 3=column headers, Row 4+=data
         const headerRow=jsonData[2]||[];
         const dataRows=jsonData.slice(3);
-
         const colMap={};
         headerRow.forEach((h,i)=>{if(h)colMap[String(h).trim()]=i;});
+        if(!colMap['Item Name']&&!colMap['Date Listed'])return;
 
-        if(!colMap['Item Name']&&!colMap['Date Listed'])return; // sheet has no real headers
+        monthResults[month]={added:0,updated:0,skipped:0};
+        if(!DB[month])DB[month]=[];
 
         dataRows.forEach(row=>{
           if(!row||row.length===0)return;
           const itemName=String(row[colMap['Item Name']]||'').trim();
           const dateListedRaw=row[colMap['Date Listed']];
           if(!itemName||itemName.toUpperCase()==='MONTH END'||!dateListedRaw)return;
-
           const dateListed=toDateStr(dateListedRaw);
           if(!dateListed)return;
-          const dateSold=toDateStr(row[colMap['Date Sold']])||null;
 
-          // Build incoming item using correct field names
           const incoming={
-            dateListed,
-            item:itemName,
+            dateListed,item:itemName,
             location:String(row[colMap['Location']]||'').trim(),
             costPrice:safeFloat(row[colMap['Item Cost']]),
             salePrice:safeFloat(row[colMap['Sale Price']]),
@@ -3089,15 +3157,26 @@ function processExcelFile(file){
             shippingCost:safeFloat(row[colMap['Shipping Cost']]),
             packagingCost:safeFloat(row[colMap['Packeging Cost']]),
             promoPercent:safeFloat(row[colMap['Promotion %']]),
-            dateSold,
+            dateSold:toDateStr(row[colMap['Date Sold']])||null,
           };
 
-          if(!DB[month])DB[month]=[];
-          const existIdx=DB[month].findIndex(i=>i.item===itemName&&i.dateListed===dateListed);
+          // Dedup: match on item name + dateListed (best available key from Excel)
+          // Also guard against exact duplicates already seen this import session
+          const existIdx=DB[month].findIndex(i=>
+            i.item===itemName&&i.dateListed===dateListed
+          );
 
           if(existIdx>=0){
-            // UPDATE: merge numeric/date fields, preserve app-only fields (source, notes, returns)
             const ex=DB[month][existIdx];
+            // Check if anything actually changed
+            const FIELDS=['salePrice','costPrice','dateSold','shippingCost','postage','packagingCost','promoPercent','location'];
+            const changed=FIELDS.some(f=>String(ex[f]??'')!==String(incoming[f]??''));
+            if(!changed){
+              monthResults[month].skipped++;
+              skippedItems.push({m:month,item:itemName});
+              return;
+            }
+            // Update financial/date fields only — never touch returns, notes, resale, parts
             ex.costPrice=incoming.costPrice;
             ex.salePrice=incoming.salePrice;
             ex.postage=incoming.postage;
@@ -3105,11 +3184,12 @@ function processExcelFile(file){
             ex.packagingCost=incoming.packagingCost;
             ex.promoPercent=incoming.promoPercent;
             ex.dateSold=incoming.dateSold;
-            ex.location=incoming.location||ex.location;
+            if(incoming.location)ex.location=incoming.location;
             ex.category=autoCategory(ex.item);
-            updateCount++;
+            monthResults[month].updated++;
+            updatedItems.push({m:month,item:itemName,dateListed});
           }else{
-            // NEW item
+            // Truly new item — assign ID and GID
             DB[month].push({
               id:'xl_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),
               gid:'G007-'+String(getNextGID()).padStart(4,'0'),
@@ -3117,17 +3197,47 @@ function processExcelFile(file){
               returnData:null,returnHistory:[],isReturned:false,
               ...incoming
             });
-            importCount++;
+            monthResults[month].added++;
+            addedItems.push({m:month,item:itemName,dateListed});
           }
         });
       });
 
+      DB._userOwned=true;
       saveDB();
-      toast(`Import done: ${importCount} new, ${updateCount} updated, ${skipCount} skipped`);
-      const cur=document.querySelector('.page.on').id;
-      if(cur==='p-summary')renderSummary();
-      else if(cur==='p-monthly')renderMonth();
-      else if(cur==='p-stock')renderStock();
+
+      // Build summary panel
+      const totalAdded=addedItems.length,totalUpdated=updatedItems.length,totalSkipped=skippedItems.length;
+      function rows(items,icon){
+        if(!items.length)return'<div style="font-size:12px;color:var(--muted);padding:6px 0">None</div>';
+        return items.slice(0,25).map(r=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${icon} ${esc(r.item)}</span><span style="color:var(--muted);flex-shrink:0;margin-left:8px">${r.m}</span></div>`).join('')+(items.length>25?`<div style="font-size:11px;color:var(--muted);padding:5px 0">…and ${items.length-25} more</div>`:'');
+      }
+      const monthSummaryRows=Object.entries(monthResults).filter(([,v])=>v.added||v.updated||v.skipped).map(([m,v])=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="font-weight:600">${m}</span><span style="color:var(--muted)">${v.added} new · ${v.updated} updated · ${v.skipped} unchanged</span></div>`).join('');
+
+      const html=`
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+          <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:var(--green)">${totalAdded}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">New items</div>
+          </div>
+          <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:var(--blue)">${totalUpdated}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Updated</div>
+          </div>
+          <div style="background:rgba(100,116,139,0.1);border:1px solid rgba(100,116,139,0.3);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:var(--muted)">${totalSkipped}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Unchanged</div>
+          </div>
+        </div>
+        ${monthSummaryRows?`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">By month</div><div style="margin-bottom:16px">${monthSummaryRows}</div>`:''}
+        ${totalAdded?`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">New items (${totalAdded})</div><div style="margin-bottom:14px">${rows(addedItems,'＋')}</div>`:''}
+        ${totalUpdated?`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Updated (${totalUpdated})</div><div style="margin-bottom:14px">${rows(updatedItems,'↻')}</div>`:''}
+        <div style="font-size:11px;color:var(--muted);padding:10px 12px;background:var(--surface2);border-radius:8px;line-height:1.6;margin-bottom:12px">
+          Returns, notes, resale data and parts were not affected. Excel import never removes existing items.
+        </div>
+        <button class="btn btn-p" style="width:100%" onclick="closePanel();goToTab('summary',document.querySelector('[data-tab=\\'summary\\']'));renderSummary()">Done — view summary</button>`;
+
+      openPanel('Import Complete',html);
     }catch(err){
       console.error('Import error:',err);
       toast('Import failed: '+err.message,'err');
