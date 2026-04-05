@@ -58,7 +58,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .search-clear.show{display:block;}
 .search-clear:hover{color:var(--text);}
 /* Search dropdown */
-.item-full-page{max-width:1100px;margin:0 auto;padding:20px 24px;}
+.item-full-page{max-width:1100px;margin:0 auto;padding:20px 24px 80px;}
 .item-full-section{background:var(--surface2);border-radius:12px;padding:16px;margin-bottom:14px;}
 .item-full-section-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;}
 .history-entry{padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
@@ -280,8 +280,6 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
   .item-actions{justify-content:flex-end;}
   .fab{bottom:80px;right:20px;width:52px;height:52px;}
   .slide-panel{width:100%;right:-100%;}
-  /* Item full page */
-  .item-full-page{padding:14px 16px;}
   /* Tax page */
   .tax-method-grid{grid-template-columns:1fr!important;}
   .tax-year-select{width:100%!important;min-width:0!important;font-size:13px!important;}
@@ -320,6 +318,10 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
   .filter-chips{flex-direction:column;width:100%;max-width:100%;gap:2px;}
   .chip{justify-content:space-between;width:100%;border-radius:7px;}
   .chip .chip-count{margin-left:auto;}
+  /* iOS zoom prevention — all modal/form inputs must be 16px+ */
+  .fg input,.fg select,.fg textarea{font-size:16px!important;}
+  .fg input[type=date]{text-align:left;direction:ltr;-webkit-text-fill-color:var(--text);}
+  .fg input[type=date]::-webkit-date-and-time-value{text-align:left;}
 }
 
 /* EXTRAS */
@@ -492,15 +494,16 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 /* Editable token grid — 4 tokens: Sale Price, Buy Price, Promo %, Net Profit */
 .ip-tokens{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:0;width:100%;}
 .ip-token{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s;position:relative;user-select:none;}
+.ip-token:not(.locked):not(.editing){border-color:var(--border2);}
 .ip-token:hover:not(.locked){border-color:var(--accent);box-shadow:0 2px 10px rgba(245,158,11,0.12);}
 .ip-token.editing{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,0.15);}
 .ip-token.locked{cursor:not-allowed;opacity:0.5;}
 .ip-token.locked:hover{border-color:var(--border)!important;box-shadow:none!important;}
-.ip-token-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-secondary);margin-bottom:6px;}
-.ip-token-val{font-size:20px;font-weight:700;letter-spacing:-0.02em;line-height:1;min-height:24px;}
-.ip-token-val input{font-size:20px;font-weight:700;letter-spacing:-0.02em;width:100%;background:transparent;border:none;outline:none;color:var(--accent);font-family:inherit;padding:0;-moz-appearance:textfield;}
+.ip-token-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:5px;}
+.ip-token-val{font-size:22px;font-weight:700;letter-spacing:-0.03em;line-height:1;min-height:26px;}
+.ip-token-val input{font-size:22px;font-weight:700;letter-spacing:-0.03em;width:100%;background:transparent;border:none;outline:none;color:var(--accent);font-family:inherit;padding:0;-moz-appearance:textfield;}
 .ip-token-val input::-webkit-outer-spin-button,.ip-token-val input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-.ip-token-sub{font-size:11px;color:var(--text-secondary);margin-top:4px;line-height:1.3;}
+.ip-token-sub{font-size:11px;color:var(--text-secondary);margin-top:5px;line-height:1.3;}
 .ip-token.pos .ip-token-val{color:var(--green);}
 .ip-token.neg .ip-token-val{color:var(--red);}
 
@@ -512,17 +515,17 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .ip-postage-mode-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px var(--shadow);}
 [data-theme="light"] .ip-postage-mode-btn.active{background:#fff;}
 .ip-postage-divider{width:1px;background:var(--border);height:20px;flex-shrink:0;}
-.ip-postage-select{flex:1;min-width:0;padding:7px 32px 7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;outline:none;transition:border-color 0.15s,box-shadow 0.15s;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
+.ip-postage-select{flex:1;min-width:0;padding:4px 24px 4px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit;font-size:11px!important;font-weight:500;cursor:pointer;outline:none;transition:border-color 0.15s,box-shadow 0.15s;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
 .ip-postage-select:hover{border-color:var(--border2);}
 .ip-postage-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,0.1);}
 .ip-postage-select option{background:var(--surface);color:var(--text);}
-.ip-postage-buyer{display:flex;align-items:center;gap:5px;margin-left:auto;font-size:12px;color:var(--text-secondary);flex-shrink:0;}
+.ip-postage-buyer{display:flex;align-items:center;gap:5px;margin-left:auto;font-size:11px;color:var(--text-secondary);flex-shrink:0;}
 .ip-postage-buyer label{display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:500;white-space:nowrap;}
-.ip-postage-buyer input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;}
+.ip-postage-buyer input[type=checkbox]{accent-color:var(--accent);width:13px;height:13px;cursor:pointer;}
 .ip-postage-custom{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;flex-wrap:nowrap;}
-.ip-postage-custom-field{display:flex;align-items:center;gap:4px;font-size:12px;}
+.ip-postage-custom-field{display:flex;align-items:center;gap:4px;font-size:11px;}
 .ip-postage-custom-field label{color:var(--text-secondary);white-space:nowrap;font-weight:500;}
-.ip-postage-custom-field input{width:60px;text-align:right;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:4px 6px;font-size:12px;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--text);outline:none;transition:border-color 0.15s;}
+.ip-postage-custom-field input{width:60px;text-align:right;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:4px 6px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--text);outline:none;transition:border-color 0.15s;}
 .ip-postage-custom-field input:focus{border-color:var(--accent);}
 
 /* Uniform spacing container */
@@ -531,34 +534,34 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .ip-body{display:flex;flex-direction:column;gap:12px;width:100%;}
 .ip-section{background:var(--surface2);border-radius:12px;padding:0;overflow:hidden;width:100%;}
 .ip-section-pnl{background:var(--surface);border:1px solid var(--border);box-shadow:0 1px 4px var(--shadow);}
-.ip-section-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;user-select:none;gap:8px;}
+.ip-section-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;user-select:none;gap:8px;}
 .ip-section-header:hover{background:rgba(0,0,0,0.03);}
 [data-theme="dark"] .ip-section-header:hover{background:rgba(255,255,255,0.03);}
-.ip-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-secondary);}
+.ip-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;color:var(--text-secondary);}
 .ip-section-meta{display:flex;align-items:center;gap:8px;}
-.ip-section-badge{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;}
-.ip-section-chevron{font-size:12px;color:var(--muted);transition:transform 0.2s;}
-.ip-section-body{padding:0 16px 14px;}
+.ip-section-badge{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.ip-section-chevron{font-size:11px;color:var(--muted);transition:transform 0.2s;}
+.ip-section-body{padding:0 16px 16px;}
 
 /* P&L receipt rows */
-.ip-receipt-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border);}
+.ip-receipt-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:13px;border-bottom:1px solid var(--border);gap:8px;}
 .ip-receipt-row:last-child{border-bottom:none;}
 .ip-receipt-row.total{font-weight:700;font-size:14px;padding-top:10px;margin-top:4px;border-top:2px solid var(--border);border-bottom:none;}
 .ip-receipt-row.indent{padding-left:14px;}
 .ip-receipt-row.section-head{font-weight:600;color:var(--accent);border-top:1px dashed var(--border);padding-top:10px;margin-top:4px;}
-.ip-receipt-val{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px;}
+.ip-receipt-val{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px;flex-shrink:0;text-align:right;}
 
 /* Details grid */
-.ip-details-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;}
-.ip-row{display:flex;flex-direction:column;gap:2px;}
-.ip-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;}
-.ip-field{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-family:inherit;font-size:13px;padding:3px 4px;border-radius:4px;width:100%;transition:all 0.15s;cursor:text;text-align:left;}
+.ip-details-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;}
+.ip-row{display:flex;flex-direction:column;gap:3px;}
+.ip-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;font-weight:700;}
+.ip-field{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-family:inherit;font-size:14px;padding:3px 4px;border-radius:4px;width:100%;transition:all 0.15s;cursor:text;text-align:left;}
 .ip-field:hover{background:var(--surface);border-bottom-color:var(--border2);}
 .ip-field:focus{outline:none;background:var(--surface);border-bottom-color:var(--accent);box-shadow:0 1px 0 var(--accent);}
-.ip-field-select{width:100%;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-family:inherit;font-size:13px;cursor:pointer;border-radius:4px;appearance:none;-webkit-appearance:none;padding:3px 4px;transition:all 0.15s;}
+.ip-field-select{width:100%;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;border-radius:4px;appearance:none;-webkit-appearance:none;padding:3px 4px;transition:all 0.15s;}
 .ip-field-select:hover{background:var(--surface);border-bottom-color:var(--border2);}
 .ip-field-select:focus{outline:none;background:var(--surface);border-bottom-color:var(--accent);}
-.ip-field-date{color:var(--text-secondary);font-size:13px;padding:3px 4px;display:block;text-align:left;width:100%;}
+.ip-field-date{color:var(--text);font-size:14px;font-weight:500;padding:3px 4px;display:block;text-align:left;width:100%;}
 
 /* Timeline entries */
 .ip-timeline-entry{padding:10px 0;border-bottom:1px solid var(--border);}
@@ -597,24 +600,26 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
   /* Tokens */
   .ip-tokens{grid-template-columns:1fr 1fr;gap:8px;}
   .ip-token{padding:10px 12px;}
-  .ip-token-val{font-size:17px;}
-  .ip-token-val input{font-size:17px;}
+  .ip-token-val{font-size:18px;}
+  .ip-token-val input{font-size:18px;}
   .ip-token-sub{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-  /* Postage row — stack cleanly */
+  /* Postage row — stack on mobile */
   .ip-postage-row{flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px;}
   .ip-postage-divider{display:none;}
   .ip-postage-mode{width:100%;}
   .ip-postage-mode-btn{flex:1;text-align:center;}
   .ip-postage-select{width:100%;font-size:16px;}
   .ip-postage-buyer{margin-left:0;}
-  .ip-postage-custom{margin-left:0;width:100%;}
-  .ip-postage-custom-field input{font-size:16px;width:70px;}
+  .ip-postage-custom{margin-left:0;width:100%;justify-content:flex-start;gap:16px;}
+  .ip-postage-custom-field{flex:1;}
+  .ip-postage-custom-field input{font-size:16px;width:100%;}
 
   /* Details */
   .ip-details-grid{grid-template-columns:1fr;}
-  .ip-field{font-size:16px;text-align:left;} /* prevent iOS zoom + fix centering */
-  .ip-field[type=date]{text-align:left;direction:ltr;}
+  .ip-field{font-size:16px;text-align:left;padding:2px 4px;} /* prevent iOS zoom + fix centering */
+  .ip-field[type=date]{text-align:left;direction:ltr;display:block;-webkit-text-fill-color:var(--text);}
+  .ip-field[type=date]::-webkit-date-and-time-value{text-align:left;}
   .ip-field-select{font-size:16px;}
 
   /* P&L receipt — slightly tighter */
@@ -623,10 +628,12 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
   .ip-receipt-val{font-size:12px;}
 
   /* Timeline undo — bigger tap target */
+  .ip-timeline-label{font-size:13px;}
+  .ip-timeline-detail{font-size:12px;}
   .ip-timeline-header button{padding:4px 10px!important;font-size:12px!important;}
 
-  /* Page padding consistency */
-  .item-full-page{padding:14px 16px;}
+  /* Page padding consistency — keep bottom clearance for FAB */
+  .item-full-page{padding:14px 16px 80px;}
 }
 </style>
 </head>
@@ -719,9 +726,13 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 <div id="sold-modal" style="display:none;position:fixed;inset:0;background:var(--overlay);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:300px;max-width:90vw;box-shadow:0 8px 32px var(--shadow-md)">
     <div style="font-weight:700;font-size:16px;margin-bottom:16px">Mark as Sold</div>
-    <div class="fg" style="margin-bottom:16px">
+    <div class="fg" style="margin-bottom:12px">
       <label>Date Sold</label>
       <input type="date" id="modal-date">
+    </div>
+    <div class="fg" id="modal-price-row" style="margin-bottom:16px">
+      <label>Sale Price (£)</label>
+      <input type="number" id="modal-price" step="0.01" placeholder="0.00">
     </div>
     <div style="display:flex;gap:10px">
       <button class="btn btn-success" onclick="confirmSold()" style="flex:1">Confirm</button>
@@ -962,13 +973,13 @@ function exitItemPage(){
 // eBay shows these as size bands — label costs are what eBay charge the seller via the prepaid label
 // Rates shown: Large Letter £2.70 · Small Parcel 0-2kg £3.38 · Medium Parcel 0-1kg £5.15 · 1-5kg £6.16
 const SIMPLE_DELIVERY_RATES=[
-  {label:'Large Letter (up to 750g)',  cost:2.70},
-  {label:'Small Parcel (up to 1kg)',   cost:2.94},
-  {label:'Small Parcel (up to 2kg)',   cost:4.26},
-  {label:'Medium Parcel (up to 1kg)',  cost:3.42},
-  {label:'Medium Parcel (up to 2kg)',  cost:4.26},
-  {label:'Medium Parcel (up to 10kg)', cost:5.88},
-  {label:'Medium Parcel (up to 20kg)', cost:8.41},
+  {label:'Large Letter (750g)',   cost:2.70},
+  {label:'Small Parcel (1kg)',    cost:2.94},
+  {label:'Small Parcel (2kg)',    cost:4.26},
+  {label:'Medium Parcel (1kg)',   cost:3.42},
+  {label:'Medium Parcel (2kg)',   cost:4.26},
+  {label:'Medium Parcel (10kg)',  cost:5.88},
+  {label:'Medium Parcel (20kg)',  cost:8.41},
 ];
 
 // ── Token editing helpers ─────────────────────────────────────────────────────
@@ -997,22 +1008,55 @@ function _applySecStates(states){
   });
 }
 
-function openTokenEdit(m,id,field){
+// Tracks which token field to open after a blur-triggered re-render
+var _nextTokenField=null;
+var _tokenM=null;
+var _tokenId=null;
+
+// tokenPointerDown fires on pointerdown — BEFORE blur on the active input.
+// This is the key: we capture the intended next token while the old input
+// is still mounted, so when blur fires and destroys the DOM we already know
+// which field to re-open.
+function tokenPointerDown(m,id,field){
+  if(document.querySelector('.ip-token.editing')){
+    _nextTokenField=field;
+    _tokenM=m;
+    _tokenId=id;
+  }
+}
+
+function openTokenEdit(m,id,field,_alreadyAsync){
   const i=(DB[m]||[]).find(x=>x.id===id);
   if(!i)return;
   const tok=document.getElementById('tok-'+field+'-'+id);
   if(!tok||tok.classList.contains('locked'))return;
-  // Close any other open token (without re-render)
-  document.querySelectorAll('.ip-token.editing').forEach(function(el){
-    if(el!==tok){el.classList.remove('editing');}
-  });
+
+  // Another token is open — pointerdown may have already set _nextTokenField.
+  // Either way, ensure it is set then trigger blur to save+re-render+re-open.
+  const alreadyEditing=document.querySelector('.ip-token.editing');
+  if(alreadyEditing&&alreadyEditing!==tok){
+    _nextTokenField=field;
+    _tokenM=m;
+    _tokenId=id;
+    const openInp=alreadyEditing.querySelector('input');
+    if(openInp)openInp.blur();
+    return;
+  }
+
   if(tok.classList.contains('editing'))return;
   tok.classList.add('editing');
   const valEl=tok.querySelector('.ip-token-val');
   const currentVal=field==='promoPercent'?+((i.promoPercent||0)*100).toFixed(2):(i[field]||0);
   valEl.innerHTML='<input type="number" step="0.01" min="0" value="'+currentVal+'" autocomplete="off">';
   const inp=valEl.querySelector('input');
-  inp.focus();inp.select();
+
+  function focusAndSelect(){
+    inp.focus();
+    try{inp.setSelectionRange(0,999);}catch(e){try{inp.select();}catch(e2){}}
+  }
+  if(_alreadyAsync){focusAndSelect();}
+  else{setTimeout(focusAndSelect,0);}
+
   let committed=false;
   function commit(save){
     if(committed)return;
@@ -1022,17 +1066,25 @@ function openTokenEdit(m,id,field){
       if(field==='promoPercent'){i.promoPercent=+(v/100).toFixed(4);}
       else{i[field]=+v.toFixed(2);}
       if(i.dateSold||i.isReturned||i.resaleSalePrice)i.grossProfit=calcGrossProfit(i);
-      // Save without triggering refreshActivePage (p-item manages its own render)
       DB._userOwned=true;
       localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
     }
+    const pending=_nextTokenField;
+    const pm=_tokenM||m;
+    const pid=_tokenId||id;
+    _nextTokenField=null;
+    _tokenM=null;
+    _tokenId=null;
     const states=_getSecStates();
     renderItemPage(m,id);
     _applySecStates(states);
+    if(pending){
+      openTokenEdit(pm,pid,pending,true);
+    }
   }
   inp.addEventListener('keydown',function(e){
     if(e.key==='Enter'){e.preventDefault();commit(true);}
-    if(e.key==='Escape'){commit(false);}
+    if(e.key==='Escape'){_nextTokenField=null;_tokenM=null;_tokenId=null;commit(false);}
   });
   inp.addEventListener('blur',function(){commit(true);});
 }
@@ -1127,7 +1179,7 @@ function renderItemPage(m,id){
     return '<div class="ip-timeline-entry">'
       +'<div class="ip-timeline-header">'
       +'<span class="history-badge '+t.badge+'">'+(badgeLbl[t.badge]||t.badge)+'</span>'
-      +'<span style="color:var(--muted);font-size:12px">'+t.date+'</span>'
+      +'<span style="color:var(--muted);font-size:12px">'+fmtDate(t.date)+'</span>'
       +undoBtn
       +'</div>'
       +'<div class="ip-timeline-label">'+t.label+'</div>'
@@ -1139,7 +1191,7 @@ function renderItemPage(m,id){
   const partsCost=calcPartsCost(i);
   const sale1Net=i.resaleSalePrice?(+((i.salePrice+(i.postage||0)-calcEbayBPF(i.salePrice))-((i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+calcPartsCost(i))-(i.returnHistory||[]).reduce(function(s,r){const f=(r.type==='full_seller'||r.type==='full_ebay');return s+(f?Math.max(0,(r.refundAmount||0)-calcEbayBPF(i.salePrice)):(r.refundAmount||0))+(r.returnPostage||0);},0)).toFixed(2)):profit;
   function rcp(label,val,color,indent){
-    return'<div class="ip-receipt-row'+(indent?' indent':'')+'"><span style="color:'+(color&&color.includes('--text')?color:'var(--text-secondary)')+'">'+label+'</span><span class="ip-receipt-val" style="color:'+(color||'var(--text)')+'">'+val+'</span></div>';
+    return'<div class="ip-receipt-row'+(indent?' indent':'')+'"><span style="flex:1;color:'+(color&&color.includes('--text')?color:'var(--text-secondary)')+'">'+label+'</span><span class="ip-receipt-val" style="color:'+(color||'var(--text)')+'">'+val+'</span></div>';
   }
   let pb='';
   pb+=rcp('Sale price',fmt(i.salePrice||0),'var(--green)');
@@ -1167,7 +1219,7 @@ function renderItemPage(m,id){
       if((r.returnPostage||0)>0)pb+=rcp('Return postage','−'+fmt(r.returnPostage),'var(--red)');
     });
   }
-  pb+='<div class="ip-receipt-row total"><span>'+(i.resaleSalePrice?'Sale 1 net':'Net profit / loss')+'</span><span class="ip-receipt-val" style="color:'+(sale1Net>=0?'var(--green)':'var(--red)')+'">'+fmt(sale1Net)+'</span></div>';
+  pb+='<div class="ip-receipt-row total"><span style="flex:1">'+(i.resaleSalePrice?'Sale 1 net':'Net profit / loss')+'</span><span class="ip-receipt-val" style="color:'+(sale1Net>=0?'var(--green)':'var(--red)')+'">'+fmt(sale1Net)+'</span></div>';
 
   // Sale 2 block
   let resaleHTML='';
@@ -1183,8 +1235,8 @@ function renderItemPage(m,id){
     if((i.resaleShippingCost||0)>0)s2b+=rcp('Shipping cost','−'+fmt(i.resaleShippingCost),'var(--red)');
     if(rPromoCost>0)s2b+=rcp('Promo fee ('+((i.resalePromoPercent||0)*100).toFixed(1)+'% +VAT)','−'+fmt(rPromoCost),'var(--red)');
     s2b+=rcp('Item cost (sunk)','—','var(--muted)');
-    s2b+='<div class="ip-receipt-row total"><span>Sale 2 net</span><span class="ip-receipt-val" style="color:'+(rRev>=0?'var(--green)':'var(--red)')+'">'+fmt(rRev)+'</span></div>';
-    s2b+='<div class="ip-receipt-row" style="margin-top:6px;padding:10px 0 2px;border-top:2px solid var(--border)"><span style="font-weight:700;font-size:13px">Lifetime P&amp;L</span><span class="ip-receipt-val" style="font-size:16px;color:'+(lifetimeProfit>=0?'var(--green)':'var(--red)')+'">'+fmt(lifetimeProfit)+'</span></div>';
+    s2b+='<div class="ip-receipt-row total"><span style="flex:1">Sale 2 net</span><span class="ip-receipt-val" style="color:'+(rRev>=0?'var(--green)':'var(--red)')+'">'+fmt(rRev)+'</span></div>';
+    s2b+='<div class="ip-receipt-row" style="margin-top:6px;padding:10px 0 2px;border-top:2px solid var(--border)"><span style="flex:1;font-weight:700;font-size:13px">Lifetime P&amp;L</span><span class="ip-receipt-val" style="font-size:16px;color:'+(lifetimeProfit>=0?'var(--green)':'var(--red)')+'">'+fmt(lifetimeProfit)+'</span></div>';
     if(roi!==null)s2b+=rcp('Overall ROI',roi.toFixed(1)+'%','var(--muted)');
     resaleHTML=sec2('Sale 2 P&amp;L <span style="color:var(--muted);font-weight:400;font-size:11px">re-sold '+esc(i.resaleDateSold||'—')+'</span>',s2b,true,fmt(rRev),rRev>=0?'var(--green)':'var(--red)','ip-section-pnl','var(--purple)');
   }
@@ -1213,11 +1265,11 @@ function renderItemPage(m,id){
         <span class="ip-section-meta"><span class="ip-section-badge" style="color:${combinedP>=0?'var(--green)':'var(--red)'}">Lifetime: ${fmt(combinedP)}</span><span class="ip-section-chevron" style="transform:rotate(180deg)">▾</span></span>
       </div>
       <div class="ip-section-body">
-        <div class="ip-receipt-row"><span style="color:var(--muted)">P&L after return so far</span><span class="ip-receipt-val" style="color:${profit>=0?'var(--green)':'var(--red)'}">${fmt(profit)}</span></div>
-        <div class="ip-receipt-row"><span>Expected sale</span><span class="ip-receipt-val" style="color:var(--green)">${fmt(rlSalePrice)}</span></div>
-        ${rlPostage>0?`<div class="ip-receipt-row"><span>+ Buyer postage</span><span class="ip-receipt-val" style="color:var(--green)">+${fmt(rlPostage)}</span></div>`:''}
-        <div class="ip-receipt-row"><span>eBay BPF</span><span class="ip-receipt-val" style="color:var(--red)">−${fmt(rlBPF)}</span></div>
-        <div class="ip-receipt-row"><span>Shipping</span><span class="ip-receipt-val" style="color:var(--red)">−${fmt(rlShipping)}</span></div>
+        <div class="ip-receipt-row"><span style="flex:1;color:var(--muted)">P&L after return so far</span><span class="ip-receipt-val" style="color:${profit>=0?'var(--green)':'var(--red)'}">${fmt(profit)}</span></div>
+        <div class="ip-receipt-row"><span style="flex:1">Expected sale</span><span class="ip-receipt-val" style="color:var(--green)">${fmt(rlSalePrice)}</span></div>
+        ${rlPostage>0?`<div class="ip-receipt-row"><span style="flex:1">+ Buyer postage</span><span class="ip-receipt-val" style="color:var(--green)">+${fmt(rlPostage)}</span></div>`:''}
+        <div class="ip-receipt-row"><span style="flex:1">eBay BPF</span><span class="ip-receipt-val" style="color:var(--red)">−${fmt(rlBPF)}</span></div>
+        <div class="ip-receipt-row"><span style="flex:1">Shipping</span><span class="ip-receipt-val" style="color:var(--red)">−${fmt(rlShipping)}</span></div>
         <div class="ip-receipt-row" style="align-items:center">
           <span style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)">Promo %
             <input id="rl-promo-input" type="number" min="0" max="100" step="0.1" value="${rlDefaultPromo}" style="width:56px;padding:3px 7px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:600;text-align:center;font-family:inherit" oninput="_recalcRelist(${profit},${rlSalePrice},${rlBPF},${rlShipping},${rlPackaging},${rlPostage})">
@@ -1225,10 +1277,10 @@ function renderItemPage(m,id){
           </span>
           <span id="rl-promo-cost" class="ip-receipt-val" style="color:var(--red)">−${fmt(rlPromo)}</span>
         </div>
-        <div class="ip-receipt-row"><span style="color:var(--muted)">Item cost (sunk)</span><span class="ip-receipt-val" style="color:var(--muted)">—</span></div>
-        <div class="ip-receipt-row total"><span>Profit if sold</span><span id="rl-profit" class="ip-receipt-val" style="color:${rlProfit>=0?'var(--green)':'var(--red)'}">${fmt(rlProfit)}</span></div>
+        <div class="ip-receipt-row"><span style="flex:1;color:var(--muted)">Item cost (sunk)</span><span class="ip-receipt-val" style="color:var(--muted)">—</span></div>
+        <div class="ip-receipt-row total"><span style="flex:1">Profit if sold</span><span id="rl-profit" class="ip-receipt-val" style="color:${rlProfit>=0?'var(--green)':'var(--red)'}">${fmt(rlProfit)}</span></div>
         <div class="ip-receipt-row" style="margin-top:6px;padding:10px;background:var(--surface2);border-radius:8px;border-bottom:none">
-          <span style="font-weight:600">Lifetime P&L if sold</span>
+          <span style="flex:1;font-weight:600">Lifetime P&L if sold</span>
           <span id="rl-lifetime" class="ip-receipt-val" style="font-size:15px;color:${combinedP>=0?'var(--green)':'var(--red)'}">${fmt(combinedP)}</span>
         </div>
       </div>
@@ -1304,21 +1356,21 @@ function renderItemPage(m,id){
   html+='<div class="ip-tokens">';
 
   // Sale price
-  html+='<div class="ip-token'+(saleEditable?'':' locked')+'" id="tok-salePrice-'+id+'"'+(saleEditable?' onclick="openTokenEdit(\''+m+'\',\''+id+'\',\'salePrice\')"':'')+' >';
+  html+='<div class="ip-token'+(saleEditable?'':' locked')+'" id="tok-salePrice-'+id+'"'+(saleEditable?' onpointerdown="tokenPointerDown(\''+m+'\',\''+id+'\',\'salePrice\')" onclick="openTokenEdit(\''+m+'\',\''+id+'\',\'salePrice\')"':'')+' >';
   html+='<div class="ip-token-label">Sale Price</div>';
   html+='<div class="ip-token-val">'+fmt(i.salePrice||0)+'</div>';
-  html+='<div class="ip-token-sub">'+(saleEditable?'Tap to edit':status==='sold'||status==='resold'?'Sold · locked':'Locked')+'</div>';
+  html+='<div class="ip-token-sub">'+(saleEditable?'✏️ Tap to edit':status==='sold'||status==='resold'?'🔒 Sold · locked':'🔒 Locked')+'</div>';
   html+='</div>';
 
   // Buy price — always editable
-  html+='<div class="ip-token" id="tok-costPrice-'+id+'" onclick="openTokenEdit(\''+m+'\',\''+id+'\',\'costPrice\')">';
+  html+='<div class="ip-token" id="tok-costPrice-'+id+'" onpointerdown="tokenPointerDown(\''+m+'\',\''+id+'\',\'costPrice\')" onclick="openTokenEdit(\''+m+'\',\''+id+'\',\'costPrice\')">';
   html+='<div class="ip-token-label">Buy Price</div>';
   html+='<div class="ip-token-val">'+fmt(i.costPrice||0)+'</div>';
   html+='<div class="ip-token-sub">Tap to edit</div>';
   html+='</div>';
 
   // Promo %
-  html+='<div class="ip-token" id="tok-promoPercent-'+id+'" onclick="openTokenEdit(\''+m+'\',\''+id+'\',\'promoPercent\')">';
+  html+='<div class="ip-token" id="tok-promoPercent-'+id+'" onpointerdown="tokenPointerDown(\''+m+'\',\''+id+'\',\'promoPercent\')" onclick="openTokenEdit(\''+m+'\',\''+id+'\',\'promoPercent\')">';
   html+='<div class="ip-token-label">Promo %</div>';
   html+='<div class="ip-token-val">'+promoStr+'%</div>';
   html+='<div class="ip-token-sub">Tap to edit · Fee: '+fmt(promoCost)+'</div>';
@@ -1363,7 +1415,7 @@ function renderItemPage(m,id){
   db+='<div class="ip-row"><div class="ip-label">Date Listed</div>'
     +'<input class="ip-field" type="date" value="'+(i.dateListed||'')+'" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'dateListed\',this.value)"></div>';
   db+=i.dateSold
-    ?'<div class="ip-row"><div class="ip-label">Date Sold</div><div class="ip-field-date">'+i.dateSold+'</div></div>'
+    ?'<div class="ip-row"><div class="ip-label">Date Sold</div><div class="ip-field-date">'+fmtDate(i.dateSold)+'</div></div>'
     :'<div class="ip-row"><div class="ip-label">Date Sold</div><div class="ip-field-date" style="color:var(--muted);font-style:italic">Not yet sold</div></div>';
   db+='<div class="ip-row"><div class="ip-label">Location</div>'
     +'<input class="ip-field" value="'+esc(i.location||'')+'" placeholder="e.g. A101" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'location\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
@@ -3681,8 +3733,9 @@ function markSold(m,id){
     document.getElementById('resale-modal').style.display='flex';
   } else {
     // Standard first sale
-    MODAL_CALLBACK=function(date){
+    MODAL_CALLBACK=function(date,price){
       item.dateSold=date;
+      if(price&&price>0)item.salePrice=+price.toFixed(2);
       item.isReturned=false;
       item.grossProfit=calcGrossProfit(item);
       saveDB();
@@ -3694,13 +3747,16 @@ function markSold(m,id){
       if(document.getElementById('slide-panel').classList.contains('on')){openItemDetail(m,id);}
     };
     document.getElementById('modal-date').value=today;
+    document.getElementById('modal-price').value=(item.salePrice||'').toString();
+    document.getElementById('modal-price-row').style.display='block';
     document.getElementById('sold-modal').style.display='flex';
   }
 }
 
 function confirmSold(){
   const date=document.getElementById('modal-date').value;
-  if(date&&MODAL_CALLBACK){MODAL_CALLBACK(date);}
+  const price=parseFloat(document.getElementById('modal-price').value)||0;
+  if(date&&MODAL_CALLBACK){MODAL_CALLBACK(date,price);}
   closeModal();
 }
 
@@ -4009,12 +4065,8 @@ function saveReturn(m,id){
   saveDB();
   toast('Return logged');
   closePanel();
-  // Re-render based on context
-  const _rp=document.querySelector('.page.on');
-  if(_rp&&_rp.id==='p-item'){renderItemPage(m,id);}
-  else if(_rp&&_rp.id==='p-monthly'){renderMonth();}
-  else if(_rp&&_rp.id==='p-stock'){renderStock();}
-  else if(_rp&&_rp.id==='p-summary'){renderSummary();}
+  // Always navigate to the item page so user can see the updated P&L/timeline
+  openItemPage(m,id,document.querySelector('.page.on')?document.querySelector('.page.on').id:'p-summary');
 }
 
 
@@ -4300,10 +4352,61 @@ function renderTax(){
     +'<div class="tax-box-tag" style="background:var(--accent);border-radius:6px;padding:5px 10px;font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:#000;flex-shrink:0;min-width:56px;text-align:center">Box 23</div>'
     +'<div class="tax-box-desc" style="flex:1;font-size:12px;color:var(--text-secondary);min-width:120px">Net profit (taxable)</div>'
     +'<div class="tax-box-val" style="font-weight:700;font-size:15px;font-family:\'JetBrains Mono\',monospace;color:'+(box23<500?'var(--green)':'var(--text)')+';flex-shrink:0">'+fmt(box23)+'</div>'
-    +'</div></div>'
+    +'</div></div>';
 
-    // Disclaimer
-    +'<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--text-secondary);line-height:1.6;margin-bottom:40px">'
+  // ── Tax Estimate (UK self-employed rates) ─────────────────────────────────
+  var TAX_RATES={
+    2025:{pa:12570,basicBand:37700,basicRate:0.20,higherRate:0.40,addRate:0.45,c2weekly:3.45,c2spt:12570,c4low:0.06,c4high:0.02,c4upper:50270},
+    2024:{pa:12570,basicBand:37700,basicRate:0.20,higherRate:0.40,addRate:0.45,c2weekly:3.45,c2spt:12570,c4low:0.06,c4high:0.02,c4upper:50270},
+    2023:{pa:12570,basicBand:37700,basicRate:0.20,higherRate:0.40,addRate:0.45,c2weekly:3.45,c2spt:12570,c4low:0.09,c4high:0.02,c4upper:50270},
+  };
+  var r=TAX_RATES[selectedYear]||TAX_RATES[2025];
+  var taxableForEst=box23;
+  var itTaxable=Math.max(0,taxableForEst-r.pa);
+  var basicTaxable=Math.min(itTaxable,r.basicBand);
+  var higherTaxable=Math.max(0,Math.min(itTaxable-r.basicBand,r.c4upper-r.pa-r.basicBand));
+  var addTaxable=Math.max(0,itTaxable-r.basicBand-higherTaxable);
+  var incomeTax=+(basicTaxable*r.basicRate+higherTaxable*r.higherRate+addTaxable*r.addRate).toFixed(2);
+  var class2=taxableForEst>r.c2spt?+(r.c2weekly*52).toFixed(2):0;
+  var c4base=Math.max(0,taxableForEst-r.pa);
+  var c4lowAmt=+(Math.min(c4base,r.c4upper-r.pa)*r.c4low).toFixed(2);
+  var c4highAmt=+(Math.max(0,taxableForEst-r.c4upper)*r.c4high).toFixed(2);
+  var class4=+(c4lowAmt+c4highAmt).toFixed(2);
+  var totalTax=+(incomeTax+class2+class4).toFixed(2);
+  var noTax=taxableForEst<=r.pa;
+
+  function taxRow(label,val,sub,color){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px">'
+      +'<div><div style="color:var(--text-secondary)">'+label+'</div>'+(sub?'<div style="font-size:11px;color:var(--muted);margin-top:1px">'+sub+'</div>':'')+'</div>'
+      +'<span style="font-family:\'JetBrains Mono\',monospace;font-weight:600;color:'+(color||'var(--text)')+'">'+fmt(val)+'</span>'
+      +'</div>';
+  }
+
+  html+='<div class="sl">Estimated Tax '+selectedYear+'/'+(selectedYear+1).toString().slice(2)+'</div>';
+  if(belowThreshold||noTax){
+    html+='<div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:var(--green)">'
+      +'<strong>No tax due</strong> \u2014 taxable profit of '+fmt(taxableForEst)+' is within the personal allowance (\u00a3'+r.pa.toLocaleString()+').'
+      +'</div>';
+  } else {
+    html+='<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px">'
+      +taxRow('Income Tax',incomeTax,
+        itTaxable<=r.basicBand?'20% on \u00a3'+fmt(itTaxable)+' above personal allowance'
+          :'20% basic + 40% higher rate','var(--red)')
+      +taxRow('Class 2 NI',class2,'\u00a3'+r.c2weekly+'/wk \u00d7 52 (profits above \u00a3'+r.c2spt.toLocaleString()+')',(class2>0?'var(--red)':'var(--muted)'))
+      +taxRow('Class 4 NI',class4,
+        '6% on \u00a3'+fmt(Math.min(c4base,r.c4upper-r.pa))+(taxableForEst>r.c4upper?' + 2% above \u00a3'+r.c4upper.toLocaleString():'')
+        ,(class4>0?'var(--red)':'var(--muted)'))
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:15px;font-weight:700;background:var(--surface2)">'
+      +'<span>Total estimated tax</span><span style="color:var(--red);font-family:\'JetBrains Mono\',monospace">'+fmt(totalTax)+'</span>'
+      +'</div></div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-bottom:20px;padding:0 2px;line-height:1.6">'
+      +'Based on self-employment only \u2014 assumes no other taxable income. '
+      +'Payments on account may apply if your bill exceeds \u00a31,000.'
+      +'</div>';
+  }
+
+  // Disclaimer
+  html+='<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--text-secondary);line-height:1.6;margin-bottom:40px">'
     +'\u26a0\ufe0f <strong style="color:var(--text)">For reference only.</strong> Verify with a qualified accountant before filing.'
     +'</div>';
 
@@ -4601,6 +4704,12 @@ function fmt(n){
   return'£'+Number(n).toFixed(2);
 }
 
+function fmtDate(ds){
+  if(!ds)return'—';
+  const d=new Date(ds+'T12:00:00');
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+
 function esc(s){
   if(!s)return'';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -4780,6 +4889,134 @@ function refreshPanelParts(m,id){
 initTheme();
 initDB();
 renderSummary();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SUPABASE MIGRATION PREP
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// SQL SCHEMA (run in Supabase SQL editor to create tables):
+//
+// -- Items table
+// CREATE TABLE items (
+//   id TEXT PRIMARY KEY,
+//   gid TEXT,
+//   month TEXT NOT NULL,
+//   item TEXT NOT NULL,
+//   category TEXT,
+//   location TEXT,
+//   source TEXT,
+//   date_listed DATE,
+//   date_sold DATE,
+//   sale_price NUMERIC(10,2) DEFAULT 0,
+//   postage NUMERIC(10,2) DEFAULT 0,
+//   cost_price NUMERIC(10,2) DEFAULT 0,
+//   shipping_cost NUMERIC(10,2) DEFAULT 0,
+//   packaging_cost NUMERIC(10,2) DEFAULT 0,
+//   promo_percent NUMERIC(6,4) DEFAULT 0,
+//   notes TEXT,
+//   is_returned BOOLEAN DEFAULT false,
+//   postage_mode TEXT DEFAULT 'simple',
+//   sd_rate_idx INTEGER DEFAULT 1,
+//   sd_buyer_pays BOOLEAN DEFAULT true,
+//   resale_sale_price NUMERIC(10,2),
+//   resale_date_sold DATE,
+//   resale_shipping_cost NUMERIC(10,2),
+//   resale_promo_percent NUMERIC(6,4),
+//   gross_profit NUMERIC(10,2),
+//   created_at TIMESTAMPTZ DEFAULT NOW(),
+//   updated_at TIMESTAMPTZ DEFAULT NOW()
+// );
+//
+// -- Parts/expenses per item
+// CREATE TABLE item_parts (
+//   id SERIAL PRIMARY KEY,
+//   item_id TEXT REFERENCES items(id) ON DELETE CASCADE,
+//   description TEXT,
+//   cost NUMERIC(10,2) DEFAULT 0
+// );
+//
+// -- Return history per item
+// CREATE TABLE item_returns (
+//   id SERIAL PRIMARY KEY,
+//   item_id TEXT REFERENCES items(id) ON DELETE CASCADE,
+//   logged_at DATE,
+//   type TEXT,
+//   refund_amount NUMERIC(10,2) DEFAULT 0,
+//   return_postage NUMERIC(10,2) DEFAULT 0,
+//   notes TEXT,
+//   relisted_at DATE,
+//   relist_condition TEXT
+// );
+//
+// -- Mileage trips
+// CREATE TABLE trips (
+//   id TEXT PRIMARY KEY,
+//   date DATE,
+//   description TEXT,
+//   mileage NUMERIC(8,2),
+//   rate_per_mile NUMERIC(6,4) DEFAULT 0.45
+// );
+//
+// -- Other business expenses
+// CREATE TABLE expenses (
+//   id TEXT PRIMARY KEY,
+//   date DATE,
+//   description TEXT,
+//   amount NUMERIC(10,2),
+//   category TEXT
+// );
+//
+// -- RLS: enable row-level security and add policies for your auth user
+// ALTER TABLE items ENABLE ROW LEVEL SECURITY;
+// ALTER TABLE item_parts ENABLE ROW LEVEL SECURITY;
+// ALTER TABLE item_returns ENABLE ROW LEVEL SECURITY;
+// ALTER TABLE trips ENABLE ROW LEVEL SECURITY;
+// ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+//
+// ───────────────────────────────────────────────────────────────────────────
+// exportForSupabase() — call from console to get migration JSON
+// ───────────────────────────────────────────────────────────────────────────
+function exportForSupabase(){
+  const items=[];
+  const parts=[];
+  const returns=[];
+  MONTHS.forEach(function(m){
+    (DB[m]||[]).forEach(function(i){
+      items.push({
+        id:i.id, gid:i.gid||null, month:m,
+        item:i.item||'', category:i.category||null, location:i.location||null, source:i.source||null,
+        date_listed:i.dateListed||null, date_sold:i.dateSold||null,
+        sale_price:i.salePrice||0, postage:i.postage||0, cost_price:i.costPrice||0,
+        shipping_cost:i.shippingCost||0, packaging_cost:i.packagingCost||0,
+        promo_percent:i.promoPercent||0, notes:i.notes||null,
+        is_returned:!!i.isReturned,
+        postage_mode:i._postageMode||'simple', sd_rate_idx:i._sdRateIdx||1, sd_buyer_pays:i._sdBuyerPays!==false,
+        resale_sale_price:i.resaleSalePrice||null, resale_date_sold:i.resaleDateSold||null,
+        resale_shipping_cost:i.resaleShippingCost||null, resale_promo_percent:i.resalePromoPercent||null,
+        gross_profit:i.grossProfit||null
+      });
+      (i.parts||[]).forEach(function(p,pi){
+        parts.push({item_id:i.id,description:p.desc||p.description||'',cost:p.cost||0});
+      });
+      (i.returnHistory||[]).forEach(function(r){
+        returns.push({
+          item_id:i.id, logged_at:r.loggedAt||null, type:r.type||null,
+          refund_amount:r.refundAmount||0, return_postage:r.returnPostage||0,
+          notes:r.notes||null, relisted_at:r._relistedAt||null, relist_condition:r._relistCondition||null
+        });
+      });
+    });
+  });
+  const trips=(DB.trips||[]).map(function(t){return{id:t.id||String(Date.now()),date:t.date,description:t.description||'',mileage:t.mileage||0,rate_per_mile:t.ratePerMile||0.45};});
+  const expenses=(DB.expenses||[]).map(function(e){return{id:e.id||String(Date.now()),date:e.date,description:e.description||'',amount:e.amount||0,category:e.category||null};});
+  const out={items,item_parts:parts,item_returns:returns,trips,expenses};
+  console.log('=== SUPABASE EXPORT ===');
+  console.log(JSON.stringify(out,null,2));
+  console.log('Items:',items.length,'Parts:',parts.length,'Returns:',returns.length,'Trips:',trips.length,'Expenses:',expenses.length);
+  return out;
+}
+// Usage: open browser console and run: exportForSupabase()
+// Then paste the JSON into Supabase Table Editor > Import or use the REST API
 </script>
 </body>
 </html>
