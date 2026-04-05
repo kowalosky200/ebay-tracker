@@ -68,6 +68,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .history-badge.listed{background:rgba(100,116,139,0.15);color:var(--muted);}
 .history-badge.sale{background:rgba(34,197,94,0.15);color:var(--green);}
 .history-badge.resale{background:rgba(139,92,246,0.15);color:var(--purple);}
+.history-badge.relist{background:rgba(59,130,246,0.15);color:var(--blue);}
 .history-badge.return-full{background:rgba(239,68,68,0.15);color:var(--red);}
 .history-badge.return-partial{background:rgba(245,158,11,0.15);color:var(--accent);}
 .pnl-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border);}
@@ -169,8 +170,8 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .bar-group{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;}
 .bar-pair{display:flex;align-items:flex-end;gap:3px;width:100%;height:184px;}
 .bar-rev{background:var(--blue);border-radius:4px 4px 0 0;width:55%;transition:opacity 0.15s;min-height:2px;}
-.bar-rev:hover{opacity:0.85;}
-.bar-prof{background:var(--green);border-radius:4px 4px 0 0;width:45%;min-height:0;}
+.bar-prof{background:var(--green);border-radius:4px 4px 0 0;width:45%;min-height:0;transition:opacity 0.15s;}
+.bar-group:not(.bar-zero):hover .bar-rev,.bar-group:not(.bar-zero):hover .bar-prof{opacity:0.7;}
 .bar-label{font-size:10px;color:var(--muted);text-align:center;margin-top:6px;font-weight:500;}
 .bar-zero .bar-rev{opacity:0.2;}
 
@@ -190,6 +191,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .item-badge.sold{background:rgba(16,185,129,0.15);color:var(--green);}
 .item-badge.returned{background:rgba(239,68,68,0.15);color:var(--red);}
 .item-badge.resold{background:rgba(139,92,246,0.15);color:var(--purple);}
+.item-badge.spares{background:rgba(245,158,11,0.15);color:var(--warn);}
 .item-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-secondary);}
 .item-meta-item{display:flex;align-items:center;gap:6px;}
 .item-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
@@ -467,63 +469,165 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .ip-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:2px;}
 .ip-row{display:flex;flex-direction:column;gap:1px;}
 
-/* Item page layout */
+/* ═══════════════════════════════════════════════════════
+   ITEM PAGE — full redesign
+   ═══════════════════════════════════════════════════════ */
+
+/* Top bar */
 .ip-topbar{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
 .ip-back{flex-shrink:0;}
 .ip-title-wrap{flex:1;min-width:0;}
-.ip-title{font-size:19px;font-weight:700;line-height:1.3;word-break:break-word;margin-bottom:6px;}
+.ip-title{font-size:20px;font-weight:700;line-height:1.3;word-break:break-word;margin-bottom:6px;cursor:pointer;border-radius:6px;padding:2px 4px;margin-left:-4px;transition:background 0.15s;}
+.ip-title:hover{background:var(--surface2);}
+.ip-title:hover::after{content:' ✎';font-size:15px;color:var(--muted);font-weight:400;}
+.ip-title-input{font-size:20px;font-weight:700;line-height:1.3;word-break:break-word;margin-bottom:6px;background:var(--surface2);border:none;border-bottom:2px solid var(--accent);color:var(--text);font-family:inherit;width:100%;outline:none;padding:2px 4px;border-radius:6px 6px 0 0;}
 .ip-meta-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .ip-chip{font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:3px;}
 .ip-chip.mono{font-family:'JetBrains Mono',monospace;}
-.ip-chip-select{padding:0;overflow:hidden;}
-.ip-select{background:var(--surface2);border:none;color:var(--text);font-size:11px;font-family:inherit;cursor:pointer;padding:3px 6px;outline:none;appearance:none;-webkit-appearance:none;max-width:140px;border-radius:6px;}
-.ip-select:hover{background:var(--border);}
-.ip-select:focus{color:var(--text);background:var(--border);}
-.ip-select option{background:var(--surface);color:var(--text);}
 .ip-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;}
 .ip-act-btn{padding:7px 12px;font-size:13px;gap:5px;}
-.ip-act-btn .ip-act-label{}
 .ip-act-danger{color:var(--red)!important;}
 .ip-act-danger:hover{background:rgba(239,68,68,0.1)!important;border-color:var(--red)!important;color:var(--red)!important;}
-/* KPI strip */
-.ip-kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
-.ip-kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;}
-.ip-kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--border);}
-.ip-kpi.pos::after{background:var(--green);}
-.ip-kpi.neg::after{background:var(--red);}
-.ip-kpi-label{font-size:10px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}
-.ip-kpi-val{font-size:22px;font-weight:700;line-height:1;letter-spacing:-0.02em;cursor:default;}
-.ip-kpi-val .inline-val{font-size:22px;}
-.ip-kpi-val .inline-input{font-size:22px;}
-.ip-kpi.pos .ip-kpi-val{color:var(--green);}
-.ip-kpi.neg .ip-kpi-val{color:var(--red);}
-.ip-kpi-sub{font-size:11px;color:var(--text-secondary);margin-top:5px;}
-/* Two-column body */
-.ip-body{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;}
-.ip-col-main{display:flex;flex-direction:column;gap:14px;}
-.ip-col-side{display:flex;flex-direction:column;gap:14px;}
-.ip-section{background:var(--surface2);border-radius:12px;padding:14px 16px;}
+
+/* Editable token grid — 4 tokens: Sale Price, Buy Price, Promo %, Net Profit */
+.ip-tokens{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:0;width:100%;}
+.ip-token{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s;position:relative;user-select:none;}
+.ip-token:hover:not(.locked){border-color:var(--accent);box-shadow:0 2px 10px rgba(245,158,11,0.12);}
+.ip-token.editing{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,0.15);}
+.ip-token.locked{cursor:not-allowed;opacity:0.5;}
+.ip-token.locked:hover{border-color:var(--border)!important;box-shadow:none!important;}
+.ip-token-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-secondary);margin-bottom:6px;}
+.ip-token-val{font-size:20px;font-weight:700;letter-spacing:-0.02em;line-height:1;min-height:24px;}
+.ip-token-val input{font-size:20px;font-weight:700;letter-spacing:-0.02em;width:100%;background:transparent;border:none;outline:none;color:var(--accent);font-family:inherit;padding:0;-moz-appearance:textfield;}
+.ip-token-val input::-webkit-outer-spin-button,.ip-token-val input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.ip-token-sub{font-size:11px;color:var(--text-secondary);margin-top:4px;line-height:1.3;}
+.ip-token.pos .ip-token-val{color:var(--green);}
+.ip-token.neg .ip-token-val{color:var(--red);}
+
+/* Postage row — slim bar below tokens, always full width */
+.ip-postage-row{display:flex;align-items:center;gap:10px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:0;flex-wrap:wrap;width:100%;}
+.ip-postage-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-secondary);flex-shrink:0;white-space:nowrap;}
+.ip-postage-mode{display:flex;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:2px;flex-shrink:0;}
+.ip-postage-mode-btn{padding:4px 10px;border-radius:5px;border:none;background:transparent;font-size:11px;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:all 0.12s;white-space:nowrap;}
+.ip-postage-mode-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px var(--shadow);}
+[data-theme="light"] .ip-postage-mode-btn.active{background:#fff;}
+.ip-postage-divider{width:1px;background:var(--border);height:20px;flex-shrink:0;}
+.ip-postage-select{flex:1;min-width:0;padding:7px 32px 7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;outline:none;transition:border-color 0.15s,box-shadow 0.15s;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
+.ip-postage-select:hover{border-color:var(--border2);}
+.ip-postage-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,0.1);}
+.ip-postage-select option{background:var(--surface);color:var(--text);}
+.ip-postage-buyer{display:flex;align-items:center;gap:5px;margin-left:auto;font-size:12px;color:var(--text-secondary);flex-shrink:0;}
+.ip-postage-buyer label{display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:500;white-space:nowrap;}
+.ip-postage-buyer input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;}
+.ip-postage-custom{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;flex-wrap:nowrap;}
+.ip-postage-custom-field{display:flex;align-items:center;gap:4px;font-size:12px;}
+.ip-postage-custom-field label{color:var(--text-secondary);white-space:nowrap;font-weight:500;}
+.ip-postage-custom-field input{width:60px;text-align:right;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:4px 6px;font-size:12px;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--text);outline:none;transition:border-color 0.15s;}
+.ip-postage-custom-field input:focus{border-color:var(--accent);}
+
+/* Uniform spacing container */
+.ip-content{display:flex;flex-direction:column;gap:12px;width:100%;}
+/* Body sections — full width, no max-width constraint here (page handles it) */
+.ip-body{display:flex;flex-direction:column;gap:12px;width:100%;}
+.ip-section{background:var(--surface2);border-radius:12px;padding:0;overflow:hidden;width:100%;}
 .ip-section-pnl{background:var(--surface);border:1px solid var(--border);box-shadow:0 1px 4px var(--shadow);}
-.ip-section-timeline{opacity:0.9;}
-.ip-field-select{width:100%;padding:3px 4px;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-family:inherit;font-size:13px;cursor:pointer;border-radius:4px;appearance:none;-webkit-appearance:none;transition:all 0.15s;}
-.ip-field-select:hover{background:var(--surface2);border-bottom-color:var(--border2);}
-.ip-field-select:focus{outline:none;background:var(--surface2);border-bottom-color:var(--accent);}
-@media(max-width:900px){
-  .ip-body{grid-template-columns:1fr;}
-  .ip-kpi-strip{grid-template-columns:repeat(2,1fr);}
-}
-@media(max-width:600px){
-  .ip-topbar{flex-direction:column;gap:10px;}
-  .ip-actions{width:100%;}
-  .ip-act-label{display:none;}
-  .ip-kpi-strip{grid-template-columns:repeat(2,1fr);gap:8px;}
-  .ip-kpi{padding:10px 12px;}
-  .ip-kpi-val{font-size:18px;}
-  .ip-kpi-val .inline-val{font-size:18px;}
-}
+.ip-section-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;user-select:none;gap:8px;}
+.ip-section-header:hover{background:rgba(0,0,0,0.03);}
+[data-theme="dark"] .ip-section-header:hover{background:rgba(255,255,255,0.03);}
+.ip-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-secondary);}
+.ip-section-meta{display:flex;align-items:center;gap:8px;}
+.ip-section-badge{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.ip-section-chevron{font-size:12px;color:var(--muted);transition:transform 0.2s;}
+.ip-section-body{padding:0 16px 14px;}
+
+/* P&L receipt rows */
+.ip-receipt-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border);}
+.ip-receipt-row:last-child{border-bottom:none;}
+.ip-receipt-row.total{font-weight:700;font-size:14px;padding-top:10px;margin-top:4px;border-top:2px solid var(--border);border-bottom:none;}
+.ip-receipt-row.indent{padding-left:14px;}
+.ip-receipt-row.section-head{font-weight:600;color:var(--accent);border-top:1px dashed var(--border);padding-top:10px;margin-top:4px;}
+.ip-receipt-val{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px;}
+
+/* Details grid */
+.ip-details-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;}
+.ip-row{display:flex;flex-direction:column;gap:2px;}
+.ip-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;}
+.ip-field{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-family:inherit;font-size:13px;padding:3px 4px;border-radius:4px;width:100%;transition:all 0.15s;cursor:text;text-align:left;}
+.ip-field:hover{background:var(--surface);border-bottom-color:var(--border2);}
+.ip-field:focus{outline:none;background:var(--surface);border-bottom-color:var(--accent);box-shadow:0 1px 0 var(--accent);}
+.ip-field-select{width:100%;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-family:inherit;font-size:13px;cursor:pointer;border-radius:4px;appearance:none;-webkit-appearance:none;padding:3px 4px;transition:all 0.15s;}
+.ip-field-select:hover{background:var(--surface);border-bottom-color:var(--border2);}
+.ip-field-select:focus{outline:none;background:var(--surface);border-bottom-color:var(--accent);}
+.ip-field-date{color:var(--text-secondary);font-size:13px;padding:3px 4px;display:block;text-align:left;width:100%;}
+
+/* Timeline entries */
+.ip-timeline-entry{padding:10px 0;border-bottom:1px solid var(--border);}
+.ip-timeline-entry:last-child{border-bottom:none;}
+.ip-timeline-header{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
+.ip-timeline-label{font-weight:600;font-size:13px;}
+.ip-timeline-detail{font-size:12px;color:var(--muted);line-height:1.5;}
+
+/* Relist projection */
+.ip-relist-section{background:var(--surface);border:1.5px dashed var(--accent);border-radius:12px;padding:0;overflow:hidden;width:100%;}
+.ip-relist-section .ip-section-header{background:rgba(245,158,11,0.06);}
+
+/* Legacy inline-edit (startInlineEdit — still used by undo flows) */
+.inline-val{cursor:pointer;border-radius:6px;transition:background 0.15s;padding:2px 4px;margin:-2px -4px;display:inline-block;}
 .inline-val:hover{background:var(--surface2);}
 .inline-val:hover::after{content:' ✎';font-size:14px;color:var(--muted);font-weight:400;}
 .inline-input{font-size:20px;font-weight:700;letter-spacing:-0.02em;width:120px;border:none;border-bottom:2px solid var(--accent);background:transparent;color:var(--text);font-family:inherit;outline:none;padding:0;}
+.ip-edit-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border);gap:8px;}
+.ip-edit-row:last-child{border-bottom:none;}
+.ip-edit-row-label{color:var(--text-secondary);flex:1;}
+.ip-edit-row-val{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px;}
+.ip-edit-input{width:72px;text-align:right;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;padding:1px 4px;border-radius:3px;transition:all 0.15s;}
+.ip-edit-input:hover{background:var(--surface2);border-bottom-color:var(--border2);}
+.ip-edit-input:focus{outline:none;background:var(--surface2);border-bottom-color:var(--accent);box-shadow:0 1px 0 var(--accent);}
+
+/* Responsive — single breakpoint: 4-col → 2-col
+   Pairs stay logical: [Sale Price][Buy Price] / [Promo %][Net Profit] */
+@media(max-width:680px){
+  /* Top bar */
+  .ip-topbar{flex-direction:column;gap:10px;}
+  .ip-title{font-size:18px;}
+  .ip-actions{width:100%;justify-content:flex-start;}
+  .ip-act-danger{margin-left:auto;} /* push delete to far right */
+  .ip-act-label{font-size:12px;} /* keep short labels visible on mobile */
+
+  /* Tokens */
+  .ip-tokens{grid-template-columns:1fr 1fr;gap:8px;}
+  .ip-token{padding:10px 12px;}
+  .ip-token-val{font-size:17px;}
+  .ip-token-val input{font-size:17px;}
+  .ip-token-sub{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  /* Postage row — stack cleanly */
+  .ip-postage-row{flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px;}
+  .ip-postage-divider{display:none;}
+  .ip-postage-mode{width:100%;}
+  .ip-postage-mode-btn{flex:1;text-align:center;}
+  .ip-postage-select{width:100%;font-size:16px;}
+  .ip-postage-buyer{margin-left:0;}
+  .ip-postage-custom{margin-left:0;width:100%;}
+  .ip-postage-custom-field input{font-size:16px;width:70px;}
+
+  /* Details */
+  .ip-details-grid{grid-template-columns:1fr;}
+  .ip-field{font-size:16px;text-align:left;} /* prevent iOS zoom + fix centering */
+  .ip-field[type=date]{text-align:left;direction:ltr;}
+  .ip-field-select{font-size:16px;}
+
+  /* P&L receipt — slightly tighter */
+  .ip-receipt-row{font-size:12px;}
+  .ip-receipt-row.total{font-size:13px;}
+  .ip-receipt-val{font-size:12px;}
+
+  /* Timeline undo — bigger tap target */
+  .ip-timeline-header button{padding:4px 10px!important;font-size:12px!important;}
+
+  /* Page padding consistency */
+  .item-full-page{padding:14px 16px;}
+}
 </style>
 </head>
 <body>
@@ -627,20 +731,16 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 </div>
 
 <div id="resale-modal" style="display:none;position:fixed;inset:0;background:var(--overlay);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:340px;max-width:90vw;box-shadow:0 8px 32px var(--shadow-md)">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:320px;max-width:90vw;box-shadow:0 8px 32px var(--shadow-md)">
     <div style="font-weight:700;font-size:16px;margin-bottom:4px">Re-sold</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Second sale after return — enter new details</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px" id="resale-modal-sub">Shipping &amp; promo carried over from relist</div>
     <div class="fg">
       <label>Date Sold</label>
       <input type="date" id="resale-date">
     </div>
-    <div class="fg">
+    <div class="fg" style="margin-bottom:16px">
       <label>Sale Price (£)</label>
       <input type="number" id="resale-price" step="0.01" placeholder="0.00">
-    </div>
-    <div class="fg" style="margin-bottom:16px">
-      <label>Your Shipping Cost (£)</label>
-      <input type="number" id="resale-shipping" step="0.01" placeholder="0.00">
     </div>
     <div style="display:flex;gap:10px">
       <button class="btn btn-success" onclick="confirmResale()" style="flex:1">Confirm</button>
@@ -780,6 +880,7 @@ function refreshActivePage(){
   else if(id==='p-expenses')renderExpenses();
   else if(id==='p-tax'&&typeof renderTax==='function')renderTax();
   // p-item and p-search intentionally skipped — they manage their own re-render
+  // (p-item also uses _getSecStates/_applySecStates to preserve collapse state)
 }
 
 // BUYER PROTECTION FEE (Tiered eBay UK formula)
@@ -855,6 +956,119 @@ function exitItemPage(){
 
 
 
+// ── Simple Delivery rate bands (UK, current as of late 2025) ─────────────────
+// Each entry: {label, cost, buyerPays} — cost = what eBay charges you, buyerPays = default buyer-facing charge
+// ── Simple Delivery rate bands (UK, current as of early 2026, both carriers enabled, items under £100)
+// eBay shows these as size bands — label costs are what eBay charge the seller via the prepaid label
+// Rates shown: Large Letter £2.70 · Small Parcel 0-2kg £3.38 · Medium Parcel 0-1kg £5.15 · 1-5kg £6.16
+const SIMPLE_DELIVERY_RATES=[
+  {label:'Large Letter (up to 750g)',  cost:2.70},
+  {label:'Small Parcel (up to 1kg)',   cost:2.94},
+  {label:'Small Parcel (up to 2kg)',   cost:4.26},
+  {label:'Medium Parcel (up to 1kg)',  cost:3.42},
+  {label:'Medium Parcel (up to 2kg)',  cost:4.26},
+  {label:'Medium Parcel (up to 10kg)', cost:5.88},
+  {label:'Medium Parcel (up to 20kg)', cost:8.41},
+];
+
+// ── Token editing helpers ─────────────────────────────────────────────────────
+// ── Section open-state persistence across re-renders ─────────────────────────
+function _getSecStates(){
+  const states={};
+  document.querySelectorAll('#p-item .ip-section').forEach(function(el){
+    const title=el.querySelector('.ip-section-title');
+    const body=el.querySelector('.ip-section-body');
+    if(title&&body)states[title.textContent.trim()]=body.style.display!=='none';
+  });
+  return states;
+}
+function _applySecStates(states){
+  document.querySelectorAll('#p-item .ip-section').forEach(function(el){
+    const title=el.querySelector('.ip-section-title');
+    const body=el.querySelector('.ip-section-body');
+    const chev=el.querySelector('.ip-section-chevron');
+    if(!title||!body)return;
+    const key=title.textContent.trim();
+    if(key in states){
+      const open=states[key];
+      body.style.display=open?'block':'none';
+      if(chev)chev.style.transform=open?'rotate(180deg)':'rotate(0deg)';
+    }
+  });
+}
+
+function openTokenEdit(m,id,field){
+  const i=(DB[m]||[]).find(x=>x.id===id);
+  if(!i)return;
+  const tok=document.getElementById('tok-'+field+'-'+id);
+  if(!tok||tok.classList.contains('locked'))return;
+  // Close any other open token (without re-render)
+  document.querySelectorAll('.ip-token.editing').forEach(function(el){
+    if(el!==tok){el.classList.remove('editing');}
+  });
+  if(tok.classList.contains('editing'))return;
+  tok.classList.add('editing');
+  const valEl=tok.querySelector('.ip-token-val');
+  const currentVal=field==='promoPercent'?+((i.promoPercent||0)*100).toFixed(2):(i[field]||0);
+  valEl.innerHTML='<input type="number" step="0.01" min="0" value="'+currentVal+'" autocomplete="off">';
+  const inp=valEl.querySelector('input');
+  inp.focus();inp.select();
+  let committed=false;
+  function commit(save){
+    if(committed)return;
+    committed=true;
+    if(save){
+      const v=parseFloat(inp.value)||0;
+      if(field==='promoPercent'){i.promoPercent=+(v/100).toFixed(4);}
+      else{i[field]=+v.toFixed(2);}
+      if(i.dateSold||i.isReturned||i.resaleSalePrice)i.grossProfit=calcGrossProfit(i);
+      // Save without triggering refreshActivePage (p-item manages its own render)
+      DB._userOwned=true;
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
+    }
+    const states=_getSecStates();
+    renderItemPage(m,id);
+    _applySecStates(states);
+  }
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){e.preventDefault();commit(true);}
+    if(e.key==='Escape'){commit(false);}
+  });
+  inp.addEventListener('blur',function(){commit(true);});
+}
+
+// ── Postage mode save ─────────────────────────────────────────────────────────
+function savePostageMode(m,id,mode){
+  const i=(DB[m]||[]).find(x=>x.id===id);
+  if(!i)return;
+  i._postageMode=mode;
+  if(mode==='simple'&&i._sdRateIdx==null)i._sdRateIdx=0;
+  saveDB();
+  const s=_getSecStates();renderItemPage(m,id);_applySecStates(s);
+}
+function saveSDRate(m,id,idx){
+  const i=(DB[m]||[]).find(x=>x.id===id);
+  if(!i)return;
+  i._sdRateIdx=parseInt(idx)||0;
+  const rate=SIMPLE_DELIVERY_RATES[i._sdRateIdx]||SIMPLE_DELIVERY_RATES[0];
+  i.shippingCost=rate.cost;
+  // _sdBuyerPays=true means buyer pays postage; false/undefined means free shipping
+  i.postage=i._sdBuyerPays?rate.cost:0;
+  if(i.dateSold||i.isReturned||i.resaleSalePrice)i.grossProfit=calcGrossProfit(i);
+  saveDB();
+  const s=_getSecStates();renderItemPage(m,id);_applySecStates(s);
+}
+function saveSDFree(m,id,buyerPays){
+  const i=(DB[m]||[]).find(x=>x.id===id);
+  if(!i)return;
+  i._sdBuyerPays=buyerPays;
+  const rate=SIMPLE_DELIVERY_RATES[i._sdRateIdx||0];
+  i.postage=buyerPays?(rate?rate.cost:0):0;
+  if(i.dateSold||i.isReturned||i.resaleSalePrice)i.grossProfit=calcGrossProfit(i);
+  saveDB();
+  const s=_getSecStates();renderItemPage(m,id);_applySecStates(s);
+}
+
 function renderItemPage(m,id){
   const i=(DB[m]||[]).find(x=>x.id===id);
   const page=document.getElementById('p-item');
@@ -865,270 +1079,313 @@ function renderItemPage(m,id){
   const promoCost=grossInc*(i.promoPercent||0)*1.20;
   const profit=calcGrossProfit(i);
   const roi=calcROI(i);
-  const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'active';
+  const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':i.condition==='spares'?'spares':'active';
   const hasReturn=(i.returnHistory||[]).length>0;
   const totalRefunded=(i.returnHistory||[]).reduce((s,r)=>s+(r.refundAmount||0),0);
   const totalReturnPostage=(i.returnHistory||[]).reduce((s,r)=>s+(r.returnPostage||0),0);
+  const postageMode=i._postageMode||(i.shippingCost>0?'custom':'simple');
+  const sdIdx=i._sdRateIdx||0;
+  const sdRate=SIMPLE_DELIVERY_RATES[sdIdx]||SIMPLE_DELIVERY_RATES[0];
 
-  // ── Timeline ──────────────────────────────────────────────────────────
+  // ── Timeline entries ─────────────────────────────────────────────────
   const timeline=[];
-  timeline.push({
-    date:i.dateListed||'',
-    badge:'listed',
-    label:'Listed on eBay',
-    detail:'Price: '+fmt(i.salePrice)+' · Cost: '+fmt(i.costPrice||0)
-  });
-  if(i.dateSold||(hasReturn&&i.isReturned)){
+  timeline.push({date:i.dateListed||'',badge:'listed',label:'Listed on eBay',detail:'Price: '+fmt(i.salePrice)+' · Cost: '+fmt(i.costPrice||0)});
+  // Show sale entry if: sold, currently returned, OR has return history (was sold before the return)
+  if(i.dateSold||hasReturn){
     const sd=i.dateSold||((i.returnHistory||[])[0]?(i.returnHistory[0].loggedAt||''):'');
-    timeline.push({
-      date:sd,
-      badge:'sale',
-      label:'Sold',
-      detail:'Sale price: '+fmt(i.salePrice)+' → You received: '+fmt(grossInc)+' after BPF'
-    });
-  }
-  if(i.resaleSalePrice){
-    const rBPF=calcEbayBPF(i.resaleSalePrice);
-    timeline.push({
-      date:i.resaleDateSold||'',
-      badge:'resale',
-      label:'Re-sold',
-      detail:'Sale price: '+fmt(i.resaleSalePrice)+' → You received: '+fmt(i.resaleSalePrice-rBPF)+' after BPF'
-    });
+    timeline.push({date:sd,badge:'sale',label:'Sold',detail:'Sale price: '+fmt(i.salePrice)+' → Received: '+fmt(grossInc)+' after BPF'});
   }
   (i.returnHistory||[]).forEach(function(r,rtnIdx){
-    const lbl={
-      full_seller:'Full refund — seller handled',
-      full_ebay:'Full refund — eBay stepped in',
-      partial_seller:'Partial refund — seller agreed',
-      partial_ebay:'Partial refund — eBay decided'
-    };
+    const lbl2={full_seller:'Full refund — seller handled',full_ebay:'Full refund — eBay stepped in',partial_seller:'Partial refund — seller agreed',partial_ebay:'Partial refund — eBay decided'};
     const bc=r.type.startsWith('full')?'return-full':'return-partial';
-    const parts=['Refund: '+fmt(r.refundAmount||0)];
-    if(r.returnPostage>0)parts.push('Return postage: '+fmt(r.returnPostage));
-    if(r.notes)parts.push('Note: '+esc(r.notes));
-    timeline.push({date:r.loggedAt||'',badge:bc,label:lbl[r.type]||r.type,detail:parts.join(' · '),rtnIdx:rtnIdx});
+    const parts2=['Refund: '+fmt(r.refundAmount||0)];
+    if(r.returnPostage>0)parts2.push('Return postage: '+fmt(r.returnPostage));
+    if(r.notes)parts2.push('Note: '+esc(r.notes));
+    timeline.push({date:r.loggedAt||'',badge:bc,label:lbl2[r.type]||r.type,detail:parts2.join(' · '),rtnIdx:rtnIdx});
+    // If this return entry has a relist logged on it, add a relist timeline event
+    if(r._relistedAt){
+      const condLabel=r._relistCondition==='spares'?'Spares / Repairs':'Working';
+      timeline.push({date:r._relistedAt,badge:'relist',label:'Relisted',detail:'Condition: '+condLabel+' · Price: '+fmt(i.salePrice),rtnIdx:rtnIdx});
+    }
   });
-  const typeOrder={listed:0,sale:1,'return-full':2,'return-partial':2,resale:3};
-  timeline.sort(function(a,b){
-    if(a.date<b.date)return -1;
-    if(a.date>b.date)return 1;
-    return (typeOrder[a.badge]??1)-(typeOrder[b.badge]??1);
-  });
-
-  const badgeLbl={listed:'listed',sale:'sold',resale:'re-sold','return-full':'full return','return-partial':'partial return'};
+  if(i.resaleSalePrice){
+    const rBPF2=calcEbayBPF(i.resaleSalePrice);
+    timeline.push({date:i.resaleDateSold||'',badge:'resale',label:'Re-sold',detail:'Sale price: '+fmt(i.resaleSalePrice)+' → Received: '+fmt(i.resaleSalePrice-rBPF2)+' after BPF'});
+  }
+  const typeOrder={listed:0,sale:1,'return-full':2,'return-partial':2,relist:3,resale:4};
+  timeline.sort(function(a,b){if(a.date<b.date)return -1;if(a.date>b.date)return 1;return (typeOrder[a.badge]??1)-(typeOrder[b.badge]??1);});
+  const badgeLbl={listed:'listed',sale:'sold',resale:'re-sold','return-full':'full return','return-partial':'partial return',relist:'relisted'};
   const timelineHTML=timeline.map(function(t,idx){
     const isLast=idx===timeline.length-1;
     let undoBtn='';
     if(isLast){
-      if(t.badge==='sale'){
-        undoBtn='<button onclick="event.stopPropagation();undoSale(\''+m+'\',\''+id+'\')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--muted);cursor:pointer">✕ undo</button>';
-      } else if(t.badge==='resale'){
-        undoBtn='<button onclick="event.stopPropagation();undoResale(\''+m+'\',\''+id+'\')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--muted);cursor:pointer">✕ undo</button>';
-      } else if(t.badge==='return-full'||t.badge==='return-partial'){
-        undoBtn='<button onclick="event.stopPropagation();undoReturnEntry(\''+m+'\',\''+id+'\','+t.rtnIdx+')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--muted);cursor:pointer">✕ undo</button>';
-      }
+      if(t.badge==='sale')undoBtn='<button onclick="event.stopPropagation();undoSale(\''+m+'\',\''+id+'\')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--muted);cursor:pointer">✕ undo</button>';
+      else if(t.badge==='resale')undoBtn='<button onclick="event.stopPropagation();undoResale(\''+m+'\',\''+id+'\')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--muted);cursor:pointer">✕ undo</button>';
+      else if(t.badge==='return-full'||t.badge==='return-partial')undoBtn='<button onclick="event.stopPropagation();undoReturnEntry(\''+m+'\',\''+id+'\','+t.rtnIdx+')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--muted);cursor:pointer">✕ undo</button>';
+      else if(t.badge==='relist')undoBtn='<button onclick="event.stopPropagation();undoRelist(\''+m+'\',\''+id+'\','+t.rtnIdx+')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:4px;padding:1px 7px;font-size:11px;color:var(--muted);cursor:pointer">✕ undo</button>';
     }
-    return '<div class="history-entry">'
-      +'<div class="history-entry-header">'
+    return '<div class="ip-timeline-entry">'
+      +'<div class="ip-timeline-header">'
       +'<span class="history-badge '+t.badge+'">'+(badgeLbl[t.badge]||t.badge)+'</span>'
-      +'<span style="color:var(--muted);font-size:12px"> '+t.date+'</span>'
+      +'<span style="color:var(--muted);font-size:12px">'+t.date+'</span>'
       +undoBtn
       +'</div>'
-      +'<div style="font-weight:600;font-size:13px">'+t.label+'</div>'
-      +(t.detail?'<div style="color:var(--muted);font-size:12px;margin-top:3px">'+t.detail+'</div>':'')
+      +'<div class="ip-timeline-label">'+t.label+'</div>'
+      +(t.detail?'<div class="ip-timeline-detail">'+t.detail+'</div>':'')
       +'</div>';
   }).join('');
 
-  // ── P&L ───────────────────────────────────────────────────────────────
-  let pnl='';
-  pnl+='<div class="pnl-row"><span>Sale price</span><span style="color:var(--green)">'+fmt(i.salePrice||0)+'</span></div>';
-  pnl+='<div class="pnl-row"><span>eBay BPF</span><span style="color:var(--red)">−'+fmt(bpf)+'</span></div>';
-  if((i.shippingCost||0)>0)pnl+='<div class="pnl-row"><span>Postage (outbound)</span><span style="color:var(--red)">−'+fmt(i.shippingCost)+'</span></div>';
-  if((i.packagingCost||0)>0)pnl+='<div class="pnl-row"><span>Packaging</span><span style="color:var(--red)">−'+fmt(i.packagingCost)+'</span></div>';
-  if(i.promoPercent)pnl+='<div class="pnl-row"><span>Promo fee ('+((i.promoPercent*100).toFixed(0))+'% +VAT)</span><span style="color:var(--red)">−'+fmt(promoCost)+'</span></div>';
-  pnl+='<div class="pnl-row"><span>Item cost</span><span style="color:var(--red)">−'+fmt(i.costPrice||0)+'</span></div>';
+  // ── P&L receipt (read-only, derived) ─────────────────────────────────
   const partsCost=calcPartsCost(i);
+  const sale1Net=i.resaleSalePrice?(+((i.salePrice+(i.postage||0)-calcEbayBPF(i.salePrice))-((i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+calcPartsCost(i))-(i.returnHistory||[]).reduce(function(s,r){const f=(r.type==='full_seller'||r.type==='full_ebay');return s+(f?Math.max(0,(r.refundAmount||0)-calcEbayBPF(i.salePrice)):(r.refundAmount||0))+(r.returnPostage||0);},0)).toFixed(2)):profit;
+  function rcp(label,val,color,indent){
+    return'<div class="ip-receipt-row'+(indent?' indent':'')+'"><span style="color:'+(color&&color.includes('--text')?color:'var(--text-secondary)')+'">'+label+'</span><span class="ip-receipt-val" style="color:'+(color||'var(--text)')+'">'+val+'</span></div>';
+  }
+  let pb='';
+  pb+=rcp('Sale price',fmt(i.salePrice||0),'var(--green)');
+  if((i.postage||0)>0)pb+=rcp('+ Buyer postage','+'+fmt(i.postage),'var(--green)');
+  pb+=rcp('eBay BPF','−'+fmt(bpf),'var(--red)');
+  if((i.shippingCost||0)>0)pb+=rcp('Shipping cost','−'+fmt(i.shippingCost),'var(--red)');
+  if((i.packagingCost||0)>0)pb+=rcp('Packaging','−'+fmt(i.packagingCost),'var(--red)');
+  if(i.promoPercent)pb+=rcp('Promo fee ('+((i.promoPercent*100).toFixed(0))+'% +VAT)','−'+fmt(promoCost),'var(--red)');
+  pb+=rcp('Item cost','−'+fmt(i.costPrice||0),'var(--red)');
   if(partsCost>0){
-    const parts=i.parts||[];
-    if(parts.length===1){
-      pnl+='<div class="pnl-row"><span>'+esc(parts[0].description)+'</span><span style="color:var(--red)">−'+fmt(partsCost)+'</span></div>';
-    }else if(parts.length>1){
-      pnl+='<div class="pnl-row"><span>Parts & expenses ('+parts.length+')</span><span style="color:var(--red)">−'+fmt(partsCost)+'</span></div>';
-      parts.forEach(function(p){
-        pnl+='<div class="pnl-row" style="padding-left:12px"><span style="color:var(--text-secondary);font-size:12px">'+esc(p.description)+'</span><span style="color:var(--red);font-size:12px">−'+fmt(p.cost)+'</span></div>';
-      });
+    const pts=i.parts||[];
+    if(pts.length===1){pb+=rcp(esc(pts[0].description),'−'+fmt(partsCost),'var(--red)');}
+    else{
+      pb+=rcp('Parts & expenses ('+pts.length+')','−'+fmt(partsCost),'var(--red)');
+      pts.forEach(function(p){pb+=rcp(esc(p.description),'−'+fmt(p.cost),'var(--red)',true);});
     }
   }
   if(hasReturn){
-    pnl+='<div class="pnl-row" style="border-top:2px dashed var(--border);margin-top:4px;padding-top:8px"><span style="color:var(--accent);font-weight:600">Return impact</span><span></span></div>';
+    pb+='<div class="ip-receipt-row section-head"><span>Return impact</span><span></span></div>';
     (i.returnHistory||[]).forEach(function(r){
       const fullReturn=(r.type==='full_seller'||r.type==='full_ebay');
-      const netRefund=fullReturn?Math.max(0,(r.refundAmount||0)-bpf):(r.refundAmount||0);
-      const lbl={full_seller:'Full refund — you handled',full_ebay:'Full refund — eBay involved',partial_seller:'Partial refund — you handled',partial_ebay:'Partial refund — eBay decided'}[r.type]||r.type;
-      pnl+='<div class="pnl-row"><span style="color:var(--accent)">'+lbl+'</span><span style="color:var(--red)">−'+fmt(r.refundAmount||0)+'</span></div>';
-      if(fullReturn)pnl+='<div class="pnl-row"><span style="color:var(--muted);font-size:12px">  eBay refunds BPF back to you</span><span style="color:var(--green);font-size:12px">+'+fmt(bpf)+'</span></div>';
-      if((r.returnPostage||0)>0)pnl+='<div class="pnl-row"><span style="color:var(--accent)">Return postage</span><span style="color:var(--red)">−'+fmt(r.returnPostage)+'</span></div>';
+      const lbl3={full_seller:'Full refund — you handled',full_ebay:'Full refund — eBay involved',partial_seller:'Partial refund — you handled',partial_ebay:'Partial refund — eBay decided'}[r.type]||r.type;
+      pb+=rcp(lbl3,'−'+fmt(r.refundAmount||0),'var(--accent)');
+      if(fullReturn)pb+=rcp('eBay refunds BPF back to you','+'+fmt(bpf),'var(--green)',true);
+      if((r.returnPostage||0)>0)pb+=rcp('Return postage','−'+fmt(r.returnPostage),'var(--red)');
     });
   }
-  // Sale 1 net in isolation (without resale revenue) for display purposes
-  const sale1Net=i.resaleSalePrice?(+( (i.salePrice+(i.postage||0)-calcEbayBPF(i.salePrice)) - ((i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+calcPartsCost(i)) - (i.returnHistory||[]).reduce(function(s,r){const f=(r.type==='full_seller'||r.type==='full_ebay');return s+(f?Math.max(0,(r.refundAmount||0)-calcEbayBPF(i.salePrice)):(r.refundAmount||0))+(r.returnPostage||0);},0) ).toFixed(2)):profit;
+  pb+='<div class="ip-receipt-row total"><span>'+(i.resaleSalePrice?'Sale 1 net':'Net profit / loss')+'</span><span class="ip-receipt-val" style="color:'+(sale1Net>=0?'var(--green)':'var(--red)')+'">'+fmt(sale1Net)+'</span></div>';
 
-  pnl+='<div class="pnl-row total"><span>'+(i.resaleSalePrice?'Sale 1 net':'Net profit / loss')+'</span><span style="color:'+(sale1Net>=0?'var(--green)':'var(--red)')+'">'+fmt(sale1Net)+'</span></div>';
-  if(roi!==null&&!i.resaleSalePrice)pnl+='<div class="pnl-row"><span style="color:var(--muted)">ROI</span><span style="color:var(--muted)">'+roi.toFixed(1)+'%</span></div>';
-
-  // Second sale block for resold items
+  // Sale 2 block
   let resaleHTML='';
   if(i.resaleSalePrice){
     const rBPF=calcEbayBPF(i.resaleSalePrice);
-    const rRev=i.resaleSalePrice-rBPF-(i.resaleShippingCost||0);
-    const lifetimeProfit=profit; // calcGrossProfit already includes both sales
-    resaleHTML='<div class="ip-section ip-section-pnl" style="border-left:3px solid var(--purple);margin-top:0">';
-    resaleHTML+='<div class="item-full-section-title" style="color:var(--purple)">Sale 2 — Re-sold '+esc(i.resaleDateSold||'')+'</div>';
-    resaleHTML+='<div class="pnl-row"><span>Sale price</span><span style="color:var(--green)">'+fmt(i.resaleSalePrice)+'</span></div>';
-    resaleHTML+='<div class="pnl-row"><span>eBay BPF</span><span style="color:var(--red)">−'+fmt(rBPF)+'</span></div>';
-    if((i.resaleShippingCost||0)>0)resaleHTML+='<div class="pnl-row"><span>Postage (outbound)</span><span style="color:var(--red)">−'+fmt(i.resaleShippingCost)+'</span></div>';
-    resaleHTML+='<div class="pnl-row"><span style="color:var(--muted)">Item cost (already sunk)</span><span style="color:var(--muted)">—</span></div>';
-    resaleHTML+='<div class="pnl-row total"><span>Sale 2 net</span><span style="color:'+(rRev>=0?'var(--green)':'var(--red)')+'">'+fmt(rRev)+'</span></div>';
-    resaleHTML+='<div class="pnl-row" style="margin-top:8px;padding:10px 0 2px 0;border-top:2px solid var(--border)">';
-    resaleHTML+='<span style="font-weight:700;font-size:14px">Lifetime P&amp;L</span>';
-    resaleHTML+='<span style="font-weight:700;font-size:18px;color:'+(lifetimeProfit>=0?'var(--green)':'var(--red)')+'">'+fmt(lifetimeProfit)+'</span>';
-    resaleHTML+='</div>';
-    if(roi!==null)resaleHTML+='<div class="pnl-row"><span style="color:var(--muted)">Overall ROI</span><span style="color:var(--muted)">'+roi.toFixed(1)+'%</span></div>';
-    resaleHTML+='</div>';
+    const rGrossInc=i.resaleSalePrice-rBPF;
+    const rPromoCost=rGrossInc*(i.resalePromoPercent||0)*1.20;
+    const rRev=i.resaleSalePrice-rBPF-(i.resaleShippingCost||0)-rPromoCost;
+    const lifetimeProfit=profit;
+    let s2b='';
+    s2b+=rcp('Sale price',fmt(i.resaleSalePrice),'var(--green)');
+    s2b+=rcp('eBay BPF','−'+fmt(rBPF),'var(--red)');
+    if((i.resaleShippingCost||0)>0)s2b+=rcp('Shipping cost','−'+fmt(i.resaleShippingCost),'var(--red)');
+    if(rPromoCost>0)s2b+=rcp('Promo fee ('+((i.resalePromoPercent||0)*100).toFixed(1)+'% +VAT)','−'+fmt(rPromoCost),'var(--red)');
+    s2b+=rcp('Item cost (sunk)','—','var(--muted)');
+    s2b+='<div class="ip-receipt-row total"><span>Sale 2 net</span><span class="ip-receipt-val" style="color:'+(rRev>=0?'var(--green)':'var(--red)')+'">'+fmt(rRev)+'</span></div>';
+    s2b+='<div class="ip-receipt-row" style="margin-top:6px;padding:10px 0 2px;border-top:2px solid var(--border)"><span style="font-weight:700;font-size:13px">Lifetime P&amp;L</span><span class="ip-receipt-val" style="font-size:16px;color:'+(lifetimeProfit>=0?'var(--green)':'var(--red)')+'">'+fmt(lifetimeProfit)+'</span></div>';
+    if(roi!==null)s2b+=rcp('Overall ROI',roi.toFixed(1)+'%','var(--muted)');
+    resaleHTML=sec2('Sale 2 P&amp;L <span style="color:var(--muted);font-weight:400;font-size:11px">re-sold '+esc(i.resaleDateSold||'—')+'</span>',s2b,true,fmt(rRev),rRev>=0?'var(--green)':'var(--red)','ip-section-pnl','var(--purple)');
   }
 
-  // ── Re-list projection (returned items only, not yet resold) ──────────────────────
+  // ── Re-list projection ────────────────────────────────────────────────
   let relistHTML='';
-  if(i.isReturned&&!i.resaleSalePrice){
+  const hasReturnHistory=(i.returnHistory||[]).length>0;
+  const notYetSold=!i.dateSold&&!i.resaleSalePrice;
+  if(hasReturnHistory&&notYetSold){
     const rlBPF=calcEbayBPF(i.salePrice||0);
-    const rlGrossInc=(i.salePrice||0)-rlBPF;
+    const rlSalePrice=i.salePrice||0;
+    const rlShipping=i.shippingCost||0;
+    const rlPackaging=i.packagingCost||0;
+    const rlPostage=i.postage||0;
+    const rlDefaultPromo=+((i.promoPercent||0)*100).toFixed(1);
+    const projTitle=i.isReturned?'Re-list Projection — at current price':'Relist Projection — if sold at '+fmt(rlSalePrice);
+    const rlGrossInc=rlSalePrice-rlBPF;
     const rlPromo=rlGrossInc*(i.promoPercent||0)*1.20;
-    const rlRev=(i.salePrice||0)+(i.postage||0)-rlBPF;
-    const rlCost=(i.shippingCost||0)+(i.packagingCost||0)+rlPromo;
+    const rlRev=rlSalePrice+rlPostage-rlBPF;
+    const rlCost=rlShipping+rlPackaging+rlPromo;
     const rlProfit=+(rlRev-rlCost).toFixed(2);
     const combinedP=+(profit+rlProfit).toFixed(2);
-    relistHTML='<div class="item-full-section" style="border:1px dashed var(--accent)">';
-    relistHTML+='<div class="item-full-section-title" style="color:var(--accent)">Re-list Projection — same price</div>';
-    relistHTML+='<div class="pnl-row" style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Current P&L after return</span><span style="font-weight:700;color:'+(profit>=0?'var(--green)':'var(--red)')+'">'+fmt(profit)+'</span></div>';
-    relistHTML+='<div class="pnl-row"><span>Expected sale</span><span style="color:var(--green)">'+fmt(i.salePrice||0)+'</span></div>';
-    relistHTML+='<div class="pnl-row"><span>eBay BPF</span><span style="color:var(--red)">−'+fmt(rlBPF)+'</span></div>';
-    relistHTML+='<div class="pnl-row"><span>Postage to ship (same rate)</span><span style="color:var(--red)">−'+fmt(i.shippingCost||0)+'</span></div>';
-    if(i.promoPercent)relistHTML+='<div class="pnl-row"><span>Promo fee</span><span style="color:var(--red)">−'+fmt(rlPromo)+'</span></div>';
-    relistHTML+='<div class="pnl-row"><span style="color:var(--muted)">Item cost (already sunk)</span><span style="color:var(--muted)">—</span></div>';
-    relistHTML+='<div class="pnl-row total"><span>Profit from re-sale</span><span style="color:'+(rlProfit>=0?'var(--green)':'var(--red)')+'">'+fmt(rlProfit)+'</span></div>';
-    relistHTML+='<div class="pnl-row" style="margin-top:6px;padding:8px;background:var(--surface);border-radius:6px"><span style="font-weight:600">Combined both sales</span><span style="font-weight:700;color:'+(combinedP>=0?'var(--green)':'var(--red)')+'">'+fmt(combinedP)+'</span></div>';
-    relistHTML+='</div>';
+    relistHTML=`<div class="ip-relist-section">
+      <div class="ip-section-header" onclick="var b=this.nextElementSibling,c=this.querySelector('.ip-section-chevron');b.style.display=b.style.display==='none'?'block':'none';c.style.transform=b.style.display==='none'?'rotate(0deg)':'rotate(180deg)'">
+        <span class="ip-section-title" style="color:var(--accent)">${projTitle}</span>
+        <span class="ip-section-meta"><span class="ip-section-badge" style="color:${combinedP>=0?'var(--green)':'var(--red)'}">Lifetime: ${fmt(combinedP)}</span><span class="ip-section-chevron" style="transform:rotate(180deg)">▾</span></span>
+      </div>
+      <div class="ip-section-body">
+        <div class="ip-receipt-row"><span style="color:var(--muted)">P&L after return so far</span><span class="ip-receipt-val" style="color:${profit>=0?'var(--green)':'var(--red)'}">${fmt(profit)}</span></div>
+        <div class="ip-receipt-row"><span>Expected sale</span><span class="ip-receipt-val" style="color:var(--green)">${fmt(rlSalePrice)}</span></div>
+        ${rlPostage>0?`<div class="ip-receipt-row"><span>+ Buyer postage</span><span class="ip-receipt-val" style="color:var(--green)">+${fmt(rlPostage)}</span></div>`:''}
+        <div class="ip-receipt-row"><span>eBay BPF</span><span class="ip-receipt-val" style="color:var(--red)">−${fmt(rlBPF)}</span></div>
+        <div class="ip-receipt-row"><span>Shipping</span><span class="ip-receipt-val" style="color:var(--red)">−${fmt(rlShipping)}</span></div>
+        <div class="ip-receipt-row" style="align-items:center">
+          <span style="display:flex;align-items:center;gap:8px;color:var(--text-secondary)">Promo %
+            <input id="rl-promo-input" type="number" min="0" max="100" step="0.1" value="${rlDefaultPromo}" style="width:56px;padding:3px 7px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:600;text-align:center;font-family:inherit" oninput="_recalcRelist(${profit},${rlSalePrice},${rlBPF},${rlShipping},${rlPackaging},${rlPostage})">
+            <span style="font-size:11px;color:var(--muted)">+VAT</span>
+          </span>
+          <span id="rl-promo-cost" class="ip-receipt-val" style="color:var(--red)">−${fmt(rlPromo)}</span>
+        </div>
+        <div class="ip-receipt-row"><span style="color:var(--muted)">Item cost (sunk)</span><span class="ip-receipt-val" style="color:var(--muted)">—</span></div>
+        <div class="ip-receipt-row total"><span>Profit if sold</span><span id="rl-profit" class="ip-receipt-val" style="color:${rlProfit>=0?'var(--green)':'var(--red)'}">${fmt(rlProfit)}</span></div>
+        <div class="ip-receipt-row" style="margin-top:6px;padding:10px;background:var(--surface2);border-radius:8px;border-bottom:none">
+          <span style="font-weight:600">Lifetime P&L if sold</span>
+          <span id="rl-lifetime" class="ip-receipt-val" style="font-size:15px;color:${combinedP>=0?'var(--green)':'var(--red)'}">${fmt(combinedP)}</span>
+        </div>
+      </div>
+    </div>`;
   }
 
-  // ── Build category/source selects for inline editing ─────────────────
+  // ── Build selects ────────────────────────────────────────────────────
   const catOpts=ITEM_CATEGORIES.map(c=>'<option value="'+c+'"'+(c===i.category?' selected':'')+'>'+c+'</option>').join('');
   const srcOpts=ITEM_SOURCES.map(s=>'<option value="'+s+'"'+(s===i.source?' selected':'')+'>'+s+'</option>').join('');
 
+  // ── Section builder ───────────────────────────────────────────────────
+  function sec(title,body,open,badge,badgeColor,extraClass){
+    const cls='ip-section'+(extraClass?' '+extraClass:'');
+    const bdg=badge!=null?'<span class="ip-section-badge" style="color:'+(badgeColor||'var(--muted)')+'">'+badge+'</span>':'';
+    const chevron='<span class="ip-section-chevron" style="transform:'+(open?'rotate(180deg)':'rotate(0deg)')+'">▾</span>';
+    const hdr='<div class="ip-section-header" onclick="var b=this.nextElementSibling,c=this.querySelector(\'.ip-section-chevron\');b.style.display=b.style.display===\'none\'?\'block\':\'none\';c.style.transform=b.style.display===\'none\'?\'rotate(0deg)\':\'rotate(180deg)\'">'
+      +'<span class="ip-section-title">'+title+'</span>'
+      +'<span class="ip-section-meta">'+bdg+chevron+'</span>'
+      +'</div>';
+    return'<div class="'+cls+'">'+hdr+'<div class="ip-section-body" style="display:'+(open?'block':'none')+'">'+body+'</div></div>';
+  }
+  // sec2: variant that allows a title accent color override
+  function sec2(title,body,open,badge,badgeColor,extraClass,accentColor){
+    const cls='ip-section'+(extraClass?' '+extraClass:'');
+    const bdg=badge!=null?'<span class="ip-section-badge" style="color:'+(badgeColor||'var(--muted)')+'">'+badge+'</span>':'';
+    const chevron='<span class="ip-section-chevron" style="transform:'+(open?'rotate(180deg)':'rotate(0deg)')+'">▾</span>';
+    const hdr='<div class="ip-section-header" onclick="var b=this.nextElementSibling,c=this.querySelector(\'.ip-section-chevron\');b.style.display=b.style.display===\'none\'?\'block\':\'none\';c.style.transform=b.style.display===\'none\'?\'rotate(0deg)\':\'rotate(180deg)\'">'
+      +'<span class="ip-section-title"'+(accentColor?' style="color:'+accentColor+'"':'')+'>'+title+'</span>'
+      +'<span class="ip-section-meta">'+bdg+chevron+'</span>'
+      +'</div>';
+    return'<div class="'+cls+'">'+hdr+'<div class="ip-section-body" style="display:'+(open?'block':'none')+'">'+body+'</div></div>';
+  }
+
+  // ── Postage row HTML ──────────────────────────────────────────────────
+  const sdOpts=SIMPLE_DELIVERY_RATES.map((r,idx)=>'<option value="'+idx+'"'+(idx===sdIdx?' selected':'')+'>'+r.label+' — £'+r.cost.toFixed(2)+'</option>').join('');
+  const postageRowInner=postageMode==='simple'
+    ?'<select class="ip-postage-select" onchange="saveSDRate(\''+m+'\',\''+id+'\',this.value)">'+sdOpts+'</select>'
+     +'<div class="ip-postage-buyer"><label><input type="checkbox" '+(i._sdBuyerPays?'checked':'')+' onchange="saveSDFree(\''+m+'\',\''+id+'\',this.checked)"> Buyer pays</label></div>'
+    :'<div class="ip-postage-custom">'
+     +'<div class="ip-postage-custom-field"><label>You pay</label><input type="number" step="0.01" value="'+(i.shippingCost||0)+'" onchange="ipSaveNum(\''+m+'\',\''+id+'\',\'shippingCost\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>'
+     +'<div class="ip-postage-custom-field"><label>Buyer pays</label><input type="number" step="0.01" value="'+(i.postage||0)+'" onchange="ipSaveNum(\''+m+'\',\''+id+'\',\'postage\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>'
+     +'</div>';
+
   // ── Render ────────────────────────────────────────────────────────────
+  const saleEditable=!i.dateSold&&!i.resaleSalePrice&&!i.isReturned;
+  const profitClass=profit===null?'':profit>=0?'pos':'neg';
+  const promoDisplay=((i.promoPercent||0)*100);
+  const promoStr=promoDisplay%1===0?promoDisplay.toFixed(0):promoDisplay.toFixed(1);
   let html='<div class="item-full-page">';
 
-  // ── Top bar: back + title + status badges + action buttons ────────────
+  // Top bar — title is directly editable
   html+='<div class="ip-topbar">';
   html+='<button class="btn btn-s ip-back" onclick="exitItemPage()">← Back</button>';
   html+='<div class="ip-title-wrap">';
-  html+='<div class="ip-title">'+esc(i.item)+'</div>';
+  html+='<div class="ip-title" onclick="startTitleEdit(\''+m+'\',\''+id+'\')" title="Click to rename">'+esc(i.item)+'</div>';
   html+='<div class="ip-meta-chips">';
   if(i.gid)html+='<span class="ip-chip mono">'+esc(i.gid)+'</span>';
   html+='<span class="ip-chip">'+m+'</span>';
-  html+='<div class="ip-chip ip-chip-select" title="Change category"><select class="ip-select" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'category\',this.value)"><option value="" disabled'+(i.category?'':' selected')+'>📂 Category…</option>'+catOpts+'</select></div>';
-  html+='<div class="ip-chip ip-chip-select" title="Change source"><select class="ip-select" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'source\',this.value)"><option value="" disabled'+(i.source?'':' selected')+'>🏷 Source…</option>'+srcOpts+'</select></div>';
-  if(i.location)html+='<span class="ip-chip">📍 '+esc(i.location)+'</span>';
   html+='<div class="item-badge '+status+'">'+status+'</div>';
-  html+='</div>';
-  html+='</div>';
-  // Action buttons — always visible in top bar
+  html+='</div></div>';
   html+='<div class="ip-actions">';
-  html+='<button class="btn btn-s ip-act-btn" onclick="editItem(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M11.5 1.5l3 3L5 14H2v-3L11.5 1.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="ip-act-label">Edit</span></button>';
-  if((!i.dateSold&&!i.resaleSalePrice)||i.isReturned)html+='<button class="btn btn-p ip-act-btn" onclick="markSold(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 15 15" fill="none"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg><span class="ip-act-label">Mark Sold</span></button>';
+  if((!i.dateSold&&!i.resaleSalePrice)&&!i.isReturned)html+='<button class="btn btn-p ip-act-btn" onclick="markSold(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 15 15" fill="none"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg><span class="ip-act-label">Mark Sold</span></button>';
+  if(i.isReturned)html+='<button class="btn btn-p ip-act-btn" onclick="openRelist(\''+m+'\',\''+id+'\')">↩ <span class="ip-act-label">Relist</span></button>';
   if((i.dateSold||i.resaleSalePrice)&&!i.isReturned)html+='<button class="btn btn-s ip-act-btn" onclick="openReturn(\''+m+'\',\''+id+'\')">↩ <span class="ip-act-label">Return</span></button>';
   html+='<button class="btn btn-s ip-act-btn" onclick="duplicateItem(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 11V3a1 1 0 011-1h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="ip-act-label">Dupe</span></button>';
   html+='<button class="btn btn-s ip-act-btn ip-act-danger" onclick="deleteItem(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
+  html+='</div></div>'; // ip-actions + ip-topbar
+
+  // All content below topbar in one flex column with uniform 12px gap
+  html+='<div class="ip-content">';
+
+  // 4 tokens: Sale Price, Buy Price, Promo %, Net Profit+ROI
+  html+='<div class="ip-tokens">';
+
+  // Sale price
+  html+='<div class="ip-token'+(saleEditable?'':' locked')+'" id="tok-salePrice-'+id+'"'+(saleEditable?' onclick="openTokenEdit(\''+m+'\',\''+id+'\',\'salePrice\')"':'')+' >';
+  html+='<div class="ip-token-label">Sale Price</div>';
+  html+='<div class="ip-token-val">'+fmt(i.salePrice||0)+'</div>';
+  html+='<div class="ip-token-sub">'+(saleEditable?'Tap to edit':status==='sold'||status==='resold'?'Sold · locked':'Locked')+'</div>';
   html+='</div>';
-  html+='</div>'; // ip-topbar
 
-  // ── KPI strip ─────────────────────────────────────────────────────────
-  html+='<div class="ip-kpi-strip">';
-  html+='<div class="ip-kpi"><div class="ip-kpi-label">Sale Price</div>'
-    +'<div class="ip-kpi-val" id="ip-sale-'+i.id+'" onclick="startInlineEdit(\''+m+'\',\''+i.id+'\',\'salePrice\','+i.salePrice+')" title="Tap to edit"><span class="inline-val">'+fmt(i.salePrice||0)+'</span></div>'
-    +'<div class="ip-kpi-sub">Buyer pays</div></div>';
-  html+='<div class="ip-kpi"><div class="ip-kpi-label">Item Cost</div>'
-    +'<div class="ip-kpi-val" id="ip-cost-'+i.id+'" onclick="startInlineEdit(\''+m+'\',\''+i.id+'\',\'costPrice\','+i.costPrice+')" title="Tap to edit"><span class="inline-val">'+fmt(i.costPrice||0)+'</span></div>'
-    +'<div class="ip-kpi-sub">What you paid</div></div>';
-  html+='<div class="ip-kpi '+(profit>=0?'pos':'neg')+'"><div class="ip-kpi-label">Net Profit</div>'
-    +'<div class="ip-kpi-val">'+fmt(profit)+'</div>'
-    +'<div class="ip-kpi-sub">'+(hasReturn?'After return':'After fees')+'</div></div>';
-  if(roi!==null)html+='<div class="ip-kpi"><div class="ip-kpi-label">ROI</div>'
-    +'<div class="ip-kpi-val">'+roi.toFixed(1)+'%</div>'
-    +'<div class="ip-kpi-sub">Return on invest.</div></div>';
-  html+='</div>'; // ip-kpi-strip
+  // Buy price — always editable
+  html+='<div class="ip-token" id="tok-costPrice-'+id+'" onclick="openTokenEdit(\''+m+'\',\''+id+'\',\'costPrice\')">';
+  html+='<div class="ip-token-label">Buy Price</div>';
+  html+='<div class="ip-token-val">'+fmt(i.costPrice||0)+'</div>';
+  html+='<div class="ip-token-sub">Tap to edit</div>';
+  html+='</div>';
 
-  // ── Two-column body ───────────────────────────────────────────────────
+  // Promo %
+  html+='<div class="ip-token" id="tok-promoPercent-'+id+'" onclick="openTokenEdit(\''+m+'\',\''+id+'\',\'promoPercent\')">';
+  html+='<div class="ip-token-label">Promo %</div>';
+  html+='<div class="ip-token-val">'+promoStr+'%</div>';
+  html+='<div class="ip-token-sub">Tap to edit · Fee: '+fmt(promoCost)+'</div>';
+  html+='</div>';
+
+  // Net Profit + ROI — read only, auto calculated
+  html+='<div class="ip-token locked '+profitClass+'">';
+  html+='<div class="ip-token-label">'+(i.resaleSalePrice?'Lifetime Profit':'Net Profit')+'</div>';
+  html+='<div class="ip-token-val">'+(profit!==null?fmt(profit):'—')+'</div>';
+  html+='<div class="ip-token-sub">'+(roi!==null?roi.toFixed(1)+'% ROI · ':'')+(hasReturn?'after return':'after fees')+'</div>';
+  html+='</div>';
+
+  html+='</div>'; // ip-tokens
+
+  // Postage row
+  html+='<div class="ip-postage-row">';
+  html+='<span class="ip-postage-label">Postage</span>';
+  html+='<div class="ip-postage-mode">';
+  html+='<button class="ip-postage-mode-btn'+(postageMode==='simple'?' active':'')+'" onclick="savePostageMode(\''+m+'\',\''+id+'\',\'simple\')">Simple Delivery</button>';
+  html+='<button class="ip-postage-mode-btn'+(postageMode==='custom'?' active':'')+'" onclick="savePostageMode(\''+m+'\',\''+id+'\',\'custom\')">Custom</button>';
+  html+='</div>';
+  html+='<div class="ip-postage-divider"></div>';
+  html+=postageRowInner;
+  html+='</div>'; // ip-postage-row
+
+  // Body sections
   html+='<div class="ip-body">';
 
-  // Left / main col: P&L + Sale 2 + Timeline
-  html+='<div class="ip-col-main">';
-  html+='<div class="ip-section ip-section-pnl">';
-  html+='<div class="item-full-section-title">P&amp;L Breakdown</div>';
-  html+=pnl;
-  html+='</div>';
+  // P&L Receipt
+  const pnlOpen=!i.resaleSalePrice;
+  const pnlTitle=i.resaleSalePrice?'Sale 1 P&amp;L':'P&amp;L Receipt';
+  html+=sec(pnlTitle,pb,pnlOpen,fmt(sale1Net),sale1Net>=0?'var(--green)':'var(--red)','ip-section-pnl');
+
+  // Sale 2
   if(resaleHTML)html+=resaleHTML;
+
+  // Relist projection
   if(relistHTML)html+=relistHTML;
-  html+='<div class="ip-section ip-section-timeline">';
-  html+='<div class="item-full-section-title">Timeline</div>';
-  html+=timelineHTML||'<div style="color:var(--muted);font-size:13px">No history yet</div>';
-  html+='</div>';
-  html+='</div>'; // ip-col-main
 
-  // Right / side col: Info + Costs + Parts
-  html+='<div class="ip-col-side">';
-
-  html+='<div class="ip-section">';
-  html+='<div class="item-full-section-title">Info</div>';
-  html+='<div class="ip-details-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px 14px">';
-  html+='<div class="ip-row" style="grid-column:1/-1"><div class="ip-label">Item Name</div>'
-    +'<input class="ip-field" id="ipf-item" value="'+esc(i.item)+'" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'item\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
-  html+='<div class="ip-row"><div class="ip-label">Date Listed</div>'
-    +'<input class="ip-field" type="date" id="ipf-dateListed" value="'+(i.dateListed||'')+'" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'dateListed\',this.value)"></div>';
-  html+='<div class="ip-row"><div class="ip-label">Date Sold</div>'
-    +'<input class="ip-field" type="date" id="ipf-dateSold" value="'+(i.dateSold||'')+'" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'dateSold\',this.value||null)"></div>';
-  html+='<div class="ip-row"><div class="ip-label">Location</div>'
-    +'<input class="ip-field" id="ipf-location" value="'+esc(i.location||'')+'" placeholder="e.g. A101" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'location\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
-  html+='<div class="ip-row"><div class="ip-label">Source</div>'
+  // Details — no item name field (title is editable inline at top)
+  let db='<div class="ip-details-grid">';
+  db+='<div class="ip-row"><div class="ip-label">Date Listed</div>'
+    +'<input class="ip-field" type="date" value="'+(i.dateListed||'')+'" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'dateListed\',this.value)"></div>';
+  db+=i.dateSold
+    ?'<div class="ip-row"><div class="ip-label">Date Sold</div><div class="ip-field-date">'+i.dateSold+'</div></div>'
+    :'<div class="ip-row"><div class="ip-label">Date Sold</div><div class="ip-field-date" style="color:var(--muted);font-style:italic">Not yet sold</div></div>';
+  db+='<div class="ip-row"><div class="ip-label">Location</div>'
+    +'<input class="ip-field" value="'+esc(i.location||'')+'" placeholder="e.g. A101" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'location\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
+  db+='<div class="ip-row"><div class="ip-label">Source</div>'
     +'<select class="ip-field ip-field-select" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'source\',this.value)"><option value="">—</option>'+srcOpts+'</select></div>';
-  html+='<div class="ip-row" style="grid-column:1/-1"><div class="ip-label">Category</div>'
+  db+='<div class="ip-row"><div class="ip-label">Category</div>'
     +'<select class="ip-field ip-field-select" onchange="ipSave(\''+m+'\',\''+i.id+'\',\'category\',this.value)"><option value="">—</option>'+catOpts+'</select></div>';
-  html+='<div class="ip-row" style="grid-column:1/-1"><div class="ip-label">Notes</div>'
-    +'<input class="ip-field" id="ipf-notes" value="'+esc(i.notes||'')+'" placeholder="Any notes..." onchange="ipSave(\''+m+'\',\''+i.id+'\',\'notes\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
-  html+='</div></div>';
+  db+='<div class="ip-row" style="grid-column:1/-1"><div class="ip-label">Notes</div>'
+    +'<input class="ip-field" value="'+esc(i.notes||'')+'" placeholder="Any notes..." onchange="ipSave(\''+m+'\',\''+i.id+'\',\'notes\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
+  db+='</div>';
+  html+=sec('Details',db,true,null);
 
-  html+='<div class="ip-section">';
-  html+='<div class="item-full-section-title">Costs</div>';
-  html+='<div class="ip-details-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px 14px">';
-  html+='<div class="ip-row"><div class="ip-label">Your Shipping (£)</div>'
-    +'<input class="ip-field ip-field-num" type="number" step="0.01" id="ipf-shippingCost" value="'+(i.shippingCost||0)+'" onchange="ipSaveNum(\''+m+'\',\''+i.id+'\',\'shippingCost\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
-  html+='<div class="ip-row"><div class="ip-label">Packaging (£)</div>'
-    +'<input class="ip-field ip-field-num" type="number" step="0.01" id="ipf-packagingCost" value="'+(i.packagingCost||0)+'" onchange="ipSaveNum(\''+m+'\',\''+i.id+'\',\'packagingCost\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
-  html+='<div class="ip-row"><div class="ip-label">Promo %</div>'
-    +'<input class="ip-field ip-field-num" type="number" step="0.1" id="ipf-promoPercent" value="'+((i.promoPercent||0)*100).toFixed(1).replace(/\.0$/,'')+'" onchange="ipSavePromo(\''+m+'\',\''+i.id+'\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
-  html+='<div class="ip-row"><div class="ip-label">Postage to Buyer (£)</div>'
-    +'<input class="ip-field ip-field-num" type="number" step="0.01" id="ipf-postage" value="'+(i.postage||0)+'" onchange="ipSaveNum(\''+m+'\',\''+i.id+'\',\'postage\',this.value)" onkeydown="if(event.key===\'Enter\')this.blur()"></div>';
-  html+='</div></div>';
+  // Parts & Expenses
+  const hasParts=(i.parts||[]).length>0;
+  html+=sec('Parts &amp; Expenses'+(hasParts?' ('+i.parts.length+')':''),partsHTML(m,id,'page'),false,null);
 
-  html+='<div class="ip-section">';
-  html+='<div class="item-full-section-title">Parts &amp; Expenses</div>';
-  html+=partsHTML(m,id,'page');
-  html+='</div>';
+  // Timeline — always open
+  html+=sec('Timeline',timelineHTML||'<div style="color:var(--muted);font-size:13px;padding:4px 0">No history yet</div>',true,null,null);
 
-  html+='</div>'; // ip-col-side
   html+='</div>'; // ip-body
+  html+='</div>'; // ip-content
   html+='</div>'; // item-full-page
-
   page.innerHTML=html;
 }
 
@@ -1196,7 +1453,7 @@ function showSearchDropdown(q){
     return;
   }
   const rows=shown.map((i,idx)=>{
-    const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'active';
+    const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':i.condition==='spares'?'spares':'active';
     const icon=CATEGORY_ICONS[i.category]||'📦';
     const price=i.salePrice?fmt(i.salePrice):'—';
     return`<div class="search-result" data-idx="${idx}" onclick="selectSearchResult(${idx})" onmouseenter="setSearchActive(${idx})">
@@ -1283,7 +1540,7 @@ function renderSearchResults(q){
   const totalProfit=soldItems.reduce((s,i)=>s+calcGrossProfit(i),0);
 
   const rows=results.map(i=>{
-    const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'listed';
+    const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':i.condition==='spares'?'spares':'listed';
     const profit=(i.dateSold||i.resaleSalePrice)&&!i.isReturned?calcGrossProfit(i):null;
     const roi=calcROI(i);
     const icon=CATEGORY_ICONS[i.category]||'📦';
@@ -1718,17 +1975,31 @@ function showCategoryItems(cat){
     </div>
     ${items.map(i=>{
       const _today=new Date().toISOString().split('T')[0];
-      const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'listed';
+      const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':i.condition==='spares'?'spares':'listed';
       const prof=(i.dateSold||i.resaleSalePrice)&&!i.isReturned?calcGrossProfit(i):null;
       const daysToSell=i.dateSold&&i.dateListed&&!i.isReturned?daysBetween(i.dateListed,i.dateSold):null;
-      const daysColor=daysToSell===null?'var(--muted)':daysToSell<=14?'var(--green)':daysToSell<=30?'var(--warn)':'var(--red)';
-      const isStale=!i.dateSold&&!i.isReturned&&!i.resaleSalePrice&&i.dateListed&&daysBetween(i.dateListed,_today)>=30;
-      const daysListed=isStale?daysBetween(i.dateListed,_today):null;
-      return`<div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer${isStale?';border-left:2px solid var(--warn)':''}" onclick="openItemDetail('${i.month}','${i.id}')">
+      const daysListed=!i.dateSold&&!i.isReturned&&!i.resaleSalePrice&&i.dateListed?daysBetween(i.dateListed,_today):null;
+      const returnedAt=i.isReturned&&i.returnHistory&&i.returnHistory.length?i.returnHistory[i.returnHistory.length-1].loggedAt:null;
+      const daysSinceReturn=i.isReturned&&(returnedAt||i.dateListed)?daysBetween(returnedAt||i.dateListed,_today):null;
+      const isStale=daysListed!==null&&daysListed>=30;
+      const isStaleReturn=daysSinceReturn!==null&&daysSinceReturn>=30;
+      // Colour thresholds: ≤14 green, ≤30 amber, 30+ red
+      const daysColor=daysToSell!==null
+        ?(daysToSell<=14?'var(--green)':daysToSell<=30?'var(--warn)':'var(--red)')
+        :daysListed!==null
+        ?(daysListed<=14?'var(--green)':daysListed<=30?'var(--warn)':'var(--red)')
+        :daysSinceReturn!==null
+        ?(daysSinceReturn<=14?'var(--green)':daysSinceReturn<=30?'var(--warn)':'var(--red)')
+        :'var(--muted)';
+      const daysDisplay=daysToSell!==null?daysToSell+'d'
+        :daysListed!==null?daysListed+'d'
+        :daysSinceReturn!==null?daysSinceReturn+'d since return'
+        :null;
+      return`<div style="padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;cursor:pointer${isStale||isStaleReturn?';border-left:2px solid var(--warn)':''}" onclick="openItemDetail('${i.month}','${i.id}')">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <div style="flex:1;font-weight:600;font-size:14px">${esc(i.item)}</div>
-          ${daysToSell!==null?`<span style="font-size:11px;font-weight:600;color:${daysColor}">${daysToSell}d</span>`:''}
-          ${isStale?`<span style="font-size:10px;font-weight:700;background:rgba(245,158,11,0.15);color:var(--warn);border-radius:4px;padding:2px 6px;">stale</span>`:''}
+          ${daysDisplay!==null?`<span style="font-size:11px;font-weight:600;color:${daysColor}">${daysDisplay}</span>`:''}
+          ${isStale||isStaleReturn?`<span style="font-size:10px;font-weight:700;background:rgba(245,158,11,0.15);color:var(--warn);border-radius:4px;padding:2px 6px;">stale</span>`:''}
           <div class="item-badge ${status}">${status}</div>
           <div style="font-size:11px;color:var(--muted)">${i.month}</div>
         </div>
@@ -1736,7 +2007,6 @@ function showCategoryItems(cat){
           <span>${fmt(i.salePrice)}</span>
           ${prof!==null?`<span style="color:var(--green);font-weight:600">${fmt(prof)}</span>`:''}
           ${(i.dateSold||i.resaleSalePrice)&&!i.isReturned&&calcROI(i)!==null?`<span style="color:var(--muted)">ROI ${calcROI(i).toFixed(1)}%</span>`:''}
-          ${isStale&&daysListed!==null?`<span style="color:var(--warn)">${daysListed}d listed</span>`:''}
         </div>
       </div>`;
     }).join('')}`;
@@ -1863,7 +2133,9 @@ function showFilteredItems(filter){
         const cost=(i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+returnCost+partsCost;
         const sale1Profit=+(rev-cost).toFixed(2);
         const rBPF=calcEbayBPF(i.resaleSalePrice);
-        const sale2Profit=+(i.resaleSalePrice-rBPF-(i.resaleShippingCost||0)).toFixed(2);
+        const rGrossInc=i.resaleSalePrice-rBPF;
+        const rPromoCost=rGrossInc*(i.resalePromoPercent||0)*1.20;
+        const sale2Profit=+(i.resaleSalePrice-rBPF-(i.resaleShippingCost||0)-rPromoCost).toFixed(2);
         if(filter==='revenue'){
           // Revenue: two real cash transactions — show both
           items.push({...i,month:m,_entryType:'sale1',_displayPrice:i.salePrice,_displayDate:i.dateSold||(i.returnHistory&&i.returnHistory[0]?i.returnHistory[0].loggedAt:'')||'',_entryProfit:sale1Profit});
@@ -2353,7 +2625,7 @@ function renderMonth(){
 
 function renderItemRow(m,i){
   const selected=SELECTED_ITEMS.has(i.id);
-  const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'listed';
+  const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':i.condition==='spares'?'spares':'listed';
   const today=new Date().toISOString().split('T')[0];
   const daysListed=i.dateSold?daysBetween(i.dateListed,i.dateSold):daysBetween(i.dateListed,today);
   const profit=calcGrossProfit(i);
@@ -2442,12 +2714,14 @@ function openItemDetail(m,id,noHistory){
   const promoCost=grossInc*(i.promoPercent||0)*1.20;
   const profit=calcGrossProfit(i);
   const roi=calcROI(i);
-  const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':'listed';
+  const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':i.condition==='spares'?'spares':'listed';
   const isSold=(i.dateSold||i.resaleSalePrice)&&!i.isReturned;
   const isUnsold=!i.dateSold&&!i.resaleSalePrice&&!i.isReturned;
 
   // Primary action button — the thing you most likely opened this to do
-  const primaryBtn=isUnsold
+  const primaryBtn=i.isReturned
+    ?`<button class="btn btn-p" style="flex:1;justify-content:center;gap:8px;padding:12px;background:var(--warn);color:#000" onclick="openRelist('${m}','${id}')">↩ Relist</button>`
+    :isUnsold
     ?`<button class="btn btn-p" style="flex:1;justify-content:center;gap:8px;padding:12px" onclick="markSold('${m}','${id}')"><svg width="14" height="14" viewBox="0 0 15 15" fill="none"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg> Mark Sold</button>`
     :isSold
     ?`<button class="btn btn-s" style="flex:1;justify-content:center;padding:12px" onclick="openReturn('${m}','${id}')">↩ Log Return</button>`
@@ -3385,11 +3659,12 @@ function markSold(m,id){
   const today=new Date().toISOString().split('T')[0];
 
   if(hasFullReturn){
-    // Resale flow — different modal with price + shipping
-    MODAL_CALLBACK=function(date,price,shipping){
+    // Resale flow — price/shipping/promo already set during relist, just need date
+    MODAL_CALLBACK=function(date,price){
       item.resaleDateSold=date;
-      item.resaleSalePrice=price;
-      item.resaleShippingCost=shipping;
+      item.resaleSalePrice=price||item.salePrice||0;
+      item.resaleShippingCost=item.shippingCost||0;
+      item.resalePromoPercent=item.promoPercent||0;
       item.isReturned=false;
       item.grossProfit=calcGrossProfit(item);
       saveDB();
@@ -3402,7 +3677,7 @@ function markSold(m,id){
     };
     document.getElementById('resale-date').value=today;
     document.getElementById('resale-price').value=(item.salePrice||'').toString();
-    document.getElementById('resale-shipping').value=(item.shippingCost||0).toString();
+    document.getElementById('resale-modal-sub').textContent='Shipping & promo carried over from relist';
     document.getElementById('resale-modal').style.display='flex';
   } else {
     // Standard first sale
@@ -3437,8 +3712,7 @@ function closeModal(){
 function confirmResale(){
   const date=document.getElementById('resale-date').value;
   const price=parseFloat(document.getElementById('resale-price').value)||0;
-  const shipping=parseFloat(document.getElementById('resale-shipping').value)||0;
-  if(date&&MODAL_CALLBACK){MODAL_CALLBACK(date,price,shipping);}
+  if(date&&MODAL_CALLBACK){MODAL_CALLBACK(date,price);}
   closeResaleModal();
 }
 
@@ -3509,6 +3783,151 @@ function duplicateItem(m,id,context){
   }
   SELECTED_MONTH=m;MONTH_SORT='date-listed';MONTH_FILTER='all';
   openItemPage(m,copy.id,'p-monthly');
+}
+
+function openRelist(m,id){
+  const i=(DB[m]||[]).find(x=>x.id===id);
+  if(!i)return;
+  const postageMode=i._postageMode||'simple';
+  const sdIdx=i._sdRateIdx||0;
+  const sdOpts=SIMPLE_DELIVERY_RATES.map((r,idx)=>'<option value="'+idx+'"'+(idx===sdIdx?' selected':'')+'>'+r.label+' — £'+r.cost.toFixed(2)+'</option>').join('');
+  const html=`
+    <div style="margin-bottom:20px">
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6">
+        This will put the item back into active stock. Return history is preserved. Set the condition and adjust the asking price if needed.
+      </div>
+
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Condition</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
+        <button id="relist-cond-working" onclick="
+          document.getElementById('relist-cond-working').style.background='var(--green)';
+          document.getElementById('relist-cond-working').style.color='#fff';
+          document.getElementById('relist-cond-working').style.borderColor='var(--green)';
+          document.getElementById('relist-cond-spares').style.background='var(--surface2)';
+          document.getElementById('relist-cond-spares').style.color='var(--text)';
+          document.getElementById('relist-cond-spares').style.borderColor='var(--border)';
+          window._relistCondition='working';
+        " style="padding:12px;border-radius:8px;border:2px solid var(--green);background:var(--green);color:#fff;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s">
+          ✓ Working
+        </button>
+        <button id="relist-cond-spares" onclick="
+          document.getElementById('relist-cond-spares').style.background='var(--warn)';
+          document.getElementById('relist-cond-spares').style.color='#000';
+          document.getElementById('relist-cond-spares').style.borderColor='var(--warn)';
+          document.getElementById('relist-cond-working').style.background='var(--surface2)';
+          document.getElementById('relist-cond-working').style.color='var(--text)';
+          document.getElementById('relist-cond-working').style.borderColor='var(--border)';
+          window._relistCondition='spares';
+        " style="padding:12px;border-radius:8px;border:2px solid var(--border);background:var(--surface2);color:var(--text);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s">
+          🔧 Spares / Repairs
+        </button>
+      </div>
+
+      <div class="fg" style="margin-bottom:20px">
+        <label>Asking price (£)</label>
+        <input type="number" id="relist-price" step="0.01" value="${i.salePrice||0}" style="font-size:18px;font-weight:700;padding:12px">
+      </div>
+
+      <div class="fg" style="margin-bottom:20px">
+        <label>Promotion % (0 if none)</label>
+        <input type="number" id="relist-promo" step="0.1" min="0" max="100" value="${((i.promoPercent||0)*100).toFixed(1)}" placeholder="0">
+      </div>
+
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Postage</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button id="relist-post-simple" onclick="
+          document.getElementById('relist-post-simple').style.background='var(--accent)';
+          document.getElementById('relist-post-simple').style.color='#000';
+          document.getElementById('relist-post-simple').style.borderColor='var(--accent)';
+          document.getElementById('relist-post-custom').style.background='var(--surface2)';
+          document.getElementById('relist-post-custom').style.color='var(--text)';
+          document.getElementById('relist-post-custom').style.borderColor='var(--border)';
+          document.getElementById('relist-post-simple-fields').style.display='block';
+          document.getElementById('relist-post-custom-fields').style.display='none';
+          window._relistPostMode='simple';
+        " style="padding:7px 14px;border-radius:6px;border:2px solid ${postageMode==='simple'?'var(--accent)':'var(--border)'};background:${postageMode==='simple'?'var(--accent)':'var(--surface2)'};color:${postageMode==='simple'?'#000':'var(--text)'};font-weight:600;font-size:12px;cursor:pointer">Simple Delivery</button>
+        <button id="relist-post-custom" onclick="
+          document.getElementById('relist-post-custom').style.background='var(--accent)';
+          document.getElementById('relist-post-custom').style.color='#000';
+          document.getElementById('relist-post-custom').style.borderColor='var(--accent)';
+          document.getElementById('relist-post-simple').style.background='var(--surface2)';
+          document.getElementById('relist-post-simple').style.color='var(--text)';
+          document.getElementById('relist-post-simple').style.borderColor='var(--border)';
+          document.getElementById('relist-post-simple-fields').style.display='none';
+          document.getElementById('relist-post-custom-fields').style.display='block';
+          window._relistPostMode='custom';
+        " style="padding:7px 14px;border-radius:6px;border:2px solid ${postageMode==='custom'?'var(--accent)':'var(--border)'};background:${postageMode==='custom'?'var(--accent)':'var(--surface2)'};color:${postageMode==='custom'?'#000':'var(--text)'};font-weight:600;font-size:12px;cursor:pointer">Custom</button>
+      </div>
+      <div id="relist-post-simple-fields" style="display:${postageMode==='simple'?'block':'none'};margin-bottom:16px">
+        <div class="fg" style="margin-bottom:8px">
+          <label>Parcel size</label>
+          <select id="relist-sd-rate" style="padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-weight:600;font-family:inherit;width:100%">${sdOpts}</select>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer">
+          <input type="checkbox" id="relist-sd-buyer-pays" ${i._sdBuyerPays?'checked':''} style="accent-color:var(--accent);width:15px;height:15px"> Buyer pays
+        </label>
+      </div>
+      <div id="relist-post-custom-fields" style="display:${postageMode==='custom'?'block':'none'};margin-bottom:16px">
+        <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="fg"><label>Your shipping cost (£)</label><input type="number" id="relist-shipping-cost" step="0.01" value="${i.shippingCost||0}"></div>
+          <div class="fg"><label>Charge to buyer (£)</label><input type="number" id="relist-postage" step="0.01" value="${i.postage||0}"></div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:var(--muted);margin-bottom:16px;padding:10px 12px;background:var(--surface2);border-radius:8px;line-height:1.6">
+        ℹ️ <strong>Spares / Repairs</strong> items are excluded from your average sale price stats so they don't skew your numbers.
+      </div>
+
+      <button class="btn btn-p" style="width:100%" onclick="confirmRelist('${m}','${id}')">Relist item</button>
+    </div>`;
+  window._relistCondition='working';
+  window._relistPostMode=postageMode;
+  openPanel('Relist — '+esc(i.item),html);
+}
+
+function confirmRelist(m,id){
+  const i=(DB[m]||[]).find(x=>x.id===id);
+  if(!i)return;
+  const price=parseFloat(document.getElementById('relist-price').value)||i.salePrice||0;
+  const promoInput=parseFloat(document.getElementById('relist-promo').value)||0;
+  const condition=window._relistCondition||'working';
+  const postMode=window._relistPostMode||'simple';
+  // Apply postage settings
+  i._postageMode=postMode;
+  if(postMode==='simple'){
+    const sdIdx=parseInt(document.getElementById('relist-sd-rate').value)||0;
+    const buyerPays=document.getElementById('relist-sd-buyer-pays').checked;
+    const rate=SIMPLE_DELIVERY_RATES[sdIdx]||SIMPLE_DELIVERY_RATES[0];
+    i._sdRateIdx=sdIdx;
+    i._sdBuyerPays=buyerPays;
+    i.shippingCost=rate.cost;
+    i.postage=buyerPays?rate.cost:0;
+  } else {
+    i.shippingCost=parseFloat(document.getElementById('relist-shipping-cost').value)||0;
+    i.postage=parseFloat(document.getElementById('relist-postage').value)||0;
+  }
+  // Restore to active stock
+  i.isReturned=false;
+  i.dateSold=null;
+  i.salePrice=price;
+  i.promoPercent=promoInput/100;
+  i.condition=condition==='working'?undefined:'spares';
+  i.grossProfit=null;
+  // Log relist in returnHistory for audit trail
+  if(i.returnHistory&&i.returnHistory.length){
+    i.returnHistory[i.returnHistory.length-1]._relistedAt=new Date().toISOString().split('T')[0];
+    i.returnHistory[i.returnHistory.length-1]._relistCondition=condition;
+  }
+  saveDB();
+  window._relistCondition=null;
+  window._relistPostMode=null;
+  closePanel();
+  toast('Relisted as '+(condition==='spares'?'Spares / Repairs':'Working'));
+  const cur=document.querySelector('.page.on').id;
+  if(cur==='p-item')renderItemPage(m,id);
+  else if(cur==='p-monthly')renderMonth();
+  else if(cur==='p-stock')renderStock();
+  else renderSummary();
 }
 
 function openReturn(m,id){
@@ -3656,6 +4075,24 @@ function undoResale(m,id){
   saveDB();
   renderItemPage(m,id);
   toast('Re-sale undone — item back to Returned');
+}
+
+function undoRelist(m,id,rtnIdx){
+  const i=(DB[m]||[]).find(x=>x.id===id);
+  if(!i||!i.returnHistory)return;
+  const r=i.returnHistory[rtnIdx];
+  if(!r||!r._relistedAt)return;
+  // Remove relist markers from this return entry
+  delete r._relistedAt;
+  delete r._relistCondition;
+  // Restore returned state
+  i.isReturned=true;
+  i.dateSold=null;
+  i.condition=undefined;
+  i.grossProfit=calcGrossProfit(i);
+  saveDB();
+  renderItemPage(m,id);
+  toast('Relist undone — item back to Returned');
 }
 
 // ── Returned items panel (opened from KPI card) ────────────────────────────
@@ -3884,9 +4321,11 @@ function calcYearlyStats(){
     (DB[m]||[]).forEach(i=>{
       if((i.item||"").trim().toUpperCase()==="MONTH END")return;
       totalItems++;
-      if((i.dateSold||i.resaleSalePrice)&&!i.isReturned)saleTransactions.push(i.salePrice||0);
-      if(i.resaleSalePrice)saleTransactions.push(i.resaleSalePrice||0);
-      if(i.isReturned){
+      if((i.dateSold||i.resaleSalePrice)&&!i.isReturned&&i.condition!=='spares')saleTransactions.push(i.salePrice||0);
+      if(i.resaleSalePrice&&i.condition!=='spares')saleTransactions.push(i.resaleSalePrice||0);
+      // Count as a return if item has any full return in history (even if since relisted)
+      const hadFullReturn=(i.returnHistory||[]).some(r=>r.type==='full_seller'||r.type==='full_ebay');
+      if(i.isReturned||hadFullReturn){
         returnCount++;
       }
       if((i.dateSold||i.resaleSalePrice) && !i.isReturned){
@@ -3966,7 +4405,7 @@ function calcYearlyStats(){
   // Partial refund stats
   let partialRefundCount=0;
   MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
-    if(i.returnHistory&&i.returnHistory.some(r=>r.type==='partial_seller'||r.type==='partial_ebay')&&!i.isReturned)partialRefundCount++;
+    if(i.returnHistory&&i.returnHistory.some(r=>r.type==='partial_seller'||r.type==='partial_ebay'))partialRefundCount++;
   });});
   const partialRefundRate=(soldCount+returnCount)>0?partialRefundCount/(soldCount+returnCount)*100:0;
   const totalStaleCount=byCat.reduce((s,c)=>s+(c.stale||0),0);
@@ -4031,7 +4470,9 @@ function calcGrossProfit(i){
   // Second sale (resold after return)
   if(i.resaleSalePrice){
     const rBPF=calcEbayBPF(i.resaleSalePrice);
-    const rRev=i.resaleSalePrice-rBPF-(i.resaleShippingCost||0);
+    const rGrossInc=i.resaleSalePrice-rBPF;
+    const rPromoCost=rGrossInc*(i.resalePromoPercent||0)*1.20;
+    const rRev=i.resaleSalePrice-rBPF-(i.resaleShippingCost||0)-rPromoCost;
     profit+=rRev;
   }
   return+profit.toFixed(2);
@@ -4043,9 +4484,12 @@ function calcROI(i){
   const grossInc=(i.salePrice||0)-bpf;
   const promoCost=grossInc*(i.promoPercent||0)*1.20;
   let totalInvested=(i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+bpf+promoCost;
-  // For resold items: also invest Sale2 BPF and resale shipping
+  // For resold items: also invest Sale2 BPF, resale shipping and resale promo
   if(i.resaleSalePrice){
-    totalInvested+=calcEbayBPF(i.resaleSalePrice)+(i.resaleShippingCost||0);
+    const rBPF=calcEbayBPF(i.resaleSalePrice);
+    const rGrossInc=i.resaleSalePrice-rBPF;
+    const rPromoCost=rGrossInc*(i.resalePromoPercent||0)*1.20;
+    totalInvested+=rBPF+(i.resaleShippingCost||0)+rPromoCost;
   }
   if(totalInvested<=0)return null;
   return+((calcGrossProfit(i)/totalInvested)*100).toFixed(1);
@@ -4136,6 +4580,22 @@ function handleNavResize(){
 window.addEventListener('resize',handleNavResize);
 window.addEventListener('load',handleNavResize);
 
+function _recalcRelist(currentPL,salePrice,bpf,shipping,packaging,postage){
+  const promoInput=parseFloat(document.getElementById('rl-promo-input').value)||0;
+  const grossInc=salePrice-bpf;
+  const promoCost=grossInc*(promoInput/100)*1.20;
+  const rev=salePrice+postage-bpf;
+  const cost=shipping+packaging+promoCost;
+  const rlProfit=+(rev-cost).toFixed(2);
+  const combinedP=+(currentPL+rlProfit).toFixed(2);
+  const promoEl=document.getElementById('rl-promo-cost');
+  const profitEl=document.getElementById('rl-profit');
+  const lifetimeEl=document.getElementById('rl-lifetime');
+  if(promoEl)promoEl.textContent='−'+fmt(promoCost);
+  if(profitEl){profitEl.textContent=fmt(rlProfit);profitEl.style.color=rlProfit>=0?'var(--green)':'var(--red)';}
+  if(lifetimeEl){lifetimeEl.textContent=fmt(combinedP);lifetimeEl.style.color=combinedP>=0?'var(--green)':'var(--red)';}
+}
+
 function fmt(n){
   if(n===null||n===undefined)return'£0.00';
   return'£'+Number(n).toFixed(2);
@@ -4178,15 +4638,41 @@ function ipSaveNum(m,id,field,val){
   const i=(DB[m]||[]).find(x=>x.id===id);
   if(!i)return;
   i[field]=parseFloat(val)||0;
+  if(i.dateSold||i.isReturned||i.resaleSalePrice)i.grossProfit=calcGrossProfit(i);
   saveDB();
-  renderItemPage(m,id);
+  const s=_getSecStates();renderItemPage(m,id);_applySecStates(s);
 }
 function ipSavePromo(m,id,val){
   const i=(DB[m]||[]).find(x=>x.id===id);
   if(!i)return;
   i.promoPercent=(parseFloat(val)||0)/100;
+  if(i.dateSold||i.isReturned||i.resaleSalePrice)i.grossProfit=calcGrossProfit(i);
   saveDB();
-  renderItemPage(m,id);
+  const s=_getSecStates();renderItemPage(m,id);_applySecStates(s);
+}
+
+function startTitleEdit(m,id){
+  const titleEl=document.querySelector('.ip-title');
+  if(!titleEl||titleEl.classList.contains('editing'))return;
+  const i=(DB[m]||[]).find(x=>x.id===id);
+  if(!i)return;
+  const inp=document.createElement('input');
+  inp.className='ip-title-input';
+  inp.value=i.item||'';
+  titleEl.replaceWith(inp);
+  inp.focus();inp.select();
+  let committed=false;
+  function commit(save){
+    if(committed)return;
+    committed=true;
+    if(save){const val=inp.value.trim();if(val){i.item=val;saveDB();}}
+    const s=_getSecStates();renderItemPage(m,id);_applySecStates(s);
+  }
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){e.preventDefault();commit(true);}
+    if(e.key==='Escape'){commit(false);}
+  });
+  inp.addEventListener('blur',function(){commit(true);});
 }
 
 // ── Inline editing on item full page ─────────────────────────────────────────
