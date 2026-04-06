@@ -879,7 +879,7 @@ function updateThemeIcon(theme){
 
 const SUPABASE_URL = 'https://hqyglehtssgnlrfndwpy.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxeWdsZWh0c3NnbmxyZm5kd3B5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0NzI0MDYsImV4cCI6MjA5MTA0ODQwNn0.Ii7Lk2xjRyDi1GtDE2XB8HtacpbgWIdt8J7zi3bhd6A';
-const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:false,flowType:"implicit"}});
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 
@@ -5243,41 +5243,64 @@ initTheme();
 // into the app. If not, show the sign-in form.
 
 (async function boot(){
-  // Auth overlay starts hidden via CSS display:none — show it while we check
   const overlay = document.getElementById('auth-overlay');
 
-  _sb.auth.onAuthStateChange(async (event, session) => {
-    if(session){
-      // User is authenticated — hide auth overlay, boot app
-      overlay.style.display = 'none';
-      document.getElementById('nav').style.display = '';
-      document.getElementById('main-content').style.display = '';
-      document.getElementById('fab').style.display = '';
-      // Add a sign-out button to the nav-right area if not already present
-      if(!document.getElementById('signout-btn')){
-        const btn = document.createElement('button');
-        btn.id = 'signout-btn';
-        btn.title = 'Sign out';
-        btn.textContent = '🚪';
-        btn.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:40px;height:40px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;';
-        btn.onmouseenter = () => { btn.style.borderColor='var(--accent)'; };
-        btn.onmouseleave = () => { btn.style.borderColor='var(--border)'; };
-        btn.onclick = doSignOut;
-        document.querySelector('.nav-right').appendChild(btn);
-      }
-      // Only load data on first sign-in event (not on every token refresh)
-      if(event === 'SIGNED_IN' || event === 'INITIAL_SESSION'){
+  function showApp(){
+    overlay.style.display = 'none';
+    document.getElementById('nav').style.display = '';
+    document.getElementById('main-content').style.display = '';
+    document.getElementById('fab').style.display = '';
+    if(!document.getElementById('signout-btn')){
+      const btn = document.createElement('button');
+      btn.id = 'signout-btn';
+      btn.title = 'Sign out';
+      btn.textContent = '🚪';
+      btn.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:40px;height:40px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;';
+      btn.onmouseenter = () => { btn.style.borderColor='var(--accent)'; };
+      btn.onmouseleave = () => { btn.style.borderColor='var(--border)'; };
+      btn.onclick = doSignOut;
+      document.querySelector('.nav-right').appendChild(btn);
+    }
+  }
+
+  function showLogin(){
+    document.getElementById('nav').style.display = 'none';
+    document.getElementById('main-content').style.display = 'none';
+    const fab = document.getElementById('fab');
+    if(fab) fab.style.display = 'none';
+    overlay.style.display = 'flex';
+  }
+
+  // Check session directly — avoids onAuthStateChange deadlock
+  let session = null;
+  try{
+    const {data} = await Promise.race([
+      _sb.auth.getSession(),
+      new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+    ]);
+    session = data?.session || null;
+  }catch(e){
+    console.warn('Session check failed:', e.message);
+  }
+
+  if(session){
+    showApp();
+    await initDB();
+    _dbSnapshot = _dbFingerprint();
+  } else {
+    showLogin();
+  }
+
+  // Listen for sign-in/out after initial load
+  _sb.auth.onAuthStateChange(async (event, sess) => {
+    if(event === 'SIGNED_IN' && sess){
+      showApp();
+      if(Object.keys(DB).filter(k => MONTHS.includes(k)).every(k => (DB[k]||[]).length === 0)){
         await initDB();
-        // Set snapshot baseline now that data is loaded
         _dbSnapshot = _dbFingerprint();
       }
-    } else {
-      // Not authenticated — hide app chrome, show auth overlay
-      document.getElementById('nav').style.display = 'none';
-      document.getElementById('main-content').style.display = 'none';
-      const fab = document.getElementById('fab');
-      if(fab) fab.style.display = 'none';
-      overlay.style.display = 'flex';
+    } else if(event === 'SIGNED_OUT'){
+      showLogin();
     }
   });
 })();
