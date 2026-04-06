@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>General-007 | eBay Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --bg:#f8f9fa;--surface:#ffffff;--surface2:#f1f3f5;--border:#dee2e6;--border2:#ced4da;
@@ -639,7 +640,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 </head>
 <body>
 
-<nav>
+<nav id="nav" style="display:none;">
   <div class="nav-inner">
     <div class="nav-row1">
       <div class="brand" onclick="goToTab('summary')">
@@ -685,7 +686,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
   </div>
 </nav>
 
-<button class="fab" onclick="openQuickAdd()" title="Quick add item">+</button>
+<button id="fab" class="fab" onclick="openQuickAdd()" title="Quick add item" style="display:none;">+</button>
 
 <div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
 <div class="slide-panel" id="slide-panel">
@@ -699,6 +700,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
   <div id="panel-content"></div>
 </div>
 
+<div id="main-content" style="display:none;">
 <div class="page on" id="p-summary"></div>
 <div class="page" id="p-monthly"></div>
 <div class="page" id="p-stock"></div>
@@ -707,6 +709,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 <div class="page" id="p-data"></div>
 <div class="page" id="p-search"></div>
 <div class="page" id="p-item"></div>
+</div>
 
 <div id="toast"></div>
 
@@ -757,6 +760,37 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
       <button class="btn btn-success" onclick="confirmResale()" style="flex:1">Confirm</button>
       <button class="btn btn-s" onclick="closeResaleModal()" style="flex:1">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- ── AUTH OVERLAY ─────────────────────────────────────────────────────── -->
+<div id="auth-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 8px 40px var(--shadow-md);">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:36px;margin-bottom:8px;">🔐</div>
+      <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;">GENERAL<span style="color:var(--accent)">-007</span></div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Sign in to continue</div>
+    </div>
+    <div id="auth-error" style="display:none;background:rgba(239,68,68,0.1);border:1px solid var(--red);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;"></div>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;">Email</label>
+      <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com"
+        style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.15s;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+        onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()">
+    </div>
+    <div style="margin-bottom:22px;">
+      <label style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;">Password</label>
+      <input id="auth-pass" type="password" autocomplete="current-password" placeholder="••••••••"
+        style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.15s;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+        onkeydown="if(event.key==='Enter')doSignIn()">
+    </div>
+    <button onclick="doSignIn()" id="auth-btn"
+      style="width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;transition:background 0.15s;">
+      Sign In
+    </button>
+    <div id="auth-loading" style="display:none;text-align:center;margin-top:12px;font-size:13px;color:var(--text-secondary);">Signing in…</div>
   </div>
 </div>
 
@@ -837,47 +871,355 @@ function updateThemeIcon(theme){
   document.getElementById('theme-icon').textContent=theme==='light'?'🌙':'☀️';
 }
 
-// DATABASE
-function initDB(){
-  // Preloaded data from Excel
-  const preloadedData = {"JAN":[],"FEB":[{"id":"feb_1","gid":"G007-0002","item":"Grand Turismo 1997 PS1","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-02-18","dateSold":"2026-02-21","salePrice":9.99,"postage":0,"costPrice":1.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_2","gid":"G007-0003","item":"Mag-Lite Torch","category":"Home & Garden","location":"Bed","source":"","dateListed":"2026-02-19","dateSold":"2026-03-03","salePrice":26,"postage":0,"costPrice":3.25,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_3","gid":"G007-0004","item":"Band of Brothers","category":"Books & Media","location":"Bed","source":"","dateListed":"2026-02-19","dateSold":null,"salePrice":9.99,"postage":0,"costPrice":3,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_4","gid":"G007-0005","item":"Nokia 3410 - Green Mint","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-03-13","salePrice":11,"postage":0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_5","gid":"G007-0006","item":"Sony Ericsson T610","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-03-11","salePrice":10.5,"postage":0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_6","gid":"G007-0007","item":"Motorolla W377 Pink","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-03-04","salePrice":24.99,"postage":0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[{"loggedAt":"2026-03-25","type":"full_seller","refundAmount":24.99,"returnPostage":2.94,"notes":""}],"isReturned":true,"_shippingMigrated":true,"grossProfit":-9.54},{"id":"feb_7","gid":"G007-0008","item":"Blackberry Curve 9320","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-02-27","salePrice":14.99,"postage":0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_8","gid":"G007-0009","item":"LOTR Blue Ray Set - 1 Disc Missing","category":"Books & Media","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-03-06","salePrice":23.47,"postage":0,"costPrice":5,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_9","gid":"G007-0010","item":"Canon 550D - Complete Kit","category":"Cameras & Photography","location":"Bed","source":"","dateListed":"2026-02-25","dateSold":"2026-02-28","salePrice":149.99,"postage":0,"costPrice":80,"shippingCost":4.88,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_10","gid":"G007-0011","item":"Kids Music Piano Book","category":"Audio & Music","location":"Bed","source":"","dateListed":"2026-02-25","dateSold":"2026-03-14","salePrice":5.99,"postage":2.94,"costPrice":0.2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_11","gid":"G007-0012","item":"Star Wars Trilogy VHS Special Edition","category":"Books & Media","location":"A101","source":"","dateListed":"2026-02-25","dateSold":null,"salePrice":12.99,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_12","gid":"G007-0013","item":"Top Shine Elite Shoe Care Kit","category":"Clothing & Fashion","location":"Bed","source":"Charity Shop","dateListed":"2026-02-25","dateSold":"2026-04-01","salePrice":29.99,"postage":0,"costPrice":6,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":17.53},{"id":"feb_13","gid":"G007-0014","item":"Toy Story 3 Mr Potato Tub","category":"Toys & Games","location":"Wardrobe","source":"","dateListed":"2026-02-26","dateSold":"2026-03-01","salePrice":22.99,"postage":0,"costPrice":2.5,"shippingCost":3.88,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_14","gid":"G007-0015","item":"Grand Turismo PS1 - Manual Only","category":"Electronics & Tech","location":"Wardrobe","source":"","dateListed":"2026-02-27","dateSold":null,"salePrice":4.99,"postage":0,"costPrice":2.5,"shippingCost":1,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false}],"MAR":[{"id":"mar_1","gid":"G007-0017","item":"Power Rangers Complete Season 1","category":"Books & Media","location":"A101","source":"","dateListed":"2026-03-02","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":6,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_2","gid":"G007-0018","item":"Google Nest Mini Gen 1 - 1","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-02","dateSold":"2026-03-04","salePrice":23.99,"postage":0,"costPrice":10.15,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_3","gid":"G007-0019","item":"The Singing Machine Lights SML283BK","category":"Audio & Music","location":"Wardrobe","source":"","dateListed":"2026-03-03","dateSold":null,"salePrice":37.99,"postage":0,"costPrice":15,"shippingCost":3.71,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_4","gid":"G007-0020","item":"George RR Martin Book Set","category":"Books & Media","location":"Bedroom","source":"","dateListed":"2026-03-03","dateSold":"2026-03-06","salePrice":29.99,"postage":0,"costPrice":7,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_5","gid":"G007-0021","item":"Mr & Mrs Potato Head Bundle","category":"Toys & Games","location":"Bedroom","source":"","dateListed":"2026-03-03","dateSold":"2026-03-09","salePrice":19.99,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_6","gid":"G007-0022","item":"DK Illustrated Family Encyclopedia 16 Books","category":"Books & Media","location":"Wardrobe","source":"","dateListed":"2026-03-07","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":6,"shippingCost":5.88,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_7","gid":"G007-0023","item":"Google Nest Mini Gen 1 - 2","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-07","dateSold":"2026-03-18","salePrice":22.82,"postage":0,"costPrice":11.2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_8","gid":"G007-0024","item":"Google Nest Mini Gen 1 - 3","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-07","dateSold":"2026-03-27","salePrice":23,"postage":0,"costPrice":12.25,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_9","gid":"G007-0025","item":"Acer Aspire E5-571","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-08","dateSold":"2026-03-18","salePrice":114.99,"postage":0,"costPrice":48.59,"shippingCost":5.88,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_10","gid":"G007-0026","item":"Canon 600D Astro Mod","category":"Cameras & Photography","location":"Bed","source":"","dateListed":"2026-03-08","dateSold":"2026-03-11","salePrice":189.99,"postage":0,"costPrice":66.85,"shippingCost":4.88,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_11","gid":"G007-0027","item":"MSI GeForce GTX 770 4GB Twin Frozr","category":"Electronics & Tech","location":"Bedroom","source":"","dateListed":"2026-03-09","dateSold":null,"salePrice":49.99,"postage":0,"costPrice":21.7,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_12","gid":"G007-0028","item":"Playstation Backpack - Blue","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-10","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":5.5,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_13","gid":"G007-0029","item":"Salus RT500RF Wireless Thermostat","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-11","dateSold":"2026-03-16","salePrice":65,"postage":0,"costPrice":10,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_14","gid":"G007-0030","item":"Siemens Remote Control 13A Adaptor 3 Pack","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-12","dateSold":"2026-03-18","salePrice":39.99,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_15","gid":"G007-0031","item":"Canon 1300D Full Kit and Lens","category":"Cameras & Photography","location":"Wardrobe","source":"","dateListed":"2026-03-13","dateSold":"2026-03-18","salePrice":189.99,"postage":0,"costPrice":120.99,"shippingCost":4.88,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[{"loggedAt":"2026-03-30","type":"full_seller","refundAmount":189.99,"returnPostage":4.26,"notes":""}],"isReturned":true,"_shippingMigrated":true},{"id":"mar_16","gid":"G007-0032","item":"Apple Magic Touchpad","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-15","dateSold":"2026-03-15","salePrice":22.99,"postage":0,"costPrice":6,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":11.72},{"id":"mar_18","gid":"G007-0034","item":"Apple Magic Keyboard 1314 - 2","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-15","dateSold":"2026-03-18","salePrice":19.99,"postage":0,"costPrice":6,"shippingCost":4.63,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":7.29},{"id":"mar_19","gid":"G007-0035","item":"Job Lot Apple Magic Keyboard 1314/1255/1655","category":"Electronics & Tech","location":"Bag","source":"Car Boot Sale","dateListed":"2026-03-25","dateSold":"2026-04-02","salePrice":12,"postage":2.94,"costPrice":6,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":4.72},{"id":"mar_20","gid":"G007-0036","item":"HUSKY Tyre Chains","category":"Home & Garden","location":"Bedroom","source":"","dateListed":"2026-03-16","dateSold":null,"salePrice":37.99,"postage":0,"costPrice":15,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_21","gid":"G007-0037","item":"Samsung TV with remote","category":"Electronics & Tech","location":"Bedroom","source":"","dateListed":"2026-03-17","dateSold":null,"salePrice":47.5,"postage":0,"costPrice":7.5,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_22","gid":"G007-0038","item":"Geermac Amplidect 295","category":"Audio & Music","location":"Bed","source":"","dateListed":"2026-03-19","dateSold":"2026-03-26","salePrice":34.99,"postage":0,"costPrice":10,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_23","gid":"G007-0039","item":"Sony Walkman Docking Speaker","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":19.99,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_24","gid":"G007-0040","item":"Monopoly Original Hasbro Board Game","category":"Toys & Games","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":19.99,"postage":0,"costPrice":3.33,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_25","gid":"G007-0041","item":"Azatom Docking Station HouseDance-Max","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":5.99,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_26","gid":"G007-0042","item":"Saitek Cyborg Evo USB Joystick","category":"Electronics & Tech","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":5.99,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_27","gid":"G007-0043","item":"BT4600 Twin Landline Phone","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":"2026-03-30","salePrice":23,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":15.73},{"id":"mar_28","gid":"G007-0044","item":"Saturn V Space Rocket Blocks Building Set","category":"Toys & Games","location":"Wardrobe","source":"","dateListed":"2026-03-20","dateSold":"2026-03-28","salePrice":34,"postage":0,"costPrice":10,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":-14.86},{"id":"mar_29","gid":"G007-0045","item":"Big Button Phone for Elderly - 1","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":29.99,"postage":0,"costPrice":3.33,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_30","gid":"G007-0046","item":"Big Button Phone for Elderly - 2","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":29.99,"postage":0,"costPrice":3.33,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_31","gid":"G007-0047","item":"Chad Valley Chess Board","category":"Toys & Games","location":"Bed","source":"","dateListed":"2026-03-21","dateSold":null,"salePrice":9.99,"postage":2.94,"costPrice":1,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_32","gid":"G007-0048","item":"Sony WH-100XM4 WIreless","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-22","dateSold":"2026-03-23","salePrice":85,"postage":0,"costPrice":35,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_33","gid":"G007-0049","item":"Solar Powered 1080p Security Camera","category":"Cameras & Photography","location":"Desk","source":"","dateListed":"2026-03-22","dateSold":"2026-03-24","salePrice":25,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[{"loggedAt":"2026-03-30","type":"partial_seller","refundAmount":3,"returnPostage":0,"notes":"missing 1/4\" mount"}],"isReturned":false,"_shippingMigrated":true},{"id":"mar_34","gid":"G007-0050","item":"Yamaha PSR-75 No PSU","category":"Audio & Music","location":"Bedroom","source":"","dateListed":"2026-03-22","dateSold":"2026-03-25","salePrice":19,"postage":0,"costPrice":3,"shippingCost":3.71,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_35","gid":"G007-0051","item":"Netgear N300 Wireless Router","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-25","dateSold":null,"salePrice":19.99,"postage":0,"costPrice":5,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_36","gid":"G007-0052","item":"Smarter FridgeCam","category":"Electronics & Tech","location":"Desk","source":"Charity Shop","dateListed":"2026-03-25","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":10,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"dup_1774817929412","gid":"G007-0053","item":"Apple Magic Keyboard 1314 - 3","category":"Electronics & Tech","location":"A101","source":"Car Boot Sale","dateListed":"2026-03-29","dateSold":"2026-03-31","salePrice":19.99,"postage":0,"costPrice":5,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnHistory":[],"isReturned":false,"grossProfit":9.98},{"id":"qa_1774818261436","gid":"G007-0054","dateListed":"2026-03-29","item":"Philips HiFi Headphones","source":"Car Boot Sale","category":"Audio & Music","location":"","costPrice":15,"salePrice":49.99,"postage":2.94,"shippingCost":0,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false},{"id":"qa_1774873047959","gid":"G007-0055","dateListed":"2026-03-30","item":"Humax PVR-9150T","source":"Car Boot Sale","category":"Other","location":"Desk","costPrice":6.33,"salePrice":24.99,"postage":0,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"dup_1774876804923","gid":"G007-0056","dateListed":"2026-03-30","item":"Humax PVR-9150T - 2","source":"Car Boot Sale","category":"Other","location":"Desk","costPrice":6.33,"salePrice":24.99,"postage":0,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"dup_1774876808161","gid":"G007-0057","dateListed":"2026-03-30","item":"Humax PVR-9150T - 3","source":"Car Boot Sale","category":"Other","location":"Desk","costPrice":6.33,"salePrice":24.99,"postage":0,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"qa_1774877366631","gid":"G007-0058","dateListed":"2026-03-30","item":"Nokia 130 RM-1037","source":"Car Boot Sale","category":"Electronics & Tech","location":"Shelves","costPrice":3,"salePrice":12.99,"postage":0,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"dup_1774878350769","gid":"G007-0059","dateListed":"2026-03-30","item":"Nokia 1616 w/ charger","source":"Car Boot Sale","category":"Electronics & Tech","location":"Shelves","costPrice":3,"salePrice":9.99,"postage":0,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.03,"dateSold":"2026-04-02","grossProfit":3.21,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"qa_1774878463614","gid":"G007-0060","dateListed":"2026-03-30","item":"Baofeng UV-9R Pro","source":"Car Boot Sale","category":"Other","location":"Desk","costPrice":10,"salePrice":24.99,"postage":0,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"qa_1774959068462","gid":"G007-0061","dateListed":"2026-03-15","item":"Apple Magic Keybaord 1655","source":"Car Boot Sale","category":"Electronics & Tech","location":"Wardrobe","costPrice":6,"salePrice":24.99,"postage":0,"shippingCost":2.94,"packagingCost":0,"promoPercent":0,"dateSold":null,"grossProfit":14.42,"isReturned":true,"notes":"","parts":[],"returnHistory":[{"loggedAt":"2026-03-31","type":"full_seller","refundAmount":24.99,"returnPostage":0,"notes":"cmd,z,x keys not working"}],"_shippingMigrated":true},{"id":"dup_1774959352719","gid":"G007-0062","item":"Apple Magic Keyboard 1314 - 1","category":"Electronics & Tech","location":"A101","source":"Car Boot Sale","dateListed":"2026-03-15","dateSold":null,"salePrice":19.99,"postage":0,"costPrice":6,"shippingCost":0,"packagingCost":0,"promoPercent":0.03,"notes":"Bundled with (Apple Magic Keyboard 1314),  postage costs on there","parts":[],"returnHistory":[{"loggedAt":"2026-03-31","type":"full_seller","refundAmount":19.99,"returnPostage":0,"notes":"missing screw"}],"isReturned":false,"grossProfit":8.98,"_shippingMigrated":true,"resaleDateSold":"2026-03-31","resaleSalePrice":19.99,"resaleShippingCost":2.94}],"APR":[],"MAY":[],"JUN":[],"JUL":[],"AUG":[],"SEP":[],"OCT":[],"NOV":[],"DEC":[]};
-  
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if(!stored){
-    DB = preloadedData;
-    MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{i.category=autoCategory(i.item);}));
-    saveDB();
-  }else{
-    DB = JSON.parse(stored);
-    let changed=false;
-    // Only sync preloadedData fields back if the user hasn't imported their own data.
-    // Once _userOwned is true, localStorage is the source of truth — never overwrite it.
-    if(!DB._userOwned){
-      const RAW_FIELDS=['salePrice','costPrice','postage','shippingCost','packagingCost','promoPercent','dateSold','location'];
-      MONTHS.forEach(function(m){
-        (preloadedData[m]||[]).forEach(function(pre){
-          const live=(DB[m]||[]).find(function(i){return i.id===pre.id;});
-          if(!live)return;
-          RAW_FIELDS.forEach(function(field){if(live[field]!==pre[field]){live[field]=pre[field];changed=true;}});
-        });
-      });
-    }
-    MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{
-      const fresh=autoCategory(i.item);
-      if(i.category!==fresh){i.category=fresh;changed=true;}
-      if((i.returnHistory||[]).length>0&&!i._shippingMigrated){
-        const bakedIn=(i.returnHistory||[]).reduce(function(s,r){return s+(r.returnPostage||0);},0);
-        if(bakedIn>0){i.shippingCost=Math.max(0,(i.shippingCost||0)-bakedIn);}
-        i._shippingMigrated=true;changed=true;
-      }
+// ═══════════════════════════════════════════════════════════════════════════
+// SUPABASE DATA LAYER — all Supabase calls live here and ONLY here
+// Never call supabase.from() outside this block.
+// Mobile-portable: isolate any browser-only code here, not in render fns.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SUPABASE_URL = 'https://hqyglehtssgnlrfndwpy.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxeWdsZWh0c3NnbmxyZm5kd3B5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0NzI0MDYsImV4cCI6MjA5MTA0ODQwNn0.Ii7Lk2xjRyDi1GtDE2XB8HtacpbgWIdt8J7zi3bhd6A';
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+
+async function doSignIn(){
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  const errEl = document.getElementById('auth-error');
+  const ldEl  = document.getElementById('auth-loading');
+  const btn   = document.getElementById('auth-btn');
+  errEl.style.display = 'none';
+  btn.style.display = 'none';
+  ldEl.style.display = 'block';
+  const {error} = await _sb.auth.signInWithPassword({email, password: pass});
+  if(error){
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
+    btn.style.display = 'block';
+    ldEl.style.display = 'none';
+    return;
+  }
+  // onAuthStateChange will handle the rest
+}
+
+async function doSignOut(){
+  await _sb.auth.signOut();
+  location.reload();
+}
+
+// ── ROW → JS ITEM (Supabase snake_case → app camelCase) ─────────────────────
+
+function _rowToItem(row, parts, returns){
+  const item = {
+    id:              row.id,
+    gid:             row.gid || null,
+    month:           row.month,
+    item:            row.item,
+    category:        row.category || null,
+    location:        row.location || null,
+    source:          row.source || null,
+    dateListed:      row.date_listed || null,
+    dateSold:        row.date_sold || null,
+    salePrice:       Number(row.sale_price) || 0,
+    postage:         Number(row.postage) || 0,
+    costPrice:       Number(row.cost_price) || 0,
+    shippingCost:    Number(row.shipping_cost) || 0,
+    packagingCost:   Number(row.packaging_cost) || 0,
+    promoPercent:    Number(row.promo_percent) || 0,
+    notes:           row.notes || '',
+    isReturned:      !!row.is_returned,
+    _postageMode:    row.postage_mode || 'simple',
+    _sdRateIdx:      row.sd_rate_idx != null ? row.sd_rate_idx : 1,
+    _sdBuyerPays:    row.sd_buyer_pays !== false,
+    resaleSalePrice:    row.resale_sale_price ? Number(row.resale_sale_price) : null,
+    resaleDateSold:     row.resale_date_sold || null,
+    resaleShippingCost: row.resale_shipping_cost ? Number(row.resale_shipping_cost) : null,
+    resalePromoPercent: row.resale_promo_percent ? Number(row.resale_promo_percent) : null,
+    grossProfit:     row.gross_profit != null ? Number(row.gross_profit) : null,
+    _shippingMigrated: true,
+    returnData:      null,
+    parts: (parts||[]).map(p=>({id:p.id, desc:p.description||'', cost:Number(p.cost)||0})),
+    returnHistory: (returns||[]).map(r=>({
+      id:             r.id,
+      loggedAt:       r.logged_at || null,
+      type:           r.type || null,
+      refundAmount:   Number(r.refund_amount) || 0,
+      returnPostage:  Number(r.return_postage) || 0,
+      notes:          r.notes || '',
+      _relistedAt:    r.relisted_at || null,
+      _relistCondition: r.relist_condition || null,
+    })),
+  };
+  return item;
+}
+
+// ── ITEM → ROW (app camelCase → Supabase snake_case) ────────────────────────
+
+function _itemToRow(i, month){
+  return {
+    id:               i.id,
+    gid:              i.gid || null,
+    month:            month || i.month,
+    item:             i.item || '',
+    category:         i.category || null,
+    location:         i.location || null,
+    source:           i.source || null,
+    date_listed:      i.dateListed || null,
+    date_sold:        i.dateSold || null,
+    sale_price:       i.salePrice || 0,
+    postage:          i.postage || 0,
+    cost_price:       i.costPrice || 0,
+    shipping_cost:    i.shippingCost || 0,
+    packaging_cost:   i.packagingCost || 0,
+    promo_percent:    i.promoPercent || 0,
+    notes:            i.notes || null,
+    is_returned:      !!i.isReturned,
+    postage_mode:     i._postageMode || 'simple',
+    sd_rate_idx:      i._sdRateIdx != null ? i._sdRateIdx : 1,
+    sd_buyer_pays:    i._sdBuyerPays !== false,
+    resale_sale_price:    i.resaleSalePrice || null,
+    resale_date_sold:     i.resaleDateSold || null,
+    resale_shipping_cost: i.resaleShippingCost || null,
+    resale_promo_percent: i.resalePromoPercent || null,
+    gross_profit:     i.grossProfit || null,
+  };
+}
+
+// ── LOAD ALL DATA FROM SUPABASE → DB ────────────────────────────────────────
+
+async function loadFromSupabase(){
+  // Fetch all tables in parallel
+  const [itemsRes, partsRes, returnsRes, tripsRes, expensesRes] = await Promise.all([
+    _sb.from('items').select('*').order('date_listed', {ascending: true}),
+    _sb.from('item_parts').select('*'),
+    _sb.from('item_returns').select('*').order('logged_at', {ascending: true}),
+    _sb.from('trips').select('*').order('date', {ascending: true}),
+    _sb.from('expenses').select('*').order('date', {ascending: true}),
+  ]);
+
+  if(itemsRes.error) throw new Error('Items load failed: ' + itemsRes.error.message);
+
+  // Index parts and returns by item_id for fast lookup
+  const partsMap = {};
+  (partsRes.data || []).forEach(p => {
+    if(!partsMap[p.item_id]) partsMap[p.item_id] = [];
+    partsMap[p.item_id].push(p);
+  });
+  const returnsMap = {};
+  (returnsRes.data || []).forEach(r => {
+    if(!returnsMap[r.item_id]) returnsMap[r.item_id] = [];
+    returnsMap[r.item_id].push(r);
+  });
+
+  // Rebuild DB in the exact shape the app expects
+  MONTHS.forEach(m => { DB[m] = []; });
+  (itemsRes.data || []).forEach(row => {
+    const m = row.month;
+    if(!DB[m]) DB[m] = [];
+    DB[m].push(_rowToItem(row, partsMap[row.id], returnsMap[row.id]));
+  });
+
+  // trips / expenses stored flat on DB (same as localStorage shape)
+  DB.trips = (tripsRes.data || []).map(t => ({
+    id:          t.id,
+    date:        t.date,
+    description: t.description || '',
+    mileage:     Number(t.mileage) || 0,
+    ratePerMile: Number(t.rate_per_mile) || 0.45,
+  }));
+  DB.expenses = (expensesRes.data || []).map(e => ({
+    id:          e.id,
+    date:        e.date,
+    description: e.description || '',
+    amount:      Number(e.amount) || 0,
+    category:    e.category || null,
+  }));
+  DB._userOwned = true;
+}
+
+// ── SAVE ITEM TO SUPABASE ────────────────────────────────────────────────────
+// Upserts the item row, then replaces its parts and returns in full.
+
+async function saveItemToSupabase(m, i){
+  const row = _itemToRow(i, m);
+
+  // Upsert main item row
+  const {error: itemErr} = await _sb.from('items').upsert(row, {onConflict: 'id'});
+  if(itemErr) throw new Error('Save item failed: ' + itemErr.message);
+
+  // Replace parts: delete old, insert new
+  await _sb.from('item_parts').delete().eq('item_id', i.id);
+  if((i.parts||[]).length > 0){
+    const partsRows = (i.parts||[]).map(p => ({
+      item_id:     i.id,
+      description: p.desc || p.description || '',
+      cost:        Number(p.cost) || 0,
     }));
-    if(changed)saveDB();
+    const {error: partsErr} = await _sb.from('item_parts').insert(partsRows);
+    if(partsErr) throw new Error('Save parts failed: ' + partsErr.message);
+  }
+
+  // Replace returns: delete old, insert new
+  await _sb.from('item_returns').delete().eq('item_id', i.id);
+  if((i.returnHistory||[]).length > 0){
+    const retRows = (i.returnHistory||[]).map(r => ({
+      item_id:       i.id,
+      logged_at:     r.loggedAt || null,
+      type:          r.type || null,
+      refund_amount: Number(r.refundAmount) || 0,
+      return_postage:Number(r.returnPostage) || 0,
+      notes:         r.notes || null,
+      relisted_at:   r._relistedAt || null,
+      relist_condition: r._relistCondition || null,
+    }));
+    const {error: retErr} = await _sb.from('item_returns').insert(retRows);
+    if(retErr) throw new Error('Save returns failed: ' + retErr.message);
   }
 }
+
+// ── DELETE ITEM FROM SUPABASE ────────────────────────────────────────────────
+// item_parts and item_returns cascade on delete via FK, so just delete item row.
+
+async function deleteItemFromSupabase(id){
+  const {error} = await _sb.from('items').delete().eq('id', id);
+  if(error) throw new Error('Delete failed: ' + error.message);
+}
+
+// ── SAVE TRIP ────────────────────────────────────────────────────────────────
+
+async function saveTripToSupabase(t){
+  const row = {id:t.id, date:t.date, description:t.description||'', mileage:t.mileage||0, rate_per_mile:t.ratePerMile||0.45};
+  const {error} = await _sb.from('trips').upsert(row, {onConflict:'id'});
+  if(error) throw new Error('Save trip failed: ' + error.message);
+}
+
+async function deleteTripFromSupabase(id){
+  const {error} = await _sb.from('trips').delete().eq('id', id);
+  if(error) throw new Error('Delete trip failed: ' + error.message);
+}
+
+// ── SAVE EXPENSE ─────────────────────────────────────────────────────────────
+
+async function saveExpenseToSupabase(e){
+  const row = {id:e.id, date:e.date, description:e.description||'', amount:e.amount||0, category:e.category||null};
+  const {error} = await _sb.from('expenses').upsert(row, {onConflict:'id'});
+  if(error) throw new Error('Save expense failed: ' + error.message);
+}
+
+async function deleteExpenseFromSupabase(id){
+  const {error} = await _sb.from('expenses').delete().eq('id', id);
+  if(error) throw new Error('Delete expense failed: ' + error.message);
+}
+
+// ── LEGACY WRAPPERS (called throughout the app — now async-aware) ────────────
+// saveDB() is called after every mutation throughout the app.
+// Strategy: snapshot the DB state, debounce 400ms, then diff & persist to Supabase.
+
+let _dbSnapshot = null;   // last-known-saved state (JSON string per item id)
+let _saveTimer = null;
+
 function saveDB(){
-  DB._userOwned=true;
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
+  DB._userOwned = true;
   refreshActivePage();
+  // Debounce: wait 400ms of quiet before persisting (handles rapid edits)
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(_persistChanges, 400);
+}
+
+// Build a flat map of id → JSON for all items + trips + expenses
+function _dbFingerprint(){
+  const fp = {};
+  MONTHS.forEach(m => {
+    (DB[m]||[]).forEach(i => { fp['item:'+i.id] = JSON.stringify(i) + '|' + m; });
+  });
+  (DB.trips||[]).forEach(t => { fp['trip:'+t.id] = JSON.stringify(t); });
+  (DB.expenses||[]).forEach(e => { fp['exp:'+e.id] = JSON.stringify(e); });
+  return fp;
+}
+
+async function _persistChanges(){
+  const current = _dbFingerprint();
+  const prev    = _dbSnapshot || {};
+  const errors  = [];
+
+  // Detect changed / new items
+  for(const key of Object.keys(current)){
+    if(current[key] === prev[key]) continue;  // unchanged
+    try{
+      if(key.startsWith('item:')){
+        const id = key.slice(5);
+        const parts = current[key].split('|');
+        const month = parts[parts.length - 1];
+        const item = (DB[month]||[]).find(i => i.id === id);
+        if(item) await saveItemToSupabase(month, item);
+      } else if(key.startsWith('trip:')){
+        const id = key.slice(5);
+        const trip = (DB.trips||[]).find(t => t.id === id);
+        if(trip) await saveTripToSupabase(trip);
+      } else if(key.startsWith('exp:')){
+        const id = key.slice(4);
+        const exp = (DB.expenses||[]).find(e => e.id === id);
+        if(exp) await saveExpenseToSupabase(exp);
+      }
+    }catch(e){ errors.push(e.message); }
+  }
+
+  // Detect deletions
+  for(const key of Object.keys(prev)){
+    if(current[key] !== undefined) continue;  // still exists
+    try{
+      if(key.startsWith('item:')){
+        const id = key.slice(5);
+        await deleteItemFromSupabase(id);
+      } else if(key.startsWith('trip:')){
+        const id = key.slice(5);
+        await deleteTripFromSupabase(id);
+      } else if(key.startsWith('exp:')){
+        const id = key.slice(4);
+        await deleteExpenseFromSupabase(id);
+      }
+    }catch(e){ errors.push(e.message); }
+  }
+
+  if(errors.length > 0){
+    console.error('Supabase sync errors:', errors);
+    toast('⚠️ Cloud sync issue — check connection');
+  }
+
+  // Update snapshot to reflect what we just saved
+  _dbSnapshot = _dbFingerprint();
+}
+
+// DATABASE (entry point — called on app init after auth confirmed)
+async function initDB(){
+  try{
+    showLoadingScreen('Loading your data…');
+    await loadFromSupabase();
+    hideLoadingScreen();
+    renderSummary();
+  }catch(e){
+    console.error('initDB error:', e);
+    hideLoadingScreen();
+    toast('⚠️ Failed to load data: ' + e.message);
+  }
+}
+
+function showLoadingScreen(msg){
+  let el = document.getElementById('app-loading');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'app-loading';
+    el.style.cssText = 'position:fixed;inset:0;z-index:9998;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;';
+    el.innerHTML = '<div style="font-size:32px;">⏳</div><div style="font-size:15px;color:var(--text-secondary);" id="app-loading-msg"></div>';
+    document.body.appendChild(el);
+  }
+  document.getElementById('app-loading-msg').textContent = msg || 'Loading…';
+  el.style.display = 'flex';
+}
+function hideLoadingScreen(){
+  const el = document.getElementById('app-loading');
+  if(el) el.style.display = 'none';
 }
 
 function refreshActivePage(){
@@ -890,9 +1232,9 @@ function refreshActivePage(){
   else if(id==='p-stock')renderStock();
   else if(id==='p-expenses')renderExpenses();
   else if(id==='p-tax'&&typeof renderTax==='function')renderTax();
-  // p-item and p-search intentionally skipped — they manage their own re-render
-  // (p-item also uses _getSecStates/_applySecStates to preserve collapse state)
+  // p-item and p-search intentionally skipped
 }
+
 
 // BUYER PROTECTION FEE (Tiered eBay UK formula)
 // calcBuyerProtectionFee: now uses unified iterative calcEbayBPF
@@ -1067,7 +1409,7 @@ function openTokenEdit(m,id,field,_alreadyAsync){
       else{i[field]=+v.toFixed(2);}
       if(i.dateSold||i.isReturned||i.resaleSalePrice)i.grossProfit=calcGrossProfit(i);
       DB._userOwned=true;
-      localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
+      saveDB();
     }
     const pending=_nextTokenField;
     const pm=_tokenM||m;
@@ -3180,6 +3522,7 @@ function addTrip(){
 
 function saveTrip(){
   const trip={
+    id:'trip_'+Date.now(),
     date:document.getElementById('trip-date').value,
     description:document.getElementById('trip-desc').value,
     mileage:parseFloat(document.getElementById('trip-miles').value)||0,
@@ -3221,6 +3564,7 @@ function addExpense(){
 
 function saveExpense(){
   const exp={
+    id:'exp_'+Date.now(),
     date:document.getElementById('exp-date').value,
     description:document.getElementById('exp-desc').value,
     category:document.getElementById('exp-cat').value,
@@ -3246,7 +3590,8 @@ function editTrip(idx){
 }
 function saveTripEdit(idx){
   const trips=DB.trips||[];if(!trips[idx])return;
-  trips[idx]={date:document.getElementById('trip-date').value,description:document.getElementById('trip-desc').value,mileage:parseFloat(document.getElementById('trip-miles').value)||0,ratePerMile:parseFloat(document.getElementById('trip-rate').value)||0.45};
+  const existingId = trips[idx].id || ('trip_'+Date.now());
+  trips[idx]={id:existingId,date:document.getElementById('trip-date').value,description:document.getElementById('trip-desc').value,mileage:parseFloat(document.getElementById('trip-miles').value)||0,ratePerMile:parseFloat(document.getElementById('trip-rate').value)||0.45};
   DB.trips=trips;saveDB();closePanel();toast('Trip updated');renderExpenses();
 }
 async function deleteTrip(idx){
@@ -3265,7 +3610,8 @@ function editExpense(idx){
 }
 function saveExpenseEdit(idx){
   const expenses=DB.expenses||[];if(!expenses[idx])return;
-  expenses[idx]={date:document.getElementById('exp-date').value,description:document.getElementById('exp-desc').value,category:document.getElementById('exp-cat').value,amount:parseFloat(document.getElementById('exp-amt').value)||0};
+  const existingId = expenses[idx].id || ('exp_'+Date.now());
+  expenses[idx]={id:existingId,date:document.getElementById('exp-date').value,description:document.getElementById('exp-desc').value,category:document.getElementById('exp-cat').value,amount:parseFloat(document.getElementById('exp-amt').value)||0};
   DB.expenses=expenses;saveDB();closePanel();toast('Expense updated');renderExpenses();
 }
 async function deleteExpense(idx){
@@ -3400,6 +3746,8 @@ function _confirmJSONImport(){
   DB=imported;
   DB._userOwned=true;
   MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{i.category=autoCategory(i.item);}));
+  // Reset snapshot to empty so diff sees ALL items as new → full upsert to Supabase
+  _dbSnapshot={};
   saveDB();
   window._pendingImport=null;
   closePanel();
@@ -4889,8 +5237,50 @@ function refreshPanelParts(m,id){
 }
 
 initTheme();
-initDB();
-renderSummary();
+
+// ── BOOT: auth-gated ─────────────────────────────────────────────────────────
+// Show auth overlay while we check session. If already signed in, boot straight
+// into the app. If not, show the sign-in form.
+
+(async function boot(){
+  // Auth overlay starts hidden via CSS display:none — show it while we check
+  const overlay = document.getElementById('auth-overlay');
+
+  _sb.auth.onAuthStateChange(async (event, session) => {
+    if(session){
+      // User is authenticated — hide auth overlay, boot app
+      overlay.style.display = 'none';
+      document.getElementById('nav').style.display = '';
+      document.getElementById('main-content').style.display = '';
+      document.getElementById('fab').style.display = '';
+      // Add a sign-out button to the nav-right area if not already present
+      if(!document.getElementById('signout-btn')){
+        const btn = document.createElement('button');
+        btn.id = 'signout-btn';
+        btn.title = 'Sign out';
+        btn.textContent = '🚪';
+        btn.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:40px;height:40px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;';
+        btn.onmouseenter = () => { btn.style.borderColor='var(--accent)'; };
+        btn.onmouseleave = () => { btn.style.borderColor='var(--border)'; };
+        btn.onclick = doSignOut;
+        document.querySelector('.nav-right').appendChild(btn);
+      }
+      // Only load data on first sign-in event (not on every token refresh)
+      if(event === 'SIGNED_IN' || event === 'INITIAL_SESSION'){
+        await initDB();
+        // Set snapshot baseline now that data is loaded
+        _dbSnapshot = _dbFingerprint();
+      }
+    } else {
+      // Not authenticated — hide app chrome, show auth overlay
+      document.getElementById('nav').style.display = 'none';
+      document.getElementById('main-content').style.display = 'none';
+      const fab = document.getElementById('fab');
+      if(fab) fab.style.display = 'none';
+      overlay.style.display = 'flex';
+    }
+  });
+})();
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SUPABASE MIGRATION PREP
