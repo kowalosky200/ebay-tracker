@@ -3313,6 +3313,7 @@ function renderData(){
 }
 
 function exportDB(){
+  DB._userOwned=true;
   const json=JSON.stringify(DB,null,2);
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
@@ -3331,6 +3332,7 @@ function importDB(e){
   reader.onload=function(ev){
     try{
       const imported=JSON.parse(ev.target.result);
+      imported._userOwned=true; // stamp immediately so reload after confirm is safe
 
       // Diff: what would change
       let willAdd=0,willUpdate=0,willRemove=0;
