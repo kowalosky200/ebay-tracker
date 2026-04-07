@@ -1053,7 +1053,7 @@ async function _sbCall(fn){
         // Token genuinely expired mid-session — now safe to sign out
         toast('Session expired — please sign in again','err');
         DB = {};
-        _dbSnapshot = null;
+        _dbSnapshot = {};
         await _sb.auth.signOut();
         return result;
       }
@@ -1154,13 +1154,16 @@ async function loadFromSupabase(){
   const {data:{session}} = await _sb.auth.getSession();
   if(!session) throw new Error('Session missing — please sign in again.');
   _currentUserId = session.user.id;
-  // Fetch all tables in parallel
+  const uid = _currentUserId;
+  // Fetch all tables in parallel — explicit .eq('user_id') on every query as
+  // belt-and-braces on top of RLS. Prevents NULL-user_id orphan rows (from
+  // pre-RLS data) or misconfigured policies from bleeding into the loaded DB.
   const [itemsRes, partsRes, returnsRes, tripsRes, expensesRes] = await Promise.all([
-    _sb.from('items').select('*').order('date_listed', {ascending: true}),
-    _sb.from('item_parts').select('*'),
-    _sb.from('item_returns').select('*').order('logged_at', {ascending: true}),
-    _sb.from('trips').select('*').order('date', {ascending: true}),
-    _sb.from('expenses').select('*').order('date', {ascending: true}),
+    _sb.from('items').select('*').eq('user_id', uid).order('date_listed', {ascending: true}),
+    _sb.from('item_parts').select('*').eq('user_id', uid),
+    _sb.from('item_returns').select('*').eq('user_id', uid).order('logged_at', {ascending: true}),
+    _sb.from('trips').select('*').eq('user_id', uid).order('date', {ascending: true}),
+    _sb.from('expenses').select('*').eq('user_id', uid).order('date', {ascending: true}),
   ]);
 
   if(itemsRes.error) throw new Error('Items load failed: ' + itemsRes.error.message);
