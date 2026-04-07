@@ -5585,14 +5585,15 @@ initTheme();
     console.warn('Session check failed:', e.message);
   }
 
-  let _initialLoadDone = false;
+  // Flag set BEFORE await so onAuthStateChange SIGNED_IN (which fires almost
+  // immediately on page load) never triggers a second concurrent initDB call.
+  let _initialLoadDone = !!session;
 
   if(session){
     _currentUserId = session.user.id;
     showApp();
     await initDB();
     _dbSnapshot = _dbFingerprint();
-    _initialLoadDone = true;
   } else {
     showLogin();
   }
@@ -5602,16 +5603,13 @@ initTheme();
     if(event === 'SIGNED_IN' && sess){
       _currentUserId = sess.user.id;
       showApp();
-      // Skip if initial load already ran (avoids double-call on page load)
       if(!_initialLoadDone){
+        // Fresh sign-in (not a page reload with existing session)
         _initialLoadDone = true;
         await initDB();
         _dbSnapshot = _dbFingerprint();
-      } else if(Object.keys(DB).filter(k => MONTHS.includes(k)).every(k => (DB[k]||[]).length === 0)){
-        // Signed in fresh (not page reload) — load data
-        await initDB();
-        _dbSnapshot = _dbFingerprint();
       }
+      // else: page-load SIGNED_IN echo — already loaded, do nothing
     } else if(event === 'SIGNED_OUT'){
       _initialLoadDone = false;
       _currentUserId = null;
