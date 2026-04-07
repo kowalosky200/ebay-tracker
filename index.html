@@ -908,6 +908,55 @@ async function doSignOut(){
   location.reload();
 }
 
+// ── SESSION / TOKEN REFRESH GUARD ───────────────────────────────────────────
+// Call before any Supabase operation. Checks the current session and attempts
+// a silent token refresh if it has expired. Forces sign-out if unrecoverable.
+async function _ensureSession(){
+  try{
+    const {data, error} = await _sb.auth.getSession();
+    if(error || !data.session){
+      // No session — try a refresh
+      const {data:refreshData, error:refreshErr} = await _sb.auth.refreshSession();
+      if(refreshErr || !refreshData.session){
+        // Unrecoverable — clear and show login
+        toast('Session expired — please sign in again','err');
+        DB = {};
+        _dbSnapshot = null;
+        await _sb.auth.signOut();
+        return false;
+      }
+    }
+    return true;
+  }catch(e){
+    console.warn('_ensureSession error:', e.message);
+    return false;
+  }
+}
+
+// Wraps a Supabase call: checks auth, retries once after a refresh if a 401 comes back.
+async function _sbCall(fn){
+  const ok = await _ensureSession();
+  if(!ok) return {error: new Error('Not authenticated')};
+  try{
+    const result = await fn();
+    // Supabase returns {error} on auth failures — catch and retry once
+    if(result && result.error && (result.error.status===401 || result.error.message?.includes('JWT'))){
+      const {data:refreshData, error:refreshErr} = await _sb.auth.refreshSession();
+      if(refreshErr || !refreshData.session){
+        toast('Session expired — please sign in again','err');
+        DB = {};
+        _dbSnapshot = null;
+        await _sb.auth.signOut();
+        return result;
+      }
+      return await fn(); // retry once with fresh token
+    }
+    return result;
+  }catch(e){
+    return {error: e};
+  }
+}
+
 // ── ROW → JS ITEM (Supabase snake_case → app camelCase) ─────────────────────
 
 function _rowToItem(row, parts, returns){
@@ -989,6 +1038,8 @@ function _itemToRow(i, month){
 // ── LOAD ALL DATA FROM SUPABASE → DB ────────────────────────────────────────
 
 async function loadFromSupabase(){
+  const ok = await _ensureSession();
+  if(!ok) throw new Error('Not authenticated');
   // Fetch all tables in parallel
   const [itemsRes, partsRes, returnsRes, tripsRes, expensesRes] = await Promise.all([
     _sb.from('items').select('*').order('date_listed', {ascending: true}),
@@ -1045,23 +1096,23 @@ async function saveItemToSupabase(m, i){
   const row = _itemToRow(i, m);
 
   // Upsert main item row
-  const {error: itemErr} = await _sb.from('items').upsert(row, {onConflict: 'id'});
+  const {error: itemErr} = await _sbCall(()=>_sb.from('items').upsert(row, {onConflict: 'id'}));
   if(itemErr) throw new Error('Save item failed: ' + itemErr.message);
 
   // Replace parts: delete old, insert new
-  await _sb.from('item_parts').delete().eq('item_id', i.id);
+  await _sbCall(()=>_sb.from('item_parts').delete().eq('item_id', i.id));
   if((i.parts||[]).length > 0){
     const partsRows = (i.parts||[]).map(p => ({
       item_id:     i.id,
       description: p.desc || p.description || '',
       cost:        Number(p.cost) || 0,
     }));
-    const {error: partsErr} = await _sb.from('item_parts').insert(partsRows);
+    const {error: partsErr} = await _sbCall(()=>_sb.from('item_parts').insert(partsRows));
     if(partsErr) throw new Error('Save parts failed: ' + partsErr.message);
   }
 
   // Replace returns: delete old, insert new
-  await _sb.from('item_returns').delete().eq('item_id', i.id);
+  await _sbCall(()=>_sb.from('item_returns').delete().eq('item_id', i.id));
   if((i.returnHistory||[]).length > 0){
     const retRows = (i.returnHistory||[]).map(r => ({
       item_id:       i.id,
@@ -1073,7 +1124,7 @@ async function saveItemToSupabase(m, i){
       relisted_at:   r._relistedAt || null,
       relist_condition: r._relistCondition || null,
     }));
-    const {error: retErr} = await _sb.from('item_returns').insert(retRows);
+    const {error: retErr} = await _sbCall(()=>_sb.from('item_returns').insert(retRows));
     if(retErr) throw new Error('Save returns failed: ' + retErr.message);
   }
 }
@@ -1082,7 +1133,7 @@ async function saveItemToSupabase(m, i){
 // item_parts and item_returns cascade on delete via FK, so just delete item row.
 
 async function deleteItemFromSupabase(id){
-  const {error} = await _sb.from('items').delete().eq('id', id);
+  const {error} = await _sbCall(()=>_sb.from('items').delete().eq('id', id));
   if(error) throw new Error('Delete failed: ' + error.message);
 }
 
@@ -1090,12 +1141,12 @@ async function deleteItemFromSupabase(id){
 
 async function saveTripToSupabase(t){
   const row = {id:t.id, date:t.date, description:t.description||'', mileage:t.mileage||0, rate_per_mile:t.ratePerMile||0.45};
-  const {error} = await _sb.from('trips').upsert(row, {onConflict:'id'});
+  const {error} = await _sbCall(()=>_sb.from('trips').upsert(row, {onConflict:'id'}));
   if(error) throw new Error('Save trip failed: ' + error.message);
 }
 
 async function deleteTripFromSupabase(id){
-  const {error} = await _sb.from('trips').delete().eq('id', id);
+  const {error} = await _sbCall(()=>_sb.from('trips').delete().eq('id', id));
   if(error) throw new Error('Delete trip failed: ' + error.message);
 }
 
@@ -1103,12 +1154,12 @@ async function deleteTripFromSupabase(id){
 
 async function saveExpenseToSupabase(e){
   const row = {id:e.id, date:e.date, description:e.description||'', amount:e.amount||0, category:e.category||null};
-  const {error} = await _sb.from('expenses').upsert(row, {onConflict:'id'});
+  const {error} = await _sbCall(()=>_sb.from('expenses').upsert(row, {onConflict:'id'}));
   if(error) throw new Error('Save expense failed: ' + error.message);
 }
 
 async function deleteExpenseFromSupabase(id){
-  const {error} = await _sb.from('expenses').delete().eq('id', id);
+  const {error} = await _sbCall(()=>_sb.from('expenses').delete().eq('id', id));
   if(error) throw new Error('Delete expense failed: ' + error.message);
 }
 
@@ -1263,6 +1314,7 @@ function goToTab(name,sourceEl){
 
 let _itemPageOrigin='p-summary';
 let _monthOrigin='grid'; // 'grid' | 'summary' | other page id
+let _savedPanelState=null; // saved panel title+content+scroll for back-from-item-page
 
 function openItemPage(m,id,origin){
   _itemPageOrigin=origin||(document.querySelector('.page.on')?document.querySelector('.page.on').id:'p-summary');
@@ -1273,7 +1325,27 @@ function openItemPage(m,id,origin){
   renderItemPage(m,id);
 }
 
-function exitItemPage(){
+// Called when "Full details →" is tapped inside a panel popup.
+// Saves the current panel state so exitItemPage() can restore it on ← Back.
+function openItemPageFromPanel(m,id){
+  const panel=document.getElementById('slide-panel');
+  const pageOn=document.querySelector('.page.on');
+  _savedPanelState={
+    title:document.getElementById('panel-title').textContent,
+    content:document.getElementById('panel-content').innerHTML,
+    scrollTop:panel.scrollTop||0,
+    pageId:pageOn?pageOn.id:'p-summary',
+    stack:PANEL_STACK.slice()
+  };
+  _itemPageOrigin='panel';
+  closePanel();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('p-item').classList.add('on');
+  window.scrollTo(0,0);
+  renderItemPage(m,id);
+}
+
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   const origin=_itemPageOrigin||'p-summary';
@@ -1285,6 +1357,33 @@ function exitItemPage(){
     handleNavResize();
     renderSummary();
     showReturnedItems();
+    return;
+  }
+  if(origin==='panel'&&_savedPanelState){
+    // Restore the page the panel was on top of
+    const pageId=_savedPanelState.pageId||'p-summary';
+    document.getElementById(pageId).classList.add('on');
+    const tabMap={'p-summary':'summary','p-monthly':'monthly','p-stock':'stock','p-expenses':'expenses','p-tax':'tax','p-data':'data'};
+    const tabName=tabMap[pageId];
+    if(tabName){const tab=document.querySelector('[data-tab="'+tabName+'"]');if(tab)tab.classList.add('on');}
+    handleNavResize();
+    if(pageId==='p-monthly')renderMonth();
+    else if(pageId==='p-stock')renderStock();
+    else if(pageId==='p-summary')renderSummary();
+    // Reopen the panel with saved state
+    document.getElementById('panel-title').textContent=_savedPanelState.title;
+    document.getElementById('panel-content').innerHTML=_savedPanelState.content;
+    document.getElementById('panel-overlay').classList.add('on');
+    const panel=document.getElementById('slide-panel');
+    panel.classList.remove('dragging');
+    panel.style.transition='';
+    panel.style.transform='';
+    panel.classList.add('on');
+    panel.scrollTop=_savedPanelState.scrollTop||0;
+    document.body.style.overflow='hidden';
+    PANEL_STACK=_savedPanelState.stack||[];
+    updatePanelNav();
+    _savedPanelState=null;
     return;
   }
   document.getElementById(origin).classList.add('on');
@@ -2354,6 +2453,27 @@ function showCategoryItems(cat){
   });});
   const sold=items.filter(i=>(i.dateSold||i.resaleSalePrice)&&!i.isReturned);
   const active=items.filter(i=>!i.dateSold&&!i.isReturned&&!i.resaleSalePrice);
+  // Sort: listed first (by days listed desc — most urgent top), then sold (most recent first), then returned
+  items.sort((a,b)=>{
+    const statusOrder=i=>{
+      if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice)return 0;
+      if((i.dateSold||i.resaleSalePrice)&&!i.isReturned)return 1;
+      return 2;
+    };
+    const so=statusOrder(a)-statusOrder(b);
+    if(so!==0)return so;
+    // Within listed: most days listed first (most urgent)
+    if(statusOrder(a)===0){
+      const _today=new Date().toISOString().split('T')[0];
+      const dA=a.dateListed?daysBetween(a.dateListed,_today):0;
+      const dB=b.dateListed?daysBetween(b.dateListed,_today):0;
+      return dB-dA;
+    }
+    // Within sold: most recent sale first
+    const dateA=(a.resaleDateSold||a.dateSold||'');
+    const dateB=(b.resaleDateSold||b.dateSold||'');
+    return dateB.localeCompare(dateA);
+  });
   const totalProfit=sold.reduce((s,i)=>s+calcGrossProfit(i),0);
   const soldWithDate=sold.filter(i=>i.dateSold&&i.dateListed);
   const avgDays=soldWithDate.length?Math.round(soldWithDate.reduce((s,i)=>s+daysBetween(i.dateListed,i.dateSold),0)/soldWithDate.length):null;
@@ -3182,7 +3302,7 @@ function openItemDetail(m,id,noHistory){
     ${quickEdit}
     ${returnSection}
     <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding-top:12px;border-top:1px solid var(--border)">
-      <button class="btn btn-p" style="justify-content:center" onclick="closePanel();openItemPage('${m}','${id}')">Full details →</button>
+      <button class="btn btn-p" style="justify-content:center" onclick="openItemPageFromPanel('${m}','${id}')">Full details →</button>
       <button class="btn btn-s" onclick="editItem('${m}','${id}')" title="Edit">✏️</button>
       <button class="btn btn-s danger" onclick="deleteItem('${m}','${id}')" title="Delete">🗑️</button>
     </div>
@@ -5300,6 +5420,8 @@ initTheme();
         _dbSnapshot = _dbFingerprint();
       }
     } else if(event === 'SIGNED_OUT'){
+      DB = {};
+      _dbSnapshot = null;
       showLogin();
     }
   });
