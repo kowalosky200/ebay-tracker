@@ -1346,14 +1346,36 @@ async function _persistChanges(){
 async function initDB(){
   try{
     showLoadingScreen('Loading your data…');
-    await loadFromSupabase();
+    // Timeout guard — if Supabase doesn't respond in 12s, bail gracefully
+    await Promise.race([
+      loadFromSupabase(),
+      new Promise((_,reject) => setTimeout(() => reject(new Error('Request timed out — check your connection and refresh.')), 12000))
+    ]);
     hideLoadingScreen();
     renderSummary();
   }catch(e){
     console.error('initDB error:', e);
     hideLoadingScreen();
-    toast('⚠️ Failed to load data: ' + e.message);
+    _showLoadError(e.message);
   }
+}
+
+function _showLoadError(msg){
+  let el = document.getElementById('load-error-banner');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'load-error-banner';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9997;background:rgba(239,68,68,0.12);border-bottom:1px solid var(--red);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;';
+    el.innerHTML = `
+      <span style="font-size:13px;color:var(--red);" id="load-error-msg"></span>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button onclick="initDB()" style="padding:6px 12px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">Retry</button>
+        <button onclick="document.getElementById('load-error-banner').remove()" style="padding:6px 10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-secondary);cursor:pointer;">Dismiss</button>
+      </div>`;
+    document.body.appendChild(el);
+  }
+  document.getElementById('load-error-msg').textContent = '⚠️ ' + (msg || 'Failed to load data.');
+  el.style.display = 'flex';
 }
 
 function showLoadingScreen(msg){
