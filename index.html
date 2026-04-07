@@ -155,7 +155,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:32px;}
 .mcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 3px var(--shadow);}
 .mcard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow-md);}
-.mcard-empty{opacity:0.45;pointer-events:none;}
+.mcard-empty{opacity:0.45;}
 .mname{font-weight:600;font-size:14px;margin-bottom:10px;color:var(--text);}
 .mval{font-size:26px;font-weight:700;letter-spacing:-0.01em;}
 .mval.pos{color:var(--green);}.mval.nil{color:var(--muted);}
@@ -1027,7 +1027,18 @@ async function doSignOut(){
   _currentUserId = null;
   DB = {};
   _dbSnapshot = {};
-  // No location.reload() — onAuthStateChange SIGNED_OUT handles the UI transition
+  // Reset UI immediately — don't wait for onAuthStateChange (it's async and can lag)
+  const _authBtn2 = document.getElementById('auth-btn');
+  const _authLd2  = document.getElementById('auth-loading');
+  const _authErr2 = document.getElementById('auth-error');
+  if(_authBtn2) _authBtn2.style.display = 'block';
+  if(_authLd2)  _authLd2.style.display  = 'none';
+  if(_authErr2) _authErr2.style.display = 'none';
+  document.getElementById('nav').style.display = 'none';
+  document.getElementById('main-content').style.display = 'none';
+  const _fab2 = document.getElementById('fab');
+  if(_fab2) _fab2.style.display = 'none';
+  document.getElementById('auth-overlay').style.display = 'flex';
   await _sb.auth.signOut();
 }
 
@@ -1708,9 +1719,15 @@ function openTokenEdit(m,id,field,_alreadyAsync){
     _nextTokenField=null;
     _tokenM=null;
     _tokenId=null;
-    const states=_getSecStates();
-    renderItemPage(m,id);
-    _applySecStates(states);
+    // If this token lives inside the slide-panel (not the full item page), re-render the panel
+    const inPanel=tok&&tok.closest('#slide-panel');
+    if(inPanel){
+      openItemDetail(m,id,true);
+    }else{
+      const states=_getSecStates();
+      renderItemPage(m,id);
+      _applySecStates(states);
+    }
     if(pending){
       openTokenEdit(pm,pid,pending,true);
     }
@@ -2309,15 +2326,17 @@ function updatePanelNav(){
     backBtn.style.cursor='default';
   }
 }
-function openPanel(title,content,pushHistory){
+function openPanel(title,content,pushHistory,_meta){
   const panel=document.getElementById('slide-panel');
   if(pushHistory && document.getElementById('slide-panel').classList.contains('on')){
     PANEL_STACK.push({
       title:document.getElementById('panel-title').textContent,
       content:document.getElementById('panel-content').innerHTML,
-      scrollTop:panel.scrollTop
+      scrollTop:panel.scrollTop,
+      _meta:panel._panelMeta||null
     });
   }
+  panel._panelMeta=_meta||null;
   document.getElementById('panel-title').textContent=title;
   document.getElementById('panel-content').innerHTML=content;
   document.getElementById('panel-overlay').classList.add('on');
@@ -2342,8 +2361,17 @@ function panelBack(){
   if(!PANEL_STACK.length){closePanel();return;}
   const prev=PANEL_STACK.pop();
   const panel=document.getElementById('slide-panel');
+  // If the previous panel was a category panel, re-render it live so prices are fresh
+  if(prev._meta&&prev._meta.type==='category'){
+    panel._panelMeta=prev._meta;
+    showCategoryItems(prev._meta.cat,true);
+    panel.scrollTop=prev.scrollTop||0;
+    updatePanelNav();
+    return;
+  }
   document.getElementById('panel-title').textContent=prev.title;
   document.getElementById('panel-content').innerHTML=prev.content;
+  panel._panelMeta=prev._meta||null;
   panel.scrollTop=prev.scrollTop||0;
   updatePanelNav();
 }
@@ -2637,7 +2665,7 @@ function toggleSellThroughBar(card,byCat){
   }
 }
 
-function showCategoryItems(cat){
+function showCategoryItems(cat,_fromBack){
   let items=[];
   MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
@@ -2716,7 +2744,7 @@ function showCategoryItems(cat){
         </div>
       </div>`;
     }).join('')}`;
-  openPanel(cat,html);
+  openPanel(cat,html,false,{type:'category',cat});
 }
 
 function showROIItems(){
@@ -3152,7 +3180,7 @@ function renderMonthlyGrid(){
             ${isCurrent?'<span style="font-size:10px;font-weight:700;color:var(--accent);letter-spacing:0.5px;text-transform:uppercase;">Now</span>':''}
           </div>
           ${isEmpty
-            ?'<div class="mval nil" style="font-size:16px">—</div><div class="msub" style="opacity:0.5">No items yet</div>'
+            ?'<div class="mval nil" style="font-size:16px">—</div><div class="msub" style="opacity:0.5">No items yet · tap to add</div>'
             :`<div class="mval ${ms.realisedProfit>0?'pos':'nil'}">${fmt(ms.realisedProfit)}</div>
               <div class="msub">${ms.soldCount} sold · ${ms.listedCount} active${ms.avgDays!==null?' · '+ms.avgDays+'d avg':''}</div>`
           }
@@ -3433,20 +3461,24 @@ function openItemDetail(m,id,noHistory){
     ?`<button class="btn btn-s" style="flex:1;justify-content:center;padding:12px" onclick="openReturn('${m}','${id}')">↩ Log Return</button>`
     :'';
 
-  // Compact stat strip
+  // Stat strip — sale + cost as editable ip-tokens, profit read-only
+  const saleEditable=isUnsold;
   const statStrip=`
-    <div style="display:grid;grid-template-columns:1fr 1fr${profit!==null?' 1fr':''};gap:1px;background:var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px">
-      <div style="background:var(--surface2);padding:12px;text-align:center">
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:4px">Sale</div>
-        <div style="font-size:18px;font-weight:700">${fmt(i.salePrice||0)}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr${profit!==null?' 1fr':''};gap:8px;margin-bottom:16px">
+      <div class="ip-token${saleEditable?'':' locked'}" id="tok-salePrice-${id}"${saleEditable?` onpointerdown="tokenPointerDown('${m}','${id}','salePrice')" onclick="openTokenEdit('${m}','${id}','salePrice')"`:''}>
+        <div class="ip-token-label">Sale Price</div>
+        <div class="ip-token-val">${fmt(i.salePrice||0)}</div>
+        <div class="ip-token-sub">${saleEditable?'✏️ Tap to edit':'🔒 Locked'}</div>
       </div>
-      <div style="background:var(--surface2);padding:12px;text-align:center">
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:4px">Cost</div>
-        <div style="font-size:18px;font-weight:700">${fmt(i.costPrice||0)}</div>
+      <div class="ip-token" id="tok-costPrice-${id}" onpointerdown="tokenPointerDown('${m}','${id}','costPrice')" onclick="openTokenEdit('${m}','${id}','costPrice')">
+        <div class="ip-token-label">Buy Price</div>
+        <div class="ip-token-val">${fmt(i.costPrice||0)}</div>
+        <div class="ip-token-sub">✏️ Tap to edit</div>
       </div>
-      ${profit!==null?`<div style="background:var(--surface2);padding:12px;text-align:center">
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:4px">Profit</div>
-        <div style="font-size:18px;font-weight:700;color:${profit>=0?'var(--green)':'var(--red)'}">${fmt(profit)}</div>
+      ${profit!==null?`<div class="ip-token locked">
+        <div class="ip-token-label">Profit</div>
+        <div class="ip-token-val ${profit>=0?'pos':'neg'}">${fmt(profit)}</div>
+        <div class="ip-token-sub">${roi!==null?'ROI '+roi.toFixed(1)+'%':'—'}</div>
       </div>`:''}
     </div>`;
 
@@ -3457,15 +3489,23 @@ function openItemDetail(m,id,noHistory){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fg" style="margin-bottom:0">
           <label style="margin-bottom:4px">Location</label>
-          <input type="text" id="pd-location" value="${esc(i.location||'')}" placeholder="e.g. Bed, A101" onchange="savePanelQuickEdit('${m}','${id}',true)" onblur="savePanelQuickEdit('${m}','${id}',true)">
+          <input type="text" id="pd-location" value="${esc(i.location||'')}" placeholder="e.g. Bed, A101" onchange="savePanelQuickEdit('${m}','${id}')" onblur="savePanelQuickEdit('${m}','${id}')">
         </div>
         ${isUnsold?`<div class="fg" style="margin-bottom:0">
           <label style="margin-bottom:4px">Date listed</label>
-          <input type="date" id="pd-date-listed" value="${i.dateListed||''}" onchange="savePanelQuickEdit('${m}','${id}',true)" onblur="savePanelQuickEdit('${m}','${id}',true)">
+          <input type="date" id="pd-date-listed" value="${i.dateListed||''}" onchange="savePanelQuickEdit('${m}','${id}')" onblur="savePanelQuickEdit('${m}','${id}')">
         </div>`:`<div class="fg" style="margin-bottom:0">
           <label style="margin-bottom:4px">${i.resaleSalePrice?'Resold':'Date sold'}</label>
           <div style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-secondary)">${i.resaleSalePrice?(i.resaleDateSold||'—'):(i.dateSold||'—')}</div>
         </div>`}
+      </div>
+      <div style="margin-top:10px">
+        <div class="fg" style="margin-bottom:0">
+          <label style="margin-bottom:4px">Category</label>
+          <select id="pd-category" onchange="savePanelQuickEdit('${m}','${id}')">
+            ${ITEM_CATEGORIES.map(c=>`<option value="${c}"${c===i.category?' selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:right">Auto-saves on change</div>
     </div>`;
@@ -4495,7 +4535,21 @@ function savePanelQuickEdit(m,id,silent){
   if(fPrice&&fPrice.value!==''){const v=parseFloat(fPrice.value);if(!isNaN(v))item.salePrice=v;}
   if(item.dateSold)item.grossProfit=calcGrossProfit(item);
   saveDB();
-  if(!silent)toast('Quick edits saved');
+  if(!silent)toast('Saved');
+  // If the panel is open and showing this item, re-render it in place
+  const panel=document.getElementById('slide-panel');
+  const inPanel=panel&&panel.classList.contains('on')&&document.getElementById('tok-costPrice-'+id);
+  if(inPanel){
+    openItemDetail(m,id,true);
+    // Also refresh any category panel sitting in the stack beneath this one
+    PANEL_STACK.forEach(entry=>{
+      if(entry._meta&&entry._meta.type==='category'){
+        // Mark stale so panelBack re-renders it live (already does this, no extra work needed)
+      }
+    });
+    return;
+  }
+  // Otherwise refresh the underlying page
   const cur=document.querySelector('.page.on').id;
   if(cur==='p-summary')renderSummary();
   else if(cur==='p-monthly')renderMonth();
