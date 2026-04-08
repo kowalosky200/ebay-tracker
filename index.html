@@ -26,7 +26,7 @@ html{overflow-x:hidden;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;min-height:100vh;transition:background 0.2s,color 0.2s;overflow-x:hidden;}
 
 /* NAV — Desktop */
-nav{position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1px solid var(--border);}
+nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1px solid var(--border);}
 .nav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;height:56px;padding:0 24px;gap:0;}
 .brand{display:flex;align-items:center;cursor:pointer;user-select:none;flex-shrink:0;margin-right:32px;transition:opacity 0.15s;}
 .brand:hover{opacity:0.75;}
@@ -70,31 +70,39 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1p
 .nav-search-expand.open{display:block;}
 .nav-search-expand .search-wrap{width:100%;}
 /* BOTTOM NAV — mobile only */
-#bottom-nav{display:none;}
-@media(max-width:600px){
-  nav{position:sticky;top:0;}
-  .nav-inner{height:52px;padding:0 16px;}
-  .tabs-row{display:none!important;}
-  .search-wrap{display:none!important;}
-  .nav-search-icon-btn{display:flex!important;}
-  #bottom-nav{
-    display:flex;position:fixed;bottom:0;left:0;right:0;
-    height:60px;background:var(--surface);border-top:1px solid var(--border);
-    z-index:200;padding-bottom:env(safe-area-inset-bottom);
-  }
-  .bnt{
-    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:3px;border:none;background:transparent;cursor:pointer;
-    color:var(--muted);font-size:10px;font-weight:500;
-    transition:color 0.15s;padding:0;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .bnt.on{color:var(--accent);}
-  .bnt svg{transition:transform 0.15s;}
-  .bnt.on svg{transform:scale(1.1);}
-  .fab{bottom:72px!important;}
-  body{padding-bottom:60px;}
+#bottom-nav{
+  display:none;
+  position:fixed;top:auto;bottom:0;left:0;right:0;
+  height:60px;background:var(--surface);border-top:1px solid var(--border);
+  z-index:200;padding-bottom:env(safe-area-inset-bottom);
+  box-shadow:0 -1px 0 var(--border);
 }
+.bnt{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;border:none;background:transparent;cursor:pointer;
+  color:var(--muted);font-size:10px;font-weight:500;letter-spacing:0.01em;
+  transition:color 0.15s;padding:0;
+  -webkit-tap-highlight-color:transparent;
+}
+.bnt:active{opacity:0.7;}
+.bnt.on{color:var(--accent);}
+.bnt svg{transition:transform 0.15s;}
+.bnt.on svg{transform:scale(1.1);}
+@media(max-width:600px){
+  /* Hide entire top nav on mobile — bottom nav handles everything */
+  nav:not(#bottom-nav){display:none!important;}
+  body{padding-bottom:60px;}
+  .fab{bottom:72px!important;}
+}
+/* MORE SHEET */
+.more-sheet-row{display:flex;align-items:center;gap:16px;width:100%;padding:14px 22px;background:none;border:none;text-align:left;cursor:pointer;font-size:15px;font-weight:500;color:var(--text);-webkit-tap-highlight-color:transparent;transition:background 0.12s;}
+.more-sheet-row:active{background:var(--surface2);}
+.more-sheet-row svg{flex-shrink:0;color:var(--text-secondary);}
+.more-sheet-row.active-row{color:var(--accent);font-weight:600;}
+.more-sheet-row.active-row svg{color:var(--accent);}
+.more-sheet-danger{color:var(--red)!important;}
+.more-sheet-danger svg{color:var(--red)!important;}
+
 /* Search dropdown */
 .item-full-page{max-width:1100px;margin:0 auto;padding:20px 24px 80px;}
 .item-full-section{background:var(--surface2);border-radius:12px;padding:16px;margin-bottom:14px;}
@@ -151,12 +159,14 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1p
 .panel-section{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:600;}
 
 /* PAGES */
-.page{display:none;max-width:1400px;margin:0 auto;padding:24px 20px 120px;}
+.page{display:none;max-width:1400px;margin:0 auto;padding:16px 16px 120px;}
 .page.on{display:block;}
 
 /* CARDS */
-.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:32px;}
-.kcard{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 3px var(--shadow);}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px;}
+.kgrid-3{grid-template-columns:repeat(3,1fr);}
+.kgrid-4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.kcard{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 3px var(--shadow);}
 .kcard.clickable{cursor:pointer;transition:border-color 0.15s,transform 0.1s;}
 .kcard.clickable:hover{border-color:var(--accent);transform:translateY(-1px);}
 .kcard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow-md);}
@@ -169,15 +179,15 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1p
 .ksub{font-size:12px;color:var(--text-secondary);margin-top:6px;}
 
 /* INSIGHTS */
-.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
-.insight-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 3px var(--shadow);}
+.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.insight-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 3px var(--shadow);}
 .insight-icon{font-size:22px;flex-shrink:0;}
 .insight-label{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:600;}
 .insight-val{font-size:20px;font-weight:700;letter-spacing:-0.01em;}
 .insight-sub{font-size:12px;color:var(--text-secondary);margin-top:2px;}
 
 /* ALERTS */
-.stale-alert{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:16px;margin-bottom:24px;display:flex;align-items:center;gap:12px;}
+.stale-alert{background:rgba(245,158,11,0.08);border:1.5px solid rgba(245,158,11,0.3);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
 .stale-dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex-shrink:0;animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
 @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
@@ -185,11 +195,10 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1p
 .stale-items{font-size:13px;color:var(--text-secondary);margin-top:4px;}
 
 /* SECTION LABEL */
-.sl{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1.5px;margin:32px 0 16px;display:flex;align-items:center;gap:12px;font-weight:600;}
-.sl::after{content:'';flex:1;height:1px;background:var(--border);}
+.sl{display:flex;align-items:center;width:100%;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-secondary);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;margin:24px 0 12px;box-sizing:border-box;}
 
 /* MONTH GRID */
-.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:32px;}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px;}
 .mcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 3px var(--shadow);}
 .mcard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow-md);}
 .mcard-empty{opacity:0.45;}
@@ -199,8 +208,8 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1p
 .msub{font-size:11px;color:var(--text-secondary);margin-top:5px;}
 
 /* CHART */
-.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px;margin-bottom:32px;box-shadow:0 1px 3px var(--shadow);}
-.chart-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:40px;display:flex;align-items:center;gap:16px;}
+.chart-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px var(--shadow);}
+.chart-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;display:flex;align-items:center;gap:16px;}
 .chart-legend{display:flex;gap:16px;margin-left:auto;}
 .leg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);}
 .leg-dot{width:10px;height:10px;border-radius:3px;}
@@ -317,6 +326,12 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1p
   /* Sort/filter row compact on mobile */
   .filter-row{flex-direction:row;gap:8px;}
   .sort-select{font-size:13px;padding:7px 10px;}
+  /* KPI card grids — stack on mobile */
+  .kgrid{grid-template-columns:1fr!important;}
+  .kgrid-3{grid-template-columns:1fr!important;}
+  .insights{grid-template-columns:1fr!important;}
+  /* Summary 4-card: 2x2 on mobile is fine, but stack if too tight */
+  .kgrid-4{grid-template-columns:1fr 1fr!important;}
 }
 
 /* EXTRAS */
@@ -354,7 +369,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1p
 .bpf-breakdown span{display:flex;align-items:center;gap:4px;}
 
 /* PAGE LAYOUT */
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;}
 .page-title{font-size:28px;font-weight:700;letter-spacing:-0.02em;}
 .page-subtitle{color:var(--text-secondary);font-size:14px;margin-top:4px;}
 .page-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
@@ -694,7 +709,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1p
   </div>
 </nav>
 
-<!-- BOTTOM NAV — mobile only, shown when logged in -->
+<!-- BOTTOM NAV — always pinned to bottom, mobile + desktop -->
 <nav id="bottom-nav" style="display:none;">
   <button class="bnt on" data-tab="summary" onclick="goToTab('summary',this)">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -708,15 +723,43 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1p
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8l-2 4h12l-2-4z"/></svg>
     Stock
   </button>
-  <button class="bnt" data-tab="expenses" onclick="goToTab('expenses',this)">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-    Expenses
+  <button class="bnt" id="bnt-search" onclick="toggleNavSearch()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Search
   </button>
-  <button class="bnt" data-tab="data" onclick="goToTab('data',this)">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-    Data
+  <button class="bnt" id="bnt-more" onclick="toggleMoreSheet()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    Menu
   </button>
 </nav>
+
+<!-- MORE SHEET — hamburger menu, slides up from bottom nav -->
+<div id="more-sheet-overlay" onclick="closeMoreSheet()" style="display:none;position:fixed;inset:0;z-index:300;background:var(--overlay);backdrop-filter:blur(2px);"></div>
+<div id="more-sheet" style="display:none;position:fixed;bottom:60px;left:0;right:0;z-index:301;background:var(--surface);border-top:1px solid var(--border);border-radius:20px 20px 0 0;padding:8px 0 16px;box-shadow:0 -8px 40px var(--shadow-md);">
+  <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
+  <button onclick="closeMoreSheet();goToTab('expenses',document.querySelector('[data-tab=\'expenses\']'))" class="more-sheet-row" data-sheet-tab="expenses">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span>Expenses</span>
+  </button>
+  <button onclick="closeMoreSheet();goToTab('tax',document.querySelector('[data-tab=\'tax\']'))" class="more-sheet-row" data-sheet-tab="tax">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    <span>Tax / SA103</span>
+  </button>
+  <button onclick="closeMoreSheet();goToTab('data',document.querySelector('[data-tab=\'data\']'))" class="more-sheet-row" data-sheet-tab="data">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+    <span>Data</span>
+  </button>
+  <div style="height:1px;background:var(--border);margin:6px 16px;"></div>
+  <button onclick="closeMoreSheet();toggleTheme()" class="more-sheet-row" id="more-sheet-theme">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <span id="more-sheet-theme-label">Dark mode</span>
+  </button>
+  <div style="height:1px;background:var(--border);margin:6px 16px;"></div>
+  <button onclick="closeMoreSheet();doSignOut()" class="more-sheet-row more-sheet-danger">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    <span>Sign out</span>
+  </button>
+</div>
 
 <button id="fab" class="fab" onclick="openQuickAdd()" title="Quick add item" style="display:none;">+</button>
 
@@ -941,6 +984,32 @@ function toggleTheme(){
 }
 function updateThemeIcon(theme){
   document.getElementById('theme-icon').textContent=theme==='light'?'🌙':'☀️';
+  // Keep more sheet label in sync
+  const lbl=document.getElementById('more-sheet-theme-label');
+  if(lbl)lbl.textContent=theme==='light'?'Dark mode':'Light mode';
+}
+function toggleMoreSheet(){
+  const sheet=document.getElementById('more-sheet');
+  const overlay=document.getElementById('more-sheet-overlay');
+  const isOpen=sheet.style.display!=='none';
+  if(isOpen){closeMoreSheet();return;}
+  // Sync theme label
+  const theme=document.documentElement.getAttribute('data-theme')||'light';
+  const lbl=document.getElementById('more-sheet-theme-label');
+  if(lbl)lbl.textContent=theme==='dark'?'Light mode':'Dark mode';
+  // Highlight active tab rows
+  const activePage=(document.querySelector('.page.on')||{id:''}).id.replace('p-','');
+  document.querySelectorAll('[data-sheet-tab]').forEach(r=>{
+    r.classList.toggle('active-row', r.dataset.sheetTab===activePage);
+  });
+  sheet.style.display='block';
+  overlay.style.display='block';
+  document.getElementById('bnt-more').classList.add('on');
+}
+function closeMoreSheet(){
+  document.getElementById('more-sheet').style.display='none';
+  document.getElementById('more-sheet-overlay').style.display='none';
+  document.getElementById('bnt-more').classList.remove('on');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -3089,8 +3158,8 @@ function renderSummary(){
   const stats=calcYearlyStats();
 
   const html=`
-    <div class="sl" style="margin-top:0;">Overview</div>
-    <div class="kgrid" style="grid-template-columns:1fr 1fr;margin-bottom:16px;">
+    <div class="sl">Overview</div>
+    <div class="kgrid kgrid-4">
       <div class="kcard b clickable" onclick="showFilteredItems('revenue')">
         <div class="klabel">Total Revenue</div>
         <div class="kval">${fmt(stats.totalRev)}</div>
@@ -3113,7 +3182,7 @@ function renderSummary(){
       </div>
     </div>
 
-    <div class="insights" style="margin-bottom:32px;">
+    <div class="insights">
       <div class="insight-card">
         <div class="insight-icon">💰</div>
         <div>
@@ -3140,7 +3209,7 @@ function renderSummary(){
     <div class="sl">Inventory Health</div>
 
     ${stats.stale.length>0?`
-      <div class="stale-alert" style="cursor:pointer;margin-bottom:24px;" onclick="STOCK_FILTER='stale';goToTab('stock',document.querySelector('[data-tab=\\'stock\\']'))" title="View stale items in Stock page">
+      <div class="stale-alert" style="cursor:pointer;" onclick="STOCK_FILTER='stale';goToTab('stock',document.querySelector('[data-tab=\\'stock\\']'))" title="View stale items in Stock page">
         <div class="stale-dot"></div>
         <div style="flex:1">
           <div class="stale-text">⚠️ ${stats.stale.length} item${stats.stale.length!==1?'s':''} listed 30+ days</div>
@@ -3149,7 +3218,7 @@ function renderSummary(){
       </div>
     `:''}
 
-    <div class="chart-wrap" style="margin-bottom:32px;cursor:pointer;" onclick="toggleSellThroughBar(this,${JSON.stringify(stats.byCat).replace(/"/g,'&quot;')})">
+    <div class="chart-wrap" style="cursor:pointer;" onclick="toggleSellThroughBar(this,${JSON.stringify(stats.byCat).replace(/"/g,'&quot;')})">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div>
           <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Inventory Velocity</div>
@@ -3168,7 +3237,7 @@ function renderSummary(){
 
     <div class="sl">Activity</div>
 
-    <div class="chart-wrap" style="margin-bottom:24px;">
+    <div class="chart-wrap">
       <div class="chart-title">
         Monthly Performance
         <div class="chart-legend">
@@ -3273,7 +3342,7 @@ function renderMonthlyGrid(){
   // YTD stats
   const ytdStats=calcYearlyStats();
   const html=`
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
       <h1 style="font-size:26px;font-weight:700;letter-spacing:-0.02em;">Monthly</h1>
       <div style="display:flex;gap:24px;font-size:13px;color:var(--text-secondary);">
         <span>YTD profit <strong style="color:var(--text);font-size:15px;">${fmt(ytdStats.realisedProfit)}</strong></span>
@@ -3391,7 +3460,7 @@ function renderMonth(){
       </div>
     </div>
 
-    <div class="kgrid" style="grid-template-columns:1fr 1fr;">
+    <div class="kgrid kgrid-4">
       <div class="kcard">
         <div class="klabel">Revenue</div>
         <div class="kval">${fmt(stats.totalRev)}</div>
@@ -3810,7 +3879,7 @@ function renderStock(){
       </div>
     </div>
 
-    <div class="kgrid kgrid-3" style="grid-template-columns:repeat(3,1fr);">
+    <div class="kgrid kgrid-3">
       <div class="kcard b">
         <div class="klabel">Stock Value</div>
         <div class="kval">${fmt(totalValue)}</div>
@@ -3894,7 +3963,7 @@ function renderExpenses(){
       </div>
     </div>
 
-    <div class="kgrid kgrid-3" style="grid-template-columns:repeat(3,1fr)">
+    <div class="kgrid kgrid-3">
       <div class="kcard">
         <div class="klabel">Trip Expenses</div>
         <div class="kval">${fmt(totalTrips)}</div>
@@ -5862,10 +5931,24 @@ initTheme();
 (async function boot(){
   const overlay = document.getElementById('auth-overlay');
 
+  // ⚠️ DEV MODE — auth bypass (no Supabase, loads localStorage only), remove before push
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('nav').style.display = '';
+  document.getElementById('bottom-nav').style.display = 'flex';
+  document.getElementById('main-content').style.display = '';
+  document.getElementById('fab').style.display = '';
+  try{
+    const raw = localStorage.getItem('ebay_db_v7');
+    if(raw){ const parsed = JSON.parse(raw); Object.assign(DB, parsed); }
+  }catch(e){ console.warn('Dev mode: localStorage parse failed', e); }
+  renderSummary();
+  return;
+
+
   function showApp(){
     overlay.style.display = 'none';
     document.getElementById('nav').style.display = '';
-    document.getElementById('bottom-nav').style.display = '';
+    document.getElementById('bottom-nav').style.display = 'flex';
     document.getElementById('main-content').style.display = '';
     document.getElementById('fab').style.display = '';
     if(!document.getElementById('signout-btn')){
