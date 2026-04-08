@@ -2460,6 +2460,22 @@ function openQuickAdd(){
 
 function submitQuickAdd(){
   const m=document.getElementById('qa-month').value;
+  // Read delivery mode
+  const isSimple=document.getElementById('qa-delivery-simple')&&document.getElementById('qa-delivery-simple').style.display!=='none';
+  let postage=0,shippingCost=0,packagingCost=0,_postageMode,_sdRateIdx=1,_sdBuyerPays=true;
+  if(isSimple){
+    _postageMode='simple';
+    _sdRateIdx=parseInt(document.getElementById('qa-sd-rate')?.value||'1')||1;
+    _sdBuyerPays=document.getElementById('qa-sd-buyer-pays')?.checked!==false;
+    const rate=SIMPLE_DELIVERY_RATES[_sdRateIdx]||SIMPLE_DELIVERY_RATES[0];
+    shippingCost=rate.cost;
+    postage=_sdBuyerPays?rate.cost:0;
+  }else{
+    _postageMode='custom';
+    postage=parseFloat(document.getElementById('qa-postage')?.value)||0;
+    shippingCost=parseFloat(document.getElementById('qa-shipping')?.value)||0;
+    packagingCost=parseFloat(document.getElementById('qa-packaging')?.value)||0;
+  }
   const item={
     id:'qa_'+Date.now(),
     gid:'G007-'+String(getNextGID()).padStart(4,'0'),
@@ -2470,13 +2486,10 @@ function submitQuickAdd(){
     location:document.getElementById('qa-location').value||'',
     costPrice:parseFloat(document.getElementById('qa-cost').value)||0,
     salePrice:parseFloat(document.getElementById('qa-price').value)||0,
-    postage:parseFloat(document.getElementById('qa-postage').value)||0,
-    shippingCost:parseFloat(document.getElementById('qa-shipping').value)||0,
-    packagingCost:parseFloat(document.getElementById('qa-packaging').value)||0,
+    postage,shippingCost,packagingCost,
+    _postageMode,_sdRateIdx,_sdBuyerPays,
     promoPercent:(parseFloat(document.getElementById('qa-promo').value)||0)/100,
-    dateSold:null,
-    grossProfit:null,
-    isReturned:false
+    dateSold:null,grossProfit:null,isReturned:false
   };
   item.category=item.category||autoCategory(item.item);
   if(!item.notes)item.notes='';if(!item.parts)item.parts=[];
@@ -2558,27 +2571,70 @@ function formHTML(){
         </div>
       </div>
     </div>
-    <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="fg">
-        <label>Postage Charged to Buyer (£)</label>
-        <input type="number" id="qa-postage" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
+    <div class="fg">
+      <label>Delivery</label>
+      <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px">
+        <button type="button" id="qa-mode-simple"
+          onclick="qaSetDeliveryMode('simple')"
+          style="flex:1;padding:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:var(--accent);color:#000;transition:all 0.15s">
+          Simple Delivery
+        </button>
+        <button type="button" id="qa-mode-custom"
+          onclick="qaSetDeliveryMode('custom')"
+          style="flex:1;padding:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:var(--surface2);color:var(--text-secondary);transition:all 0.15s">
+          Custom
+        </button>
       </div>
-      <div class="fg">
-        <label>Your Shipping Cost (£)</label>
-        <input type="number" id="qa-shipping" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
+
+      <div id="qa-delivery-simple">
+        <select id="qa-sd-rate" onchange="updateBPFPreview()" style="width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:8px">
+          ${SIMPLE_DELIVERY_RATES.map((r,idx)=>`<option value="${idx}">${r.label} — £${r.cost.toFixed(2)}</option>`).join('')}
+        </select>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;cursor:pointer">
+          <input type="checkbox" id="qa-sd-buyer-pays" checked onchange="updateBPFPreview()" style="width:16px;height:16px;cursor:pointer">
+          Buyer pays postage
+        </label>
+      </div>
+
+      <div id="qa-delivery-custom" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+          <div class="fg" style="margin-bottom:0">
+            <label style="margin-bottom:4px">Your cost (£)</label>
+            <input type="number" id="qa-shipping" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
+          </div>
+          <div class="fg" style="margin-bottom:0">
+            <label style="margin-bottom:4px">Buyer pays (£)</label>
+            <input type="number" id="qa-postage" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
+          </div>
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label style="margin-bottom:4px">Packaging (£)</label>
+          <input type="number" id="qa-packaging" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
+        </div>
       </div>
     </div>
-    <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="fg">
-        <label>Packaging (£)</label>
-        <input type="number" id="qa-packaging" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
-      </div>
-      <div class="fg">
-        <label>Promo %</label>
-        <input type="number" id="qa-promo" step="0.1" placeholder="0" oninput="updateBPFPreview()">
-      </div>
+
+    <div class="fg">
+      <label>Promo %</label>
+      <input type="number" id="qa-promo" step="0.1" placeholder="0" oninput="updateBPFPreview()">
     </div>
   `;
+}
+
+function qaSetDeliveryMode(mode){
+  const simpleBtn=document.getElementById('qa-mode-simple');
+  const customBtn=document.getElementById('qa-mode-custom');
+  const simplePanel=document.getElementById('qa-delivery-simple');
+  const customPanel=document.getElementById('qa-delivery-custom');
+  if(!simpleBtn)return;
+  const isSimple=mode==='simple';
+  simpleBtn.style.background=isSimple?'var(--accent)':'var(--surface2)';
+  simpleBtn.style.color=isSimple?'#000':'var(--text-secondary)';
+  customBtn.style.background=isSimple?'var(--surface2)':'var(--accent)';
+  customBtn.style.color=isSimple?'var(--text-secondary)':'#000';
+  simplePanel.style.display=isSimple?'':'none';
+  customPanel.style.display=isSimple?'none':'';
+  updateBPFPreview();
 }
 
 function updateBPFPreview(){
@@ -2592,9 +2648,20 @@ function updateBPFPreview(){
   document.getElementById('bpf-total').textContent=fmt(net);
   preview.style.display='block';
   const cost=parseFloat(document.getElementById('qa-cost').value)||0;
-  const shipping=parseFloat(document.getElementById('qa-shipping').value)||0;
-  const buyerPostage=parseFloat(document.getElementById('qa-postage').value)||0;
-  const packaging=parseFloat(document.getElementById('qa-packaging').value)||0;
+  // Read postage from whichever mode is active
+  const isSimple=document.getElementById('qa-delivery-simple')&&document.getElementById('qa-delivery-simple').style.display!=='none';
+  let shipping=0,buyerPostage=0,packaging=0;
+  if(isSimple){
+    const sdIdx=parseInt(document.getElementById('qa-sd-rate')?.value||'0')||0;
+    const rate=SIMPLE_DELIVERY_RATES[sdIdx]||SIMPLE_DELIVERY_RATES[0];
+    const buyerPays=document.getElementById('qa-sd-buyer-pays')?.checked!==false;
+    shipping=rate.cost;
+    buyerPostage=buyerPays?rate.cost:0;
+  }else{
+    shipping=parseFloat(document.getElementById('qa-shipping')?.value)||0;
+    buyerPostage=parseFloat(document.getElementById('qa-postage')?.value)||0;
+    packaging=parseFloat(document.getElementById('qa-packaging')?.value)||0;
+  }
   const promoRaw=parseFloat(document.getElementById('qa-promo').value)||0;
   const promoPercent=promoRaw/100;
   const promoCost=net*promoPercent*1.20;
