@@ -27,7 +27,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple
 
 /* NAV — Desktop: full width, single row */
 nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1px solid var(--border);}
-.nav-inner{width:100%;display:flex;align-items:center;height:58px;padding:0 28px;gap:0;}
+.nav-inner{width:100%;max-width:1148px;margin:0 auto;display:flex;align-items:center;height:58px;padding:0 24px;gap:0;}
 /* Brand */
 .brand{display:flex;align-items:center;cursor:pointer;user-select:none;flex-shrink:0;margin-right:28px;transition:opacity 0.15s;}
 .brand:hover{opacity:0.75;}
@@ -105,6 +105,10 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .bnt.on{color:var(--accent);}
 .bnt svg{transition:transform 0.15s;}
 .bnt.on svg{transform:scale(1.1);}
+@media(max-width:900px) and (min-width:601px){
+  .kgrid-4{grid-template-columns:1fr 1fr!important;}
+  .insights{grid-template-columns:1fr 1fr 1fr!important;}
+}
 @media(max-width:600px){
   /* Hide entire top nav on mobile — bottom nav handles everything */
   nav:not(#bottom-nav){display:none!important;}
@@ -176,14 +180,14 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .panel-section{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:600;}
 
 /* PAGES */
-.page{display:none;max-width:1400px;margin:0 auto;padding:16px 16px 120px;}
+.page{display:none;max-width:1100px;margin:0 auto;padding:20px 24px 120px;}
 .page.on{display:block;}
 
 /* CARDS */
 .kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px;}
 .kgrid-3{grid-template-columns:repeat(3,1fr);}
-.kgrid-4{grid-template-columns:1fr 1fr 1fr 1fr;}
-.kcard{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 3px var(--shadow);}
+.kgrid-4{grid-template-columns:repeat(4,minmax(0,1fr));}
+.kcard{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:22px 20px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 3px var(--shadow);min-height:110px;display:flex;flex-direction:column;justify-content:space-between;}
 .kcard.clickable{cursor:pointer;transition:border-color 0.15s,transform 0.1s;}
 .kcard.clickable:hover{border-color:var(--accent);transform:translateY(-1px);}
 .kcard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow-md);}
@@ -191,16 +195,16 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .kcard.active-filter::before{content:'▾';position:absolute;bottom:8px;right:12px;font-size:16px;color:var(--accent);}
 .kcard::after{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent);}
 .kcard.g::after{background:var(--green);}.kcard.r::after{background:var(--red);}.kcard.b::after{background:var(--blue);}.kcard.p::after{background:var(--purple);}
-.klabel{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:600;}
-.kval{font-size:26px;font-weight:700;line-height:1;letter-spacing:-0.02em;}
+.klabel{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;}
+.kval{font-size:28px;font-weight:700;line-height:1.1;letter-spacing:-0.02em;margin:6px 0 4px;}
 .ksub{font-size:12px;color:var(--text-secondary);margin-top:6px;}
 
 /* INSIGHTS */
 .insights{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
-.insight-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 3px var(--shadow);}
+.insight-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:20px;display:flex;align-items:center;gap:16px;box-shadow:0 1px 3px var(--shadow);}
 .insight-icon{font-size:22px;flex-shrink:0;}
 .insight-label{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:600;}
-.insight-val{font-size:20px;font-weight:700;letter-spacing:-0.01em;}
+.insight-val{font-size:22px;font-weight:700;letter-spacing:-0.01em;}
 .insight-sub{font-size:12px;color:var(--text-secondary);margin-top:2px;}
 
 /* ALERTS */
@@ -3940,9 +3944,7 @@ function renderStock(){
       <div>
         <div class="page-title">Active Stock</div>
       </div>
-      <div class="page-actions">
-        <button class="btn btn-p" onclick="openQuickAdd()">+ Add Item</button>
-      </div>
+
     </div>
 
     <div class="kgrid kgrid-3">
