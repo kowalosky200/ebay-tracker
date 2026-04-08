@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>General-007 | eBay Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -26,8 +26,46 @@ html{overflow-x:hidden;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;min-height:100vh;transition:background 0.2s,color 0.2s;overflow-x:hidden;}
 
 /* NAV */
-nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);box-shadow:0 1px 3px var(--shadow);}
-.nav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:16px;flex-wrap:nowrap;min-width:0;}
+nav{position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 1px 0 var(--border);}
+.nav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:0;flex-wrap:nowrap;min-width:0;height:52px;}
+.brand{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;flex-shrink:0;padding-right:24px;}
+.brand:hover .brand-007{opacity:0.8;}
+.brand-text{font-weight:800;font-size:17px;letter-spacing:-0.03em;}
+.brand-general{color:var(--text);}
+.brand-007{color:var(--accent);transition:opacity 0.15s;}
+.tabs-row{display:flex;align-items:center;gap:4px;flex:1;min-width:0;}
+.tabs{display:flex;gap:2px;flex:1;min-width:0;}
+.tab{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;white-space:nowrap;height:36px;display:flex;align-items:center;}
+.tab:hover{color:var(--text);background:var(--surface2);}
+.tab.on{background:var(--accent);color:#000;}
+.nav-more{position:relative;}
+.nav-more-btn{padding:6px 10px;border-radius:6px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;display:none;align-items:center;justify-content:center;flex-shrink:0;height:36px;}
+.nav-more-btn:hover{color:var(--text);background:var(--surface2);}
+.nav-more-btn.on{background:var(--accent);color:#000;}
+.nav-more-btn.has-items{display:flex;}
+.nav-more-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:150px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px var(--shadow-md);z-index:300;overflow:hidden;}
+.nav-more.open .nav-more-menu{display:block;}
+.nav-more-menu button{width:100%;padding:10px 16px;background:none;border:none;text-align:left;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-secondary);transition:all 0.15s;}
+.nav-more-menu button:hover{background:var(--surface2);color:var(--text);}
+.nav-more-menu button.on{color:var(--accent);}
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;padding-left:16px;}
+.nav-row1{display:contents;}
+.search-wrap{position:relative;width:200px;}
+.search-wrap input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 28px 7px 32px;color:var(--text);font-size:13px;width:100%;transition:all 0.15s;height:34px;}
+.search-wrap input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,0.1);}
+.search-wrap input::placeholder{color:var(--muted);}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none;}
+.search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;display:none;padding:4px;line-height:1;}
+.search-clear.show{display:block;}
+.search-clear:hover{color:var(--text);}
+.theme-toggle{background:transparent;border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all 0.15s;flex-shrink:0;}
+.theme-toggle:hover{border-color:var(--accent);background:var(--surface2);}
+/* Mobile nav search expand */
+.nav-search-icon-btn{display:none;background:transparent;border:1px solid var(--border);border-radius:8px;width:34px;height:34px;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all 0.15s;flex-shrink:0;color:var(--text-secondary);}
+.nav-search-icon-btn:hover{border-color:var(--accent);}
+.nav-search-expand{display:none;position:absolute;top:52px;left:0;right:0;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 4px 12px var(--shadow-md);z-index:201;}
+.nav-search-expand.open{display:block;}
+.nav-search-expand .search-wrap{width:100%;}
 .brand{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;transition:opacity 0.15s;}
 .brand:hover{opacity:0.8;}
 .brand-text{font-weight:700;font-size:18px;letter-spacing:-0.02em;}
@@ -256,43 +294,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
 #toast.err{background:var(--red);color:#fff;border-color:var(--red-hover);}
 
 /* MOBILE */
-@media (max-width:768px){
-  /* Nav — single compact row: brand left, search+theme right, tabs below */
-  .nav-inner{flex-direction:column;gap:8px;padding:8px 16px;}
-  .nav-row1{display:flex;align-items:center;justify-content:space-between;width:100%;}
-  .tabs-row{display:flex;align-items:center;width:100%;overflow:visible;position:relative;}
-  .tabs{justify-content:flex-start;flex:1;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:none;}
-  .tabs::-webkit-scrollbar{display:none;}
-  .tab{flex-shrink:0;padding:6px 12px;font-size:12px;}
-  .nav-more-btn{flex-shrink:0;padding:6px 12px;font-size:12px;}
-  .nav-right{gap:8px;}
-  .search-wrap{width:160px;}
-  /* Content */
-  .kgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
-  .kgrid-3{grid-template-columns:1fr 1fr!important;}
-  .insights{grid-template-columns:1fr;gap:8px;}
-  .insight-card{padding:12px 16px;}
-  .insight-label{font-size:11px;}
-  .insight-val{font-size:18px;}
-  .chart-wrap{padding:20px 16px;}
-  .chart-title{flex-direction:column;align-items:flex-start;}
-  .chart-legend{margin-left:0;}
-  .bars-wrap{gap:6px;}
-  .item-row{padding:14px 16px;grid-template-columns:1fr;}
-  .item-actions{justify-content:flex-end;}
-  .fab{bottom:80px;right:20px;width:52px;height:52px;}
-  .slide-panel{width:100%;right:-100%;}
-  /* Tax page */
-  .tax-method-grid{grid-template-columns:1fr!important;}
-  .tax-year-select{width:100%!important;min-width:0!important;font-size:13px!important;}
-  .tax-box-row{flex-wrap:wrap;gap:8px!important;padding:12px 14px!important;}
-  .tax-box-desc{flex-basis:100%;order:2;}
-  .tax-box-val{order:3;margin-left:auto;}
-  .tax-box-tag{order:1;}
-  .tax-exp-row{padding:9px 14px!important;font-size:13px!important;}
-  .tax-method-card{padding:16px!important;}
-  .tax-method-card .tax-row{font-size:13px!important;}
-}
+
 
 @media (max-width:600px){
   /* Add form — stack all 2-col grids to 1 col */
@@ -659,6 +661,7 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
           <div class="search-dropdown" id="search-dropdown"></div>
           <button class="search-clear" onclick="clearSearch()">×</button>
         </div>
+        <button class="nav-search-icon-btn" onclick="toggleNavSearch()" title="Search" id="nav-search-icon-btn">🔍</button>
         <div id="sync-indicator" style="display:none;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-secondary);white-space:nowrap;flex-shrink:0;">
           <svg width="14" height="14" viewBox="0 0 14 14" style="animation:spin 1s linear infinite;flex-shrink:0"><circle cx="7" cy="7" r="5.5" fill="none" stroke="var(--border2)" stroke-width="2"/><path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg>
           <span id="sync-label">Saving…</span>
@@ -666,6 +669,16 @@ nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:
         <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
           <span id="theme-icon">🌙</span>
         </button>
+      </div>
+    </div>
+    <div class="nav-search-expand" id="nav-search-expand">
+      <div class="search-wrap" style="width:100%">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="global-search-mobile" placeholder="Search items..." autocomplete="off"
+               oninput="handleSearch(this.value)"
+               onkeydown="if(event.key==='Escape'){toggleNavSearch();}"
+               style="font-size:16px!important">
+        <button class="search-clear" onclick="clearMobileSearch()">×</button>
       </div>
     </div>
     <div class="tabs-row">
@@ -2219,6 +2232,19 @@ function clearSearch(){
   document.querySelector('.search-clear').classList.remove('show');
   closeSearchDropdown();
 }
+function toggleNavSearch(){
+  const expand=document.getElementById('nav-search-expand');
+  const btn=document.getElementById('nav-search-icon-btn');
+  if(!expand)return;
+  const isOpen=expand.classList.toggle('open');
+  if(btn){btn.style.background=isOpen?'var(--surface2)':'';btn.style.borderColor=isOpen?'var(--accent)':'';}
+  if(isOpen)setTimeout(()=>{const inp=document.getElementById('global-search-mobile');if(inp)inp.focus();},50);
+}
+function clearMobileSearch(){
+  const inp=document.getElementById('global-search-mobile');
+  if(inp){inp.value='';handleSearch('');}
+  toggleNavSearch();
+}
 
 function openSearchPage(q){
   closeSearchDropdown();
@@ -3372,11 +3398,13 @@ function renderMonth(){
 
 
     <div class="filter-row">
-      <div class="filter-chips">
-        <span class="chip ${MONTH_FILTER==='all'?'active':''}" onclick="setMonthFilter('all')">All <span class="chip-count">${cAll}</span></span>
-        <span class="chip ${MONTH_FILTER==='listed'?'active':''}" onclick="setMonthFilter('listed')">Listed <span class="chip-count">${cListed}</span></span>
-        <span class="chip ${MONTH_FILTER==='sold'?'active':''}" onclick="setMonthFilter('sold')">Sold <span class="chip-count">${cSold}</span></span>
-        ${cReturned>0?`<span class="chip ${MONTH_FILTER==='returned'?'active':''}" onclick="setMonthFilter('returned')">Returned <span class="chip-count">${cReturned}</span></span>`:''}
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="sort-select" onchange="setMonthFilter(this.value)">
+          <option value="listed" ${MONTH_FILTER==='listed'?'selected':''}>Listed (${cListed})</option>
+          <option value="all" ${MONTH_FILTER==='all'?'selected':''}>All (${cAll})</option>
+          <option value="sold" ${MONTH_FILTER==='sold'?'selected':''}>Sold (${cSold})</option>
+          ${cReturned>0?`<option value="returned" ${MONTH_FILTER==='returned'?'selected':''}>Returned (${cReturned})</option>`:''}
+        </select>
       </div>
       <select class="sort-select" onchange="setMonthSort(this.value)">
         <option value="date-listed" ${MONTH_SORT==='date-listed'?'selected':''}>Date listed</option>
@@ -3793,10 +3821,10 @@ function renderStock(){
 
 
       <div class="filter-row">
-        <div class="filter-chips">
-          <span class="chip ${STOCK_FILTER==='all'?'active':''}" onclick="setStockFilter('all')">All <span class="chip-count">${cAll}</span></span>
-          ${cStale>0?`<span class="chip ${STOCK_FILTER==='stale'?'active':''}" onclick="setStockFilter('stale')">Stale 30d+ <span class="chip-count">${cStale}</span></span>`:''}
-        </div>
+        <select class="sort-select" onchange="setStockFilter(this.value)">
+          <option value="all" ${STOCK_FILTER==='all'?'selected':''}>All (${cAll})</option>
+          ${cStale>0?`<option value="stale" ${STOCK_FILTER==='stale'?'selected':''}>Stale 30d+ (${cStale})</option>`:''}
+        </select>
         <select class="sort-select" onchange="setStockSort(this.value)">
           <option value="days" ${STOCK_SORT==='days'?'selected':''}>Oldest first</option>
           <option value="profit" ${STOCK_SORT==='profit'?'selected':''}>Est. profit</option>
