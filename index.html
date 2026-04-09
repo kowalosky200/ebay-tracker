@@ -3058,8 +3058,8 @@ function showCategoryItems(cat,_fromBack){
     return dateB.localeCompare(dateA);
   });
   const totalProfit=sold.reduce((s,i)=>s+calcGrossProfit(i),0);
-  const soldWithDate=sold.filter(i=>i.dateSold&&i.dateListed);
-  const avgDays=soldWithDate.length?Math.round(soldWithDate.reduce((s,i)=>s+daysBetween(i.dateListed,i.dateSold),0)/soldWithDate.length):null;
+  const soldWithDate=sold.filter(i=>calcDaysToSell(i)!==null);
+  const avgDays=soldWithDate.length?Math.round(soldWithDate.reduce((s,i)=>s+calcDaysToSell(i),0)/soldWithDate.length):null;
   const html=`
     <div style="margin-bottom:16px;background:var(--surface2);border-radius:10px;padding:14px">
       <div style="font-size:16px;font-weight:700;margin-bottom:6px">${esc(cat)}</div>
@@ -3074,7 +3074,7 @@ function showCategoryItems(cat,_fromBack){
       const _today=new Date().toISOString().split('T')[0];
       const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':i.condition==='spares'?'spares':'listed';
       const prof=(i.dateSold||i.resaleSalePrice)&&!i.isReturned?calcGrossProfit(i):null;
-      const daysToSell=i.dateSold&&i.dateListed&&!i.isReturned?daysBetween(i.dateListed,i.dateSold):null;
+      const daysToSell=!i.isReturned&&(i.dateSold||i.resaleSalePrice)?calcDaysToSell(i):null;
       const daysListed=!i.dateSold&&!i.isReturned&&!i.resaleSalePrice&&i.dateListed?daysBetween(i.dateListed,_today):null;
       const returnedAt=i.isReturned&&i.returnHistory&&i.returnHistory.length?i.returnHistory[i.returnHistory.length-1].loggedAt:null;
       const daysSinceReturn=i.isReturned&&(returnedAt||i.dateListed)?daysBetween(returnedAt||i.dateListed,_today):null;
@@ -3614,10 +3614,7 @@ function renderMonthlyGrid(){
 
     let gridHTML='';
     if(!isCollapsed){
-      // Non-current FYs: show most recent month first (Mar → Apr) so you see latest activity immediately.
-      // Current FY: forward order (Apr → now) since you're living through it.
-      const orderedMonths=isCurrentFY?months:[...months].reverse();
-      const cards=orderedMonths.map(function(k){
+      const cards=months.map(function(k){
         const ms=calcMonthStats(k);
         const hasItems=(DB[k]||[]).length>0;
         const hasSales=ms.soldCount>0||ms.listedCount>0;
@@ -3865,7 +3862,9 @@ function renderItemRow(m,i){
   const selected=SELECTED_ITEMS.has(i.id);
   const status=i.isReturned?'returned':i.resaleSalePrice?'resold':i.dateSold?'sold':i.condition==='spares'?'spares':'listed';
   const today=new Date().toISOString().split('T')[0];
-  const daysListed=i.dateSold?daysBetween(i.dateListed,i.dateSold):daysBetween(i.dateListed,today);
+  // daysListed: for active items only (stale detection). For sold/resold use calcDaysToSell.
+  const daysListed=(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice)?daysBetween(i.dateListed,today):0;
+  const daysToSellVal=(i.dateSold||i.resaleSalePrice)&&!i.isReturned?calcDaysToSell(i):null;
   const profit=calcGrossProfit(i);
   const roi=calcROI(i);
   const isStale=!i.dateSold&&!i.isReturned&&!i.resaleSalePrice&&daysListed>=30;
@@ -3877,10 +3876,11 @@ function renderItemRow(m,i){
     metaParts.push(daysListed+'d'+(isStale?' ⚠️':''));
   }else if(status==='sold'){
     if(i.dateSold)metaParts.push('sold '+i.dateSold);
-    if(daysListed)metaParts.push(daysListed+'d to sell');
+    if(daysToSellVal!==null)metaParts.push(daysToSellVal+'d to sell');
   }else if(status==='resold'){
     if(i.resaleDateSold)metaParts.push('resold '+i.resaleDateSold);
     else if(i.dateSold)metaParts.push('sold '+i.dateSold);
+    if(daysToSellVal!==null)metaParts.push(daysToSellVal+'d avg');
   }else if(status==='returned'){
     if(i.dateSold)metaParts.push('sold '+i.dateSold);
   }
@@ -5818,8 +5818,9 @@ function calcYearlyStats(){
     // Only include items listed long enough to have had a fair 14-day window
     const today=new Date().toISOString().split('T')[0];
     const daysOnSale=daysBetween(i.dateListed,today);
-    if(i.dateSold){
-      eligible14.push({sold14:daysBetween(i.dateListed,i.dateSold)<=14});
+    if(i.dateSold||i.resaleDateSold){
+      const d=calcDaysToSell(i);
+      if(d!==null)eligible14.push({sold14:d<=14});
     }else if(daysOnSale>=14){
       eligible14.push({sold14:false});
     }
@@ -5827,8 +5828,8 @@ function calcYearlyStats(){
   });});
   const sold14Count=eligible14.filter(x=>x.sold14).length;
   const sellThrough14=eligible14.length?sold14Count/eligible14.length*100:0;
-  const soldWithDate=soldItems.filter(i=>i.dateSold&&i.dateListed);
-  const avgDays=soldWithDate.length?Math.round(soldWithDate.reduce((s,i)=>s+daysBetween(i.dateListed,i.dateSold),0)/soldWithDate.length):0;
+  const soldWithDate=soldItems.filter(i=>calcDaysToSell(i)!==null);
+  const avgDays=soldWithDate.length?Math.round(soldWithDate.reduce((s,i)=>s+calcDaysToSell(i),0)/soldWithDate.length):0;
   // Avg buy price: all items ever sourced — buying discipline metric regardless of outcome
   const allSourcingItems=[];
   allDBKeys().forEach(k=>{(DB[k]||[]).forEach(i=>{if((i.item||'').trim().toUpperCase()!=='MONTH END')allSourcingItems.push(i);});});
@@ -5844,8 +5845,8 @@ function calcYearlyStats(){
       catMap[cat].total++;
       if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){
         catMap[cat].sold++;
-        if(i.dateSold&&i.dateListed){
-          const d=daysBetween(i.dateListed,i.dateSold);
+        const d=calcDaysToSell(i);
+        if(d!==null){
           catMap[cat].daysSum+=d;
           if(d<=14)catMap[cat].fast++;
           else if(d<=30)catMap[cat].avgS++;
@@ -5884,7 +5885,8 @@ function calcMonthStats(m){
       totalRev+=(i.salePrice||0);
       if(i.resaleSalePrice)totalRev+=i.resaleSalePrice;
       realisedProfit+=calcGrossProfit(i);
-      if(i.dateSold&&i.dateListed)daysSum+=daysBetween(i.dateListed,i.dateSold);
+      const _d=calcDaysToSell(i);
+      if(_d!==null)daysSum+=_d;
     }else if(!i.isReturned&&!i.resaleSalePrice){
       listedCount++;
       stockValue+=i.salePrice||0;
@@ -5977,6 +5979,32 @@ function daysBetween(d1,d2){
   const b=new Date(d2);
   const diff=Math.abs(b-a);
   return Math.floor(diff/(1000*60*60*24));
+}
+
+// Returns the average days-to-sell for an item, accounting for return+relist cycles.
+// For a simple sale: days from dateListed to dateSold.
+// For a resold item: average of (sale1 days) and (sale2 days).
+//   sale1 days = dateListed → first returnHistory loggedAt (proxy for original sale date)
+//   sale2 days = _relistedAt → resaleDateSold
+// Returns null if the item hasn't sold or lacks the required dates.
+function calcDaysToSell(i){
+  const hasResale=!!i.resaleSalePrice&&!!i.resaleDateSold;
+  const fullReturn=(i.returnHistory||[]).find(r=>r.type==='full_seller'||r.type==='full_ebay');
+
+  if(hasResale&&fullReturn){
+    // Two-sale lifecycle
+    const sale1Date=fullReturn.loggedAt||i.dateSold||null; // date of original sale (return date ≈ sale date)
+    const relistDate=fullReturn._relistedAt||null;
+    const sale2Date=i.resaleDateSold;
+    let total=0,count=0;
+    if(i.dateListed&&sale1Date){total+=daysBetween(i.dateListed,sale1Date);count++;}
+    if(relistDate&&sale2Date){total+=daysBetween(relistDate,sale2Date);count++;}
+    return count>0?Math.round(total/count):null;
+  }
+
+  // Standard single sale
+  if(i.dateSold&&i.dateListed)return daysBetween(i.dateListed,i.dateSold);
+  return null;
 }
 
 function toggleDD(id){
