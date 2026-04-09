@@ -221,7 +221,11 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .sl{display:flex;align-items:center;width:100%;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-secondary);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;margin:24px 0 12px;box-sizing:border-box;}
 
 /* MONTH GRID */
-.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px;}
+.mgrid{display:grid;grid-template-columns:repeat(var(--mgrid-cols,4),1fr);gap:12px;margin-bottom:16px;}
+@media(max-width:600px){.mgrid{--mgrid-cols:2;}}
+@media(min-width:601px) and (max-width:900px){.mgrid{--mgrid-cols:3;}}
+@media(min-width:901px) and (max-width:1200px){.mgrid{--mgrid-cols:4;}}
+@media(min-width:1201px){.mgrid{--mgrid-cols:6;}}
 .mcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 3px var(--shadow);min-height:120px;display:flex;flex-direction:column;justify-content:space-between;}
 .mcard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow-md);}
 .mcard-empty{opacity:0.45;}
