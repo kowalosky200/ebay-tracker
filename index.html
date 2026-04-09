@@ -3488,7 +3488,13 @@ function renderMonthlyGrid(){
       const ms=calcMonthStats(m);
       fyProfit+=ms.realisedProfit;
       fySold+=ms.soldCount;
-      if(ms.avgROI!==null&&ms.soldCount>0){fyROISum+=ms.avgROI;fyROICount++;}
+      // Calculate ROI directly from items — calcMonthStats doesn't include avgROI
+      (DB[m]||[]).forEach(function(i){
+        if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){
+          const roi=calcROI(i);
+          if(roi!==null){fyROISum+=roi;fyROICount++;}
+        }
+      });
     });
     const fyAvgROI=fyROICount>0?(fyROISum/fyROICount):null;
     const isCurrentFY=fy===currentFY;
