@@ -2117,99 +2117,37 @@ function renderItemPage(m,id){
 
   // ── P&L receipt (read-only, derived) ─────────────────────────────────
   const partsCost=calcPartsCost(i);
-
+  const sale1Net=i.resaleSalePrice?(+((i.salePrice+(i.postage||0)-calcEbayBPF(i.salePrice))-((i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+calcPartsCost(i))-(i.returnHistory||[]).reduce(function(s,r){const f=(r.type==='full_seller'||r.type==='full_ebay');if(f){const osp=r._salePriceAtReturn||r.refundAmount||i.salePrice||0;return s+Math.max(0,(r.refundAmount||0)-calcEbayBPF(osp))+(r.returnPostage||0);}return s+(r.refundAmount||0)+(r.returnPostage||0);},0)).toFixed(2)):profit;
   function rcp(label,val,color,indent){
     return'<div class="ip-receipt-row'+(indent?' indent':'')+'"><span style="flex:1;color:'+(color&&color.includes('--text')?color:'var(--text-secondary)')+'">'+label+'</span><span class="ip-receipt-val" style="color:'+(color||'var(--text)')+'">'+val+'</span></div>';
   }
-  function rcpTotal(label,val,color,big){
-    const fs=big?'font-size:16px;':'font-size:14px;';
-    return'<div class="ip-receipt-row total"><span style="flex:1;'+fs+'">'+label+'</span><span class="ip-receipt-val" style="'+fs+'color:'+(color||(val>=0?'var(--green)':'var(--red)'))+'">'+fmt(val)+'</span></div>';
-  }
-  function rcpDiv(label){
-    return'<div class="ip-receipt-row section-head"><span>'+label+'</span><span></span></div>';
-  }
-
-  // ── Determine return flags ────────────────────────────────────────────
-  const hasFullReturn=(i.returnHistory||[]).some(r=>r.type==='full_seller'||r.type==='full_ebay');
-  const hasPartialReturn=(i.returnHistory||[]).some(r=>r.type==='partial_seller'||r.type==='partial_ebay');
-  const hasAnyReturn=hasFullReturn||hasPartialReturn;
-  const isResold=!!i.resaleSalePrice;
-
-  // ── Sale 1 receipt ────────────────────────────────────────────────────
-  // Revenue side
   let pb='';
-  pb+=rcpDiv('Revenue');
   pb+=rcp('Sale price',fmt(i.salePrice||0),'var(--green)');
   if((i.postage||0)>0)pb+=rcp('+ Buyer postage','+'+fmt(i.postage),'var(--green)');
   pb+=rcp('eBay BPF','−'+fmt(bpf),'var(--red)');
-
-  // Selling costs
-  pb+=rcpDiv('Selling costs');
-  if((i.shippingCost||0)>0)pb+=rcp('Shipping','−'+fmt(i.shippingCost),'var(--red)');
+  if((i.shippingCost||0)>0)pb+=rcp('Shipping cost','−'+fmt(i.shippingCost),'var(--red)');
   if((i.packagingCost||0)>0)pb+=rcp('Packaging','−'+fmt(i.packagingCost),'var(--red)');
   if(i.promoPercent)pb+=rcp('Promo fee ('+((i.promoPercent*100).toFixed(0))+'% +VAT)','−'+fmt(promoCost),'var(--red)');
   pb+=rcp('Item cost','−'+fmt(i.costPrice||0),'var(--red)');
   if(partsCost>0){
     const pts=i.parts||[];
-    if(pts.length===1){pb+=rcp(esc(pts[0].description||pts[0].desc||'Part'),'−'+fmt(partsCost),'var(--red)');}
+    if(pts.length===1){pb+=rcp(esc(pts[0].description),'−'+fmt(partsCost),'var(--red)');}
     else{
       pb+=rcp('Parts & expenses ('+pts.length+')','−'+fmt(partsCost),'var(--red)');
-      pts.forEach(function(p){pb+=rcp(esc(p.description||p.desc||''),'−'+fmt(p.cost),'var(--red)',true);});
+      pts.forEach(function(p){pb+=rcp(esc(p.description),'−'+fmt(p.cost),'var(--red)',true);});
     }
   }
-
-  // Return costs (if any)
-  if(hasAnyReturn){
-    pb+=rcpDiv('Return costs');
+  if(hasReturn){
+    pb+='<div class="ip-receipt-row section-head"><span>Return impact</span><span></span></div>';
     (i.returnHistory||[]).forEach(function(r){
-      const isFull=r.type==='full_seller'||r.type==='full_ebay';
-      const origSP=r._salePriceAtReturn||i.salePrice||0;
-      const origBPF=calcEbayBPF(origSP);
-      const lbl={
-        full_seller:'Full refund — you handled',
-        full_ebay:'Full refund — eBay stepped in',
-        partial_seller:'Partial refund — seller agreed',
-        partial_ebay:'Partial refund — eBay decided'
-      }[r.type]||r.type;
-      pb+=rcp(lbl,'−'+fmt(r.refundAmount||0),'var(--accent)');
-      if(isFull){
-        if(r.type==='full_seller'){
-          pb+=rcp('eBay credits BPF back','+'+fmt(origBPF),'var(--green)',true);
-        } else {
-          pb+=rcp('No BPF credit (eBay stepped in)','—','var(--muted)',true);
-        }
-      } else {
-        // Partial — proportional BPF credit
-        const refundRatio=origSP>0?(r.refundAmount||0)/origSP:0;
-        const partialCredit=+(origBPF*Math.min(refundRatio,1)).toFixed(2);
-        if(partialCredit>0)pb+=rcp('Proportional BPF credit','+'+fmt(partialCredit),'var(--green)',true);
-      }
-      if((r.returnPostage||0)>0)pb+=rcp('Return postage cost','−'+fmt(r.returnPostage),'var(--red)');
+      const fullReturn=(r.type==='full_seller'||r.type==='full_ebay');
+      const lbl3={full_seller:'Full refund — you handled',full_ebay:'Full refund — eBay involved',partial_seller:'Partial refund — you handled',partial_ebay:'Partial refund — eBay decided'}[r.type]||r.type;
+      pb+=rcp(lbl3,'−'+fmt(r.refundAmount||0),'var(--accent)');
+      if(fullReturn)pb+=rcp('eBay refunds BPF back to you','+'+fmt(bpf),'var(--green)',true);
+      if((r.returnPostage||0)>0)pb+=rcp('Return postage','−'+fmt(r.returnPostage),'var(--red)');
     });
   }
-
-  // Sale 1 total
-  // For a fully returned item the "net" is the loss before any resale
-  const sale1Label=isResold?'Sale 1 net':hasFullReturn&&!i.dateSold?'Net loss after return':hasAnyReturn?'Net profit / loss':'Net profit / loss';
-
-  // Compute sale1Net cleanly here for display
-  const _s1Rev=(i.salePrice||0)+(i.postage||0)-bpf;
-  const _s1SellingCosts=(i.shippingCost||0)+(i.packagingCost||0)+promoCost+(i.costPrice||0)+partsCost;
-  const _s1ReturnCosts=(i.returnHistory||[]).reduce(function(s,r){
-    const isFull=r.type==='full_seller'||r.type==='full_ebay';
-    const origSP=r._salePriceAtReturn||i.salePrice||0;
-    const origBPF=calcEbayBPF(origSP);
-    if(isFull){
-      const bpfCredit=r.type==='full_seller'?origBPF:0;
-      return s+Math.max(0,(r.refundAmount||0)-bpfCredit)+(r.returnPostage||0);
-    }
-    const refundRatio=origSP>0?(r.refundAmount||0)/origSP:0;
-    const partialCredit=origBPF*Math.min(refundRatio,1);
-    return s+Math.max(0,(r.refundAmount||0)-partialCredit)+(r.returnPostage||0);
-  },0);
-  const sale1Net=+(_s1Rev-_s1SellingCosts-_s1ReturnCosts).toFixed(2);
-
-  pb+=rcpTotal(sale1Label,sale1Net);
+  pb+='<div class="ip-receipt-row total"><span style="flex:1">'+(i.resaleSalePrice?'Sale 1 net':'Net profit / loss')+'</span><span class="ip-receipt-val" style="color:'+(sale1Net>=0?'var(--green)':'var(--red)')+'">'+fmt(sale1Net)+'</span></div>';
 
   // Sale 2 block
   let resaleHTML='';
@@ -2217,23 +2155,16 @@ function renderItemPage(m,id){
     const rBPF=calcEbayBPF(i.resaleSalePrice);
     const rGrossInc=i.resaleSalePrice-rBPF;
     const rPromoCost=rGrossInc*(i.resalePromoPercent||0)*1.20;
-    const rShipping=i.resaleShippingCost||0;
-    const rRev=i.resaleSalePrice-rBPF-rShipping-rPromoCost;
+    const rRev=i.resaleSalePrice-rBPF-(i.resaleShippingCost||0)-rPromoCost;
     const lifetimeProfit=profit;
     let s2b='';
-    // Start from the sale 1 loss so the journey is clear
-    s2b+=rcp('Carried from Sale 1',fmt(sale1Net),sale1Net>=0?'var(--green)':'var(--red)');
-    s2b+=rcpDiv('Sale 2 revenue');
     s2b+=rcp('Sale price',fmt(i.resaleSalePrice),'var(--green)');
     s2b+=rcp('eBay BPF','−'+fmt(rBPF),'var(--red)');
-    s2b+=rcpDiv('Sale 2 costs');
-    if(rShipping>0)s2b+=rcp('Shipping','−'+fmt(rShipping),'var(--red)');
+    if((i.resaleShippingCost||0)>0)s2b+=rcp('Shipping cost','−'+fmt(i.resaleShippingCost),'var(--red)');
     if(rPromoCost>0)s2b+=rcp('Promo fee ('+((i.resalePromoPercent||0)*100).toFixed(1)+'% +VAT)','−'+fmt(rPromoCost),'var(--red)');
-    s2b+=rcp('Item cost','sunk','var(--muted)');
-    s2b+=rcpTotal('Sale 2 net',rRev);
-    s2b+='<div class="ip-receipt-row" style="margin-top:6px;padding:10px 0 2px;border-top:2px solid var(--border)">';
-    s2b+='<span style="flex:1;font-weight:700;font-size:15px">Lifetime P&amp;L</span>';
-    s2b+='<span class="ip-receipt-val" style="font-size:18px;font-weight:800;color:'+(lifetimeProfit>=0?'var(--green)':'var(--red)')+'">'+fmt(lifetimeProfit)+'</span></div>';
+    s2b+=rcp('Item cost (sunk)','—','var(--muted)');
+    s2b+='<div class="ip-receipt-row total"><span style="flex:1">Sale 2 net</span><span class="ip-receipt-val" style="color:'+(rRev>=0?'var(--green)':'var(--red)')+'">'+fmt(rRev)+'</span></div>';
+    s2b+='<div class="ip-receipt-row" style="margin-top:6px;padding:10px 0 2px;border-top:2px solid var(--border)"><span style="flex:1;font-weight:700;font-size:13px">Lifetime P&amp;L</span><span class="ip-receipt-val" style="font-size:16px;color:'+(lifetimeProfit>=0?'var(--green)':'var(--red)')+'">'+fmt(lifetimeProfit)+'</span></div>';
     if(roi!==null)s2b+=rcp('Overall ROI',roi.toFixed(1)+'%','var(--muted)');
     resaleHTML=sec2('Sale 2 P&amp;L <span style="color:var(--muted);font-weight:400;font-size:11px">re-sold '+esc(i.resaleDateSold||'—')+'</span>',s2b,true,fmt(rRev),rRev>=0?'var(--green)':'var(--red)','ip-section-pnl','var(--purple)');
   }
@@ -3683,7 +3614,10 @@ function renderMonthlyGrid(){
 
     let gridHTML='';
     if(!isCollapsed){
-      const cards=months.map(function(k){
+      // Non-current FYs: show most recent month first (Mar → Apr) so you see latest activity immediately.
+      // Current FY: forward order (Apr → now) since you're living through it.
+      const orderedMonths=isCurrentFY?months:[...months].reverse();
+      const cards=orderedMonths.map(function(k){
         const ms=calcMonthStats(k);
         const hasItems=(DB[k]||[]).length>0;
         const hasSales=ms.soldCount>0||ms.listedCount>0;
@@ -5999,22 +5933,13 @@ function calcGrossProfit(i){
         // Only the return postage is a real additional cost here.
         return s+(r.returnPostage||0);
       }
-      // full_seller: eBay credits BPF back → net refund cost = refund − BPF
-      // full_ebay:   eBay stepped in → BPF is NOT credited back → net refund cost = full refund amount
+      // Standard path: item is returned and not yet relisted — charge refund net of BPF refund
       const origSalePrice=r._salePriceAtReturn||r.refundAmount||i.salePrice||0;
       const origBPF=calcEbayBPF(origSalePrice);
-      const bpfCredit=r.type==='full_seller'?origBPF:0;
-      const netRefund=Math.max(0,(r.refundAmount||0)-bpfCredit);
+      const netRefund=Math.max(0,(r.refundAmount||0)-origBPF);
       return s+netRefund+(r.returnPostage||0);
     }
-    // Partial refund: BPF credited proportionally
-    // credit = BPF × (refundAmount / salePrice)
-    const origSalePrice=r._salePriceAtReturn||i.salePrice||0;
-    const origBPF=calcEbayBPF(origSalePrice);
-    const refundRatio=origSalePrice>0?(r.refundAmount||0)/origSalePrice:0;
-    const partialBPFCredit=origBPF*Math.min(refundRatio,1);
-    const netPartialRefund=Math.max(0,(r.refundAmount||0)-partialBPFCredit);
-    return s+netPartialRefund+(r.returnPostage||0);
+    return s+(r.refundAmount||0)+(r.returnPostage||0);
   },0);
   const partsCost=calcPartsCost(i);
   const cost=(i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+returnCost+partsCost;
