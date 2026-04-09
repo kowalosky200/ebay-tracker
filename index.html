@@ -2997,11 +2997,14 @@ function autoCategory(name){
 function showStaleItems(){
   const staleItems=[];
   const today=new Date().toISOString().split('T')[0];
+  const range=_periodDateRange(SUMMARY_PERIOD);
   allDBKeys().forEach(k=>{(DB[k]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
     if(!i.isReturned&&!i.dateSold&&!i.resaleSalePrice){
       const days=daysBetween(i.dateListed,today);
-      if(days>=30)staleItems.push({...i,month:k,_daysListed:days});
+      // Only include items listed within the selected period window
+      if(days>=30&&i.dateListed&&i.dateListed>=range.from&&i.dateListed<=range.to)
+        staleItems.push({...i,month:k,_daysListed:days});
     }
   });});
   staleItems.sort((a,b)=>b._daysListed-a._daysListed);
@@ -6018,7 +6021,8 @@ function calcYearlyStats(period){
         stockValue+=i.salePrice||0;
         unrealisedProfit+=calcGrossProfit(i)||0;
         const days=daysBetween(i.dateListed,new Date().toISOString().split('T')[0]);
-        if(days>=30)stale.push(i);
+        // Only flag stale if the item was listed within the selected period window
+        if(days>=30&&i.dateListed&&i.dateListed>=range.from&&i.dateListed<=range.to)stale.push(i);
       }
     });
   });
