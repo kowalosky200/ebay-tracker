@@ -429,13 +429,20 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .month-picker-chevron{font-size:14px;color:var(--muted);transition:transform 0.2s;}
 .month-picker-wrap.open .month-picker-chevron{transform:rotate(180deg);}
 .month-picker-wrap.open .month-picker-title{color:var(--accent);}
-.month-picker-dropdown{display:none;position:absolute;top:calc(100% + 8px);left:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px var(--shadow-md);z-index:300;overflow:hidden;min-width:200px;}
+/* Dropdown: fixed overlay with max-height + scroll so all months are reachable */
+.month-picker-dropdown{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 48px var(--shadow-md);z-index:600;overflow-y:auto;width:280px;max-height:70vh;}
 .month-picker-wrap.open .month-picker-dropdown{display:block;}
-.month-picker-option{padding:11px 18px;font-size:14px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all 0.12s;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+/* Backdrop to close on outside tap */
+.month-picker-backdrop{display:none;position:fixed;inset:0;z-index:599;}
+.month-picker-wrap.open .month-picker-backdrop{display:block;}
+.month-picker-option{padding:13px 18px;font-size:14px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all 0.12s;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--border);}
+.month-picker-option:last-child{border-bottom:none;}
 .month-picker-option:hover{background:var(--surface2);color:var(--text);}
-.month-picker-option.active{color:var(--accent);font-weight:700;}
+.month-picker-option.active{color:var(--accent);font-weight:700;background:rgba(245,158,11,0.06);}
 .month-picker-option.active::after{content:'✓';font-size:13px;color:var(--accent);}
 .month-picker-option-sub{font-size:11px;color:var(--muted);font-weight:400;}
+/* FY group header inside picker */
+.month-picker-fy-header{padding:8px 18px 4px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;background:var(--surface2);}
 
 /* CONFIRM MODAL */
 #confirm-modal{display:none;position:fixed;inset:0;background:var(--overlay);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
@@ -957,6 +964,101 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 <script>
 const MONTHS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 const MONTH_NAMES={JAN:'January',FEB:'February',MAR:'March',APR:'April',MAY:'May',JUN:'June',JUL:'July',AUG:'August',SEP:'September',OCT:'October',NOV:'November',DEC:'December'};
+
+// ── Year-aware DB key helpers ────────────────────────────────────────────────
+// DB keys are now 'MMM-YY' e.g. 'APR-25', 'JAN-26'. These helpers keep all
+// lookups consistent and allow full Apr–Mar tax year grouping on Calendar.
+
+function _fy(yr){ return yr; } // FY label: year the April starts (e.g. 2025 → FY 2025-26)
+
+// Current FY start year (Apr-based UK tax year)
+function _currentFYStart(){
+  const now=new Date(); const m=now.getMonth(); const y=now.getFullYear();
+  return m>=3?y:y-1;
+}
+
+// Build the full ordered list of 'MMM-YY' keys for a given FY start year
+// FY 2025 = APR-25, MAY-25, … DEC-25, JAN-26, FEB-26, MAR-26
+function _fyKeys(fyStart){
+  const order=['APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC','JAN','FEB','MAR'];
+  return order.map(function(mo){
+    const yr = mo==='JAN'||mo==='FEB'||mo==='MAR' ? fyStart+1 : fyStart;
+    return mo+'-'+String(yr).slice(-2);
+  });
+}
+
+// Current month key e.g. 'APR-26'
+function currentMonthKey(){
+  const now=new Date();
+  return MONTHS[now.getMonth()]+'-'+String(now.getFullYear()).slice(-2);
+}
+
+// Strip year suffix → base code: 'APR-26' → 'APR'
+function keyCode(k){ return (k||'').split('-')[0]; }
+// Strip to 2-digit year: 'APR-26' → '26', then full year
+function keyYear(k){
+  const parts=(k||'').split('-'); if(parts.length<2)return new Date().getFullYear();
+  const yy=parseInt(parts[1]||'0'); return yy>=50?1900+yy:2000+yy;
+}
+// Display name: 'APR-26' → 'April 2026'
+function keyName(k){ return (MONTH_NAMES[keyCode(k)]||keyCode(k))+' '+keyYear(k); }
+
+// All DB keys that should exist: current FY + previous FY + any FY with data + next FY
+function allDBKeys(){
+  const curFY=_currentFYStart();
+  const fySet=new Set([curFY-1, curFY, curFY+1]);
+  // Also include any FY that has data already
+  Object.keys(DB).forEach(function(k){
+    if(k==='trips'||k==='expenses'||k==='_userOwned'||k==='_taxYear')return;
+    if(!DB[k]||!DB[k].length)return;
+    const code=keyCode(k); const yr=keyYear(k);
+    if(!MONTHS.includes(code))return;
+    // Determine FY for this key
+    const mo=MONTHS.indexOf(code);
+    const fy=mo>=3?yr:yr-1;
+    fySet.add(fy);
+  });
+  const keys=[];
+  Array.from(fySet).sort(function(a,b){return a-b;}).forEach(function(fy){
+    _fyKeys(fy).forEach(function(k){if(!keys.includes(k))keys.push(k);});
+  });
+  return keys;
+}
+
+// On load: migrate bare keys ('APR') → year-suffixed ('APR-26') using dateListed/dateSold
+// to infer the correct year. Runs once after loadFromSupabase.
+function _migrateBareDBKeys(){
+  const curFY=_currentFYStart();
+  MONTHS.forEach(function(code){
+    if(!DB[code]||!DB[code].length)return;
+    const items=DB[code];
+    // Group items by their actual year — infer from dateListed or dateSold
+    const byYear={};
+    items.forEach(function(i){
+      const dateStr=i.dateListed||i.dateSold||null;
+      let yr=curFY; // fallback: assume current tax year context
+      if(dateStr){
+        const d=new Date(dateStr);
+        if(!isNaN(d)) yr=d.getFullYear();
+      } else {
+        // No date: use FY logic — Jan/Feb/Mar belong to prev year's tail
+        const mo=MONTHS.indexOf(code);
+        yr = mo>=3 ? curFY : curFY+1; // APR-DEC → curFY; JAN-MAR → curFY+1 (next calendar yr)
+        // But only if we're actually past APR — if it's early year, shift back
+        if(mo<3) yr=curFY; // conservative: keep in current tracked year
+      }
+      const yy=String(yr).slice(-2);
+      const key=code+'-'+yy;
+      if(!byYear[key])byYear[key]=[];
+      byYear[key].push(i);
+    });
+    Object.keys(byYear).forEach(function(k){
+      if(!DB[k])DB[k]=[];
+      byYear[k].forEach(function(i){ if(!DB[k].find(function(x){return x.id===i.id;}))DB[k].push(i); });
+    });
+    delete DB[code];
+  });
+}
 const STORAGE_KEY='ebay_db_v7';
 const THEME_KEY='ebay_theme';
 
@@ -978,7 +1080,7 @@ const EXPENSE_CATEGORIES=[
 ];
 
 let DB={};
-let SELECTED_MONTH='MAR';
+let SELECTED_MONTH=currentMonthKey(); // e.g. 'APR-26'
 let SELECTED_ITEMS=new Set();
 let MODAL_CALLBACK=null;
 let MONTH_FILTER='listed';
@@ -1366,8 +1468,8 @@ async function loadFromSupabase(){
     returnsMap[r.item_id].push(r);
   });
 
-  // Rebuild DB in the exact shape the app expects
-  MONTHS.forEach(m => { DB[m] = []; });
+  // Rebuild DB — rows grouped by their month key (may be bare 'APR' or year-suffixed 'APR-26')
+  // _migrateBareDBKeys() will normalise bare keys to year-suffixed after load.
   (itemsRes.data || []).forEach(row => {
     const m = row.month;
     if(!DB[m]) DB[m] = [];
@@ -1508,8 +1610,8 @@ function saveDB(){
 // Build a flat map of id → JSON for all items + trips + expenses
 function _dbFingerprint(){
   const fp = {};
-  MONTHS.forEach(m => {
-    (DB[m]||[]).forEach(i => { fp['item:'+i.id] = JSON.stringify(i) + '|' + m; });
+  allDBKeys().forEach(k => {
+    (DB[k]||[]).forEach(i => { fp['item:'+i.id] = JSON.stringify(i) + '|' + k; });
   });
   (DB.trips||[]).forEach(t => { fp['trip:'+t.id] = JSON.stringify(t); });
   (DB.expenses||[]).forEach(e => { fp['exp:'+e.id] = JSON.stringify(e); });
@@ -1588,6 +1690,8 @@ async function initDB(){
       loadFromSupabase(),
       new Promise((_,reject) => setTimeout(() => reject(new Error('Request timed out. Try refreshing.')), 15000))
     ]);
+    // Migrate any legacy bare keys ('APR') → year-suffixed ('APR-26')
+    _migrateBareDBKeys();
     // Snapshot MUST be set immediately after load — before any renderX call
     // triggers saveDB(). Without this the diff engine thinks everything is new
     // and re-upserts the entire DB on every page load.
@@ -2013,7 +2117,7 @@ function renderItemPage(m,id){
 
   // ── P&L receipt (read-only, derived) ─────────────────────────────────
   const partsCost=calcPartsCost(i);
-  const sale1Net=i.resaleSalePrice?(+((i.salePrice+(i.postage||0)-calcEbayBPF(i.salePrice))-((i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+calcPartsCost(i))-(i.returnHistory||[]).reduce(function(s,r){const f=(r.type==='full_seller'||r.type==='full_ebay');return s+(f?Math.max(0,(r.refundAmount||0)-calcEbayBPF(i.salePrice)):(r.refundAmount||0))+(r.returnPostage||0);},0)).toFixed(2)):profit;
+  const sale1Net=i.resaleSalePrice?(+((i.salePrice+(i.postage||0)-calcEbayBPF(i.salePrice))-((i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+calcPartsCost(i))-(i.returnHistory||[]).reduce(function(s,r){const f=(r.type==='full_seller'||r.type==='full_ebay');if(f){const osp=r._salePriceAtReturn||r.refundAmount||i.salePrice||0;return s+Math.max(0,(r.refundAmount||0)-calcEbayBPF(osp))+(r.returnPostage||0);}return s+(r.refundAmount||0)+(r.returnPostage||0);},0)).toFixed(2)):profit;
   function rcp(label,val,color,indent){
     return'<div class="ip-receipt-row'+(indent?' indent':'')+'"><span style="flex:1;color:'+(color&&color.includes('--text')?color:'var(--text-secondary)')+'">'+label+'</span><span class="ip-receipt-val" style="color:'+(color||'var(--text)')+'">'+val+'</span></div>';
   }
@@ -2279,8 +2383,8 @@ function searchAllItems(q){
   const terms=q.toLowerCase().trim().split(/\s+/).filter(Boolean);
   if(!terms.length)return[];
   const results=[];
-  MONTHS.forEach(m=>{
-    (DB[m]||[]).forEach(i=>{
+  allDBKeys().forEach(k=>{
+    (DB[k]||[]).forEach(i=>{
       const haystack=[
         (i.item||'').toLowerCase(),
         (i.category||'').toLowerCase(),
@@ -2289,7 +2393,7 @@ function searchAllItems(q){
         (i.notes||'').toLowerCase()
       ].join(' ');
       if(terms.every(t=>haystack.includes(t))){
-        results.push({...i,month:m});
+        results.push({...i,month:k});
       }
     });
   });
@@ -2640,9 +2744,7 @@ function openQuickAdd(){
   // If not on a monthly page, pre-select current month rather than SELECTED_MONTH
   const activePage=(document.querySelector('.page.on')||{id:''}).id;
   if(activePage!=='p-monthly'){
-    const now=new Date();
-    const monthKey=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][now.getMonth()]+'-'+String(now.getFullYear()).slice(-2);
-    if(MONTHS.includes(monthKey))SELECTED_MONTH=monthKey;
+    SELECTED_MONTH=currentMonthKey();
   }
   const html=`
     <div class="panel-section">New item</div>
@@ -2697,7 +2799,7 @@ function submitQuickAdd(){
 
 function getNextGID(){
   let max=0;
-  MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{
+  allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{
     const n=parseInt((i.gid||'').replace('G007-',''))||0;
     if(n>max)max=n;
   }));
@@ -2709,7 +2811,7 @@ function formHTML(){
     <div class="fg">
       <label>Month</label>
       <select id="qa-month">
-        ${MONTHS.map(m=>`<option value="${m}" ${m===SELECTED_MONTH?'selected':''}>${m}</option>`).join('')}
+        ${allDBKeys().map(k=>`<option value="${k}" ${k===SELECTED_MONTH?'selected':''}>${keyName(k)}</option>`).join('')}
       </select>
     </div>
     <div class="fg">
@@ -2928,9 +3030,9 @@ function toggleSellThroughBar(card,byCat){
 
 function showCategoryItems(cat,_fromBack){
   let items=[];
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
+  allDBKeys().forEach(k=>{(DB[k]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    if((i.category||'Other')===cat)items.push({...i,month:m});
+    if((i.category||'Other')===cat)items.push({...i,month:k});
   });});
   const sold=items.filter(i=>(i.dateSold||i.resaleSalePrice)&&!i.isReturned);
   const active=items.filter(i=>!i.dateSold&&!i.isReturned&&!i.resaleSalePrice);
@@ -3010,9 +3112,9 @@ function showCategoryItems(cat,_fromBack){
 
 function showROIItems(){
   let items=[];
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
+  allDBKeys().forEach(k=>{(DB[k]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){const roi=calcROI(i);if(roi!==null)items.push({...i,month:m,_roi:roi});}
+    if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){const roi=calcROI(i);if(roi!==null)items.push({...i,month:k,_roi:roi});}
   });});
   items.sort((a,b)=>b._roi-a._roi);
   const avg=items.length?items.reduce((s,i)=>s+i._roi,0)/items.length:0;
@@ -3040,9 +3142,9 @@ function showROIItems(){
 
 function showAvgCostItems(){
   let items=[];
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
+  allDBKeys().forEach(k=>{(DB[k]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    if(!i.isReturned)items.push({...i,month:m});
+    if(!i.isReturned)items.push({...i,month:k});
   });});
   items.sort((a,b)=>(b.costPrice||0)-(a.costPrice||0));
   const avg=items.length?items.reduce((s,i)=>s+(i.costPrice||0),0)/items.length:0;
@@ -3077,10 +3179,10 @@ function showAvgCostItems(){
 function showAllItemsPanel(defaultFilter){_renderAllItemsPanel(defaultFilter||'sold');}
 function _renderAllItemsPanel(filter){
   let soldItems=[],activeItems=[];
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
+  allDBKeys().forEach(k=>{(DB[k]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-    if((i.dateSold||i.resaleSalePrice)&&!i.isReturned)soldItems.push({...i,month:m});
-    else if(!i.isReturned&&!i.resaleSalePrice)activeItems.push({...i,month:m});
+    if((i.dateSold||i.resaleSalePrice)&&!i.isReturned)soldItems.push({...i,month:k});
+    else if(!i.isReturned&&!i.resaleSalePrice)activeItems.push({...i,month:k});
   });});
   const items=filter==='sold'?soldItems:activeItems;
   const html=`
@@ -3110,7 +3212,7 @@ function _renderAllItemsPanel(filter){
 
 function showFilteredItems(filter){
   let items=[];
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
+  allDBKeys().forEach(k=>{(DB[k]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
     const sold=(i.dateSold||i.resaleSalePrice)&&!i.isReturned;
     if((filter==='revenue'||filter==='realised')&&sold){
@@ -3133,21 +3235,21 @@ function showFilteredItems(filter){
         const sale2Profit=+(i.resaleSalePrice-rBPF-(i.resaleShippingCost||0)-rPromoCost).toFixed(2);
         if(filter==='revenue'){
           // Revenue: two real cash transactions — show both
-          items.push({...i,month:m,_entryType:'sale1',_displayPrice:i.salePrice,_displayDate:i.dateSold||(i.returnHistory&&i.returnHistory[0]?i.returnHistory[0].loggedAt:'')||'',_entryProfit:sale1Profit});
-          items.push({...i,month:m,_entryType:'sale2',_displayPrice:i.resaleSalePrice,_displayDate:i.resaleDateSold||'',_entryProfit:sale2Profit});
+          items.push({...i,month:k,_entryType:'sale1',_displayPrice:i.salePrice,_displayDate:i.dateSold||(i.returnHistory&&i.returnHistory[0]?i.returnHistory[0].loggedAt:'')||'',_entryProfit:sale1Profit});
+          items.push({...i,month:k,_entryType:'sale2',_displayPrice:i.resaleSalePrice,_displayDate:i.resaleDateSold||'',_entryProfit:sale2Profit});
         }else{
           // Realised P&L: one lifetime entry — the full story
           const lifetimeProfit=calcGrossProfit(i);
           const saleDate=i.resaleDateSold||(i.returnHistory&&i.returnHistory[0]?i.returnHistory[0].loggedAt:'')||'';
-          items.push({...i,month:m,_entryType:'resold',_displayPrice:i.resaleSalePrice,_displayDate:saleDate,_entryProfit:lifetimeProfit});
+          items.push({...i,month:k,_entryType:'resold',_displayPrice:i.resaleSalePrice,_displayDate:saleDate,_entryProfit:lifetimeProfit});
         }
       } else {
-        items.push({...i,month:m,_entryType:'normal',_displayPrice:i.salePrice,_displayDate:i.dateSold||'',_entryProfit:calcGrossProfit(i)});
+        items.push({...i,month:k,_entryType:'normal',_displayPrice:i.salePrice,_displayDate:i.dateSold||'',_entryProfit:calcGrossProfit(i)});
       }
     } else if(filter==='unrealised'&&!sold&&!i.isReturned){
-      items.push({...i,month:m});
+      items.push({...i,month:k});
     } else if(filter==='stock'&&!sold&&!i.isReturned){
-      items.push({...i,month:m});
+      items.push({...i,month:k});
     }
   });});
   // Sort
@@ -3327,18 +3429,19 @@ function renderSummary(){
       </div>
       <div class="bars-wrap">
         ${(()=>{
-          const maxVal=Math.max(...MONTHS.map(m=>calcMonthStats(m).totalRev),1);
-          return MONTHS.map(m=>{
-            const ms=calcMonthStats(m);
+          const fyKeys=_fyKeys(_currentFYStart());
+          const maxVal=Math.max(...fyKeys.map(k=>calcMonthStats(k).totalRev),1);
+          return fyKeys.map(k=>{
+            const ms=calcMonthStats(k);
             const isEmpty=ms.totalRev===0&&ms.listedCount===0;
             const revH=(ms.totalRev/maxVal)*100;
             const profH=(Math.max(0,ms.realisedProfit)/maxVal)*100;
-            return`<div class="bar-group${isEmpty?' bar-zero':''}" style="cursor:${isEmpty?'default':'pointer'}" onclick="${isEmpty?'':'goToMonth(\''+m+'\')'}">
-              <div class="bar-pair" title="${isEmpty?'':'Click to view '+MONTH_NAMES[m]}">
+            return`<div class="bar-group${isEmpty?' bar-zero':''}" style="cursor:${isEmpty?'default':'pointer'}" onclick="${isEmpty?'':'goToMonth(\''+k+'\')'}">
+              <div class="bar-pair" title="${isEmpty?'':'Click to view '+keyName(k)}">
                 <div class="bar-rev" style="height:${isEmpty?'0':revH}%"></div>
                 <div class="bar-prof" style="height:${isEmpty?'0':profH}%"></div>
               </div>
-              <div class="bar-label">${MONTH_NAMES[m].slice(0,3)}</div>
+              <div class="bar-label">${MONTH_NAMES[keyCode(k)].slice(0,3)}</div>
             </div>`;
           }).join('');
         })()}
@@ -3347,11 +3450,11 @@ function renderSummary(){
 
     ${(()=>{
       const sold=[];
-      MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{
+      allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{
         if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){
           const profit=calcGrossProfit(i);
           const roi=calcROI(i);
-          if(profit!==null)sold.push({...i,month:m,profit,roi});
+          if(profit!==null)sold.push({...i,month:k,profit,roi});
         }
       }));
       sold.sort((a,b)=>b.profit-a.profit);
@@ -3364,7 +3467,7 @@ function renderSummary(){
           <div style="font-size:12px;font-weight:700;color:var(--muted);width:18px;text-align:right;flex-shrink:0">${idx+1}</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.item)}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px">${MONTH_NAMES[i.month]} · ${i.dateSold}${i.gid?' · '+i.gid:''}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${keyName(i.month)} · ${i.dateSold}${i.gid?' · '+i.gid:''}</div>
           </div>
           <div style="text-align:right;flex-shrink:0">
             <div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${profitCol}">${fmt(i.profit)}</div>
@@ -3457,39 +3560,43 @@ function toggleFYSection(fyStart){
 
 function renderMonthlyGrid(){
   const now=new Date();
-  const curMonthIdx=now.getMonth(); // 0=Jan
-  const curMonthCode=MONTHS[curMonthIdx]; // e.g. 'APR'
-  const currentFY=_getCurrentFY();
+  const curMonthKey=currentMonthKey(); // e.g. 'APR-26'
+  const currentFY=_currentFYStart();
 
-  // MONTHS array is ['JAN','FEB',...,'DEC'] — no year suffix.
-  // Map each month code to its FY based on a fixed year (we only have one year of data per key).
-  // _getMonthFY takes a month code and returns the FY start year.
-
-  const fyMap={};
-  MONTHS.forEach(m=>{
-    const fy=_getMonthFY(m);
-    if(!fyMap[fy])fyMap[fy]=[];
-    fyMap[fy].push(m);
+  // Build set of FYs to show: previous, current, next + any FY with data
+  const fySet=new Set([currentFY-1, currentFY, currentFY+1]);
+  allDBKeys().forEach(function(k){
+    const code=keyCode(k); const yr=keyYear(k);
+    const mo=MONTHS.indexOf(code);
+    if(mo<0)return;
+    const fy=mo>=3?yr:yr-1;
+    fySet.add(fy);
   });
-  const fyYears=Object.keys(fyMap).map(Number).sort((a,b)=>b-a);
-
-  const fyMonthOrder=['APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC','JAN','FEB','MAR'];
+  const fyYears=Array.from(fySet).sort(function(a,b){return b-a;}); // newest first
 
   let html='<div style="padding-bottom:80px;">';
   html+='<h1 style="font-size:26px;font-weight:700;letter-spacing:-0.02em;margin-bottom:20px;">Calendar</h1>';
 
   fyYears.forEach(function(fy){
-    const months=(fyMap[fy]||[]).slice().sort(function(a,b){
-      return fyMonthOrder.indexOf(a)-fyMonthOrder.indexOf(b);
-    });
+    const months=_fyKeys(fy); // full Apr-Mar ordered list of 'MMM-YY' keys
+    const isCurrentFY=fy===currentFY;
+    // Default collapse: current FY always open; previous FY open if within 6 months
+    // of its end (March) — i.e. before October of the current year; future + older always collapsed
+    let defaultCollapsed;
+    if(fy===currentFY){ defaultCollapsed=false; }
+    else if(fy===currentFY-1){
+      // Previous FY ended March of currentFY. Stay open until Oct 1 of currentFY.
+      const cutoff=new Date(currentFY,9,1); // Oct 1 (month index 9)
+      defaultCollapsed=now>=cutoff;
+    } else { defaultCollapsed=true; }
+    const isCollapsed=_fyCollapsed[fy]!==undefined?_fyCollapsed[fy]:defaultCollapsed;
 
     let fyProfit=0,fySold=0,fyROISum=0,fyROICount=0;
-    months.forEach(function(m){
-      const ms=calcMonthStats(m);
+    months.forEach(function(k){
+      const ms=calcMonthStats(k);
       fyProfit+=ms.realisedProfit;
       fySold+=ms.soldCount;
-      // Calculate ROI directly from items — calcMonthStats doesn't include avgROI
-      (DB[m]||[]).forEach(function(i){
+      (DB[k]||[]).forEach(function(i){
         if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){
           const roi=calcROI(i);
           if(roi!==null){fyROISum+=roi;fyROICount++;}
@@ -3497,11 +3604,8 @@ function renderMonthlyGrid(){
       });
     });
     const fyAvgROI=fyROICount>0?(fyROISum/fyROICount):null;
-    const isCurrentFY=fy===currentFY;
-    const isCollapsed=_fyCollapsed[fy]!==undefined?_fyCollapsed[fy]:!isCurrentFY;
     const fyLabel=_getFYLabel(fy);
     const profitColor=fyProfit>0?'var(--green)':fyProfit<0?'var(--red)':'var(--muted)';
-
     const chevronRot=isCollapsed?'0deg':'180deg';
     const borderCol=isCurrentFY?'var(--accent)':'var(--border)';
     const labelCol=isCurrentFY?'var(--accent)':'var(--text)';
@@ -3510,21 +3614,33 @@ function renderMonthlyGrid(){
 
     let gridHTML='';
     if(!isCollapsed){
-      const cards=months.map(function(m){
-        const ms=calcMonthStats(m);
-        const hasItems=ms.soldCount>0||ms.listedCount>0;
-        const isCurrent=m===curMonthCode;
-        const isEmpty=!hasItems&&!isCurrent;
+      const cards=months.map(function(k){
+        const ms=calcMonthStats(k);
+        const hasItems=(DB[k]||[]).length>0;
+        const hasSales=ms.soldCount>0||ms.listedCount>0;
+        const isCurrent=k===curMonthKey;
+        // Truly empty: no items at all AND not current month
+        const trulyEmpty=!hasItems&&!isCurrent;
+        // Has items but 0 sold
+        const hasListedOnly=hasItems&&ms.soldCount===0;
         const borderStyle=isCurrent?'border-color:var(--accent);':'';
-        const profVal=ms.realisedProfit>0?'pos':ms.realisedProfit<0?'neg':'nil';
-        const cardContent=isEmpty
-          ?'<div class="mval nil" style="font-size:16px;margin-bottom:6px;">—</div><div class="msub" style="opacity:0.5">No items yet · tap to add</div>'
-          :'<div class="mval '+profVal+'">'+(ms.soldCount>0?fmt(ms.realisedProfit):'—')+'</div>'
-           +'<div class="msub">'+ms.soldCount+' sold · '+ms.listedCount+' active'+(ms.avgDays!==null?' · '+ms.avgDays+'d avg':' · — avg')+'</div>';
+        let cardContent;
+        if(trulyEmpty){
+          cardContent='<div class="mval nil" style="font-size:16px;margin-bottom:6px;">—</div>'
+            +'<div class="msub" style="opacity:0.5">No items yet · tap to add</div>';
+        } else if(hasListedOnly){
+          cardContent='<div class="mval nil">—</div>'
+            +'<div class="msub">0 sold · '+ms.listedCount+' active · — avg</div>';
+        } else {
+          const profVal=ms.realisedProfit>0?'pos':ms.realisedProfit<0?'neg':'nil';
+          cardContent='<div class="mval '+profVal+'">'+(ms.soldCount>0?fmt(ms.realisedProfit):'—')+'</div>'
+            +'<div class="msub">'+ms.soldCount+' sold · '+ms.listedCount+' active'+(ms.avgDays!==null?' · '+ms.avgDays+'d avg':' · — avg')+'</div>';
+        }
         const nowBadge=isCurrent?'<span style="font-size:10px;font-weight:700;color:var(--accent);letter-spacing:0.5px;text-transform:uppercase;">Now</span>':'';
-        return '<div class="mcard'+(isEmpty?' mcard-empty':'')+'" style="'+borderStyle+'" onclick="goToMonth(\''+m+'\')">'
+        const monthLabel=MONTH_NAMES[keyCode(k)]; // e.g. 'April'
+        return '<div class="mcard'+(trulyEmpty?' mcard-empty':'')+'" style="'+borderStyle+'" onclick="goToMonth(\''+k+'\')">' 
           +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
-          +'<div class="mname" style="margin-bottom:0">'+MONTH_NAMES[m]+'</div>'+nowBadge+'</div>'
+          +'<div class="mname" style="margin-bottom:0">'+monthLabel+'</div>'+nowBadge+'</div>'
           +cardContent+'</div>';
       }).join('');
       gridHTML='<div class="mgrid" style="margin-top:10px;">'+cards+'</div>';
@@ -3553,7 +3669,17 @@ function renderMonthlyGrid(){
 
 function toggleMonthPicker(){
   const el=document.getElementById('month-picker');
-  if(el)el.classList.toggle('open');
+  if(!el)return;
+  const wasOpen=el.classList.contains('open');
+  el.classList.toggle('open');
+  if(!wasOpen){
+    // Scroll active month into view after dropdown renders
+    setTimeout(function(){
+      const list=document.getElementById('month-picker-list');
+      const active=list&&list.querySelector('.month-picker-option.active');
+      if(active)active.scrollIntoView({block:'center',behavior:'instant'});
+    },0);
+  }
 }
 function pickMonth(m){
   const el=document.getElementById('month-picker');
@@ -3622,18 +3748,33 @@ function renderMonth(){
         <button class="btn btn-s" style="padding:7px 14px;font-size:13px;" onclick="${backAction}">${backLabel}</button>
         <div class="month-picker-wrap" id="month-picker">
           <div class="month-picker-title" onclick="toggleMonthPicker()">
-            ${MONTH_NAMES[m]} 2026
+            ${keyName(m)}
             <span class="month-picker-chevron">▾</span>
           </div>
-          <div class="month-picker-dropdown">
-            ${MONTHS.map(mo=>{
-              const ms=calcMonthStats(mo);
-              const hasSales=ms.soldCount>0||ms.listedCount>0;
-              return`<div class="month-picker-option${mo===m?' active':''}" onclick="pickMonth('${mo}')">
-                ${MONTH_NAMES[mo]} 2026
-                ${hasSales?`<span class="month-picker-option-sub">${ms.soldCount} sold · ${ms.listedCount} listed</span>`:`<span class="month-picker-option-sub" style="opacity:0.4">empty</span>`}
-              </div>`;
-            }).join('')}
+          <div class="month-picker-backdrop" onclick="toggleMonthPicker()"></div>
+          <div class="month-picker-dropdown" id="month-picker-list">
+            ${(()=>{
+              const curFY=_currentFYStart();
+              const fySet=new Set();
+              allDBKeys().forEach(k=>{const code=keyCode(k);const yr=keyYear(k);const mo=MONTHS.indexOf(code);const fy=mo>=3?yr:yr-1;fySet.add(fy);});
+              const fyYears=Array.from(fySet).sort((a,b)=>b-a);
+              let out='';
+              fyYears.forEach(fy=>{
+                const keys=_fyKeys(fy);
+                const isCur=fy===curFY;
+                out+='<div class="month-picker-fy-header">FY '+_getFYLabel(fy)+(isCur?' · Current':'')+'</div>';
+                keys.forEach(k=>{
+                  const ms=calcMonthStats(k);
+                  const hasSales=ms.soldCount>0||ms.listedCount>0;
+                  const sub=hasSales
+                    ?'<span class="month-picker-option-sub">'+ms.soldCount+' sold · '+ms.listedCount+' listed</span>'
+                    :'<span class="month-picker-option-sub" style="opacity:0.4">empty</span>';
+                  out+='<div class="month-picker-option'+(k===m?' active':'')+'" onclick="pickMonth(\''+k+'\')">' 
+                    +MONTH_NAMES[keyCode(k)]+sub+'</div>';
+                });
+              });
+              return out;
+            })()}
           </div>
         </div>
       </div>
@@ -3972,8 +4113,8 @@ function toggleStockSelect(id){
 function selectAllStockVisible(){
   const today=new Date().toISOString().split('T')[0];
   let allListed=[];
-  MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{
-    if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice)allListed.push({...i,month:m});
+  allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{
+    if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice)allListed.push({...i,month:k});
   }));
   let items=allListed;
   if(STOCK_FILTER==='stale')items=allListed.filter(i=>daysBetween(i.dateListed,today)>=30);
@@ -3992,7 +4133,7 @@ async function stockBulkAction(action,items){
     const today=new Date().toISOString().split('T')[0];
     STOCK_SELECTED.forEach(id=>{
       let found=null;
-      MONTHS.forEach(m=>{const x=(DB[m]||[]).find(i=>i.id===id);if(x)found=x;});
+      allDBKeys().forEach(k=>{const x=(DB[k]||[]).find(i=>i.id===id);if(x)found=x;});
       if(found&&!found.dateSold){found.dateSold=today;found.grossProfit=calcGrossProfit(found);}
     });
     saveDB();STOCK_SELECTED.clear();STOCK_SELECTION_MODE=false;toast('Marked as sold');renderStock();
@@ -4000,9 +4141,9 @@ async function stockBulkAction(action,items){
     const ok=await showConfirm('Delete '+STOCK_SELECTED.size+' items?','This cannot be undone.',{icon:'🗑️',okLabel:'Delete all'});
     if(!ok)return;
     STOCK_SELECTED.forEach(id=>{
-      MONTHS.forEach(m=>{
-        const idx=(DB[m]||[]).findIndex(i=>i.id===id);
-        if(idx>-1)DB[m].splice(idx,1);
+      allDBKeys().forEach(k=>{
+        const idx=(DB[k]||[]).findIndex(i=>i.id===id);
+        if(idx>-1)DB[k].splice(idx,1);
       });
     });
     saveDB();STOCK_SELECTED.clear();STOCK_SELECTION_MODE=false;toast('Items deleted');renderStock();
@@ -4024,8 +4165,8 @@ function renderStockRow(m,i){
 function renderStock(){
   const today=new Date().toISOString().split('T')[0];
   let allListed=[];
-  MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{
-    if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice)allListed.push({...i,month:m});
+  allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{
+    if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice)allListed.push({...i,month:k});
   }));
 
   // Counts
@@ -4372,8 +4513,9 @@ function exportDB(){
   // Build a clean export — strip user_id and internal flags so the backup
   // is portable and never contains account-specific identifiers
   const exportData = {};
-  MONTHS.forEach(m => {
-    exportData[m] = (DB[m]||[]).map(i => {
+  allDBKeys().forEach(k => {
+    if(!(DB[k]||[]).length) return;
+    exportData[k] = (DB[k]||[]).map(i => {
       const clean = Object.assign({}, i);
       delete clean.user_id;
       if(clean.parts) clean.parts = clean.parts.map(p => { const cp=Object.assign({},p); delete cp.user_id; return cp; });
@@ -4413,7 +4555,7 @@ function importDB(e){
       // Untouched = in DB only                → never deleted (merge mode)
       const newItems=[], dupeItems=[];
 
-      MONTHS.forEach(m=>{
+      allDBKeys().forEach(m=>{
         const inc=(imported[m]||[]).filter(i=>(i.item||'').trim().toUpperCase()!=='MONTH END');
         const cur=(DB[m]||[]).filter(i=>(i.item||'').trim().toUpperCase()!=='MONTH END');
         inc.forEach(a=>{
@@ -4637,8 +4779,13 @@ function processExcelFile(file){
         return null;
       }
 
-      MONTHS.forEach(month=>{
-        const sheetName=`${month}-26`;
+      const sheetMonthKeys=[];
+      workbook.SheetNames.forEach(function(sn){
+        const parts=sn.split('-');
+        if(parts.length===2&&MONTHS.includes(parts[0]))sheetMonthKeys.push(sn);
+      });
+      sheetMonthKeys.forEach(month=>{
+        const sheetName=month;
         if(!workbook.SheetNames.includes(sheetName))return;
         const worksheet=workbook.Sheets[sheetName];
         const jsonData=XLSX.utils.sheet_to_json(worksheet,{header:1,raw:true,defval:''});
@@ -4768,10 +4915,7 @@ async function clearAllData(){
     await _sbCall(()=>_sb.from('items').delete().eq('user_id',_currentUserId));
     await _sbCall(()=>_sb.from('trips').delete().eq('user_id',_currentUserId));
     await _sbCall(()=>_sb.from('expenses').delete().eq('user_id',_currentUserId));
-    DB={};
-    MONTHS.forEach(m=>DB[m]=[]);
-    DB.trips=[];
-    DB.expenses=[];
+    DB={trips:[],expenses:[]};
     _dbSnapshot=_dbFingerprint();
     toast('All data cleared');
     renderSummary();
@@ -5256,7 +5400,8 @@ function saveReturn(m,id){
     type:type,
     refundAmount:refundAmount,
     returnPostage:returnPostage,
-    notes:notes
+    notes:notes,
+    _salePriceAtReturn:i.salePrice||0  // snapshot: used to get correct BPF refund in calcGrossProfit
   };
 
   if(!i.returnHistory)i.returnHistory=[];
@@ -5361,10 +5506,10 @@ function undoRelist(m,id,rtnIdx){
 // ── Returned items panel (opened from KPI card) ────────────────────────────
 function showReturnedItems(){
   const items=[];
-  MONTHS.forEach(function(m){
-    (DB[m]||[]).forEach(function(i){
+  allDBKeys().forEach(function(k){
+    (DB[k]||[]).forEach(function(i){
       if(i.isReturned||(i.returnHistory&&i.returnHistory.length>0)){
-        items.push(Object.assign({},i,{month:m}));
+        items.push(Object.assign({},i,{month:k}));
       }
     });
   });
@@ -5424,7 +5569,7 @@ function renderTax(){
   const taxYearEnd=new Date(selectedYear+1,3,5,23,59,59);
   function inTaxYear(ds){if(!ds)return false;const d=new Date(ds);return d>=taxYearStart&&d<=taxYearEnd;}
   const soldItems=[];
-  MONTHS.forEach(function(m){(DB[m]||[]).forEach(function(i){
+  allDBKeys().forEach(function(k){(DB[k]||[]).forEach(function(i){
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
     if((i.dateSold||i.resaleSalePrice)&&!i.isReturned&&inTaxYear(i.dateSold||i.resaleDateSold))soldItems.push(i);
   });});
@@ -5631,8 +5776,8 @@ function calcYearlyStats(){
   let soldCount=0,listedCount=0,totalItems=0,returnCount=0;
   let soldItems=[],stale=[];
   let saleTransactions=[];
-  MONTHS.forEach(m=>{
-    (DB[m]||[]).forEach(i=>{
+  allDBKeys().forEach(k=>{
+    (DB[k]||[]).forEach(i=>{
       if((i.item||"").trim().toUpperCase()==="MONTH END")return;
       totalItems++;
       if((i.dateSold||i.resaleSalePrice)&&!i.isReturned&&i.condition!=='spares')saleTransactions.push(i.salePrice||0);
@@ -5664,7 +5809,7 @@ function calcYearlyStats(){
   const sellThrough=totalItems?soldCount/totalItems*100:0;
   // 14-day sell-through: items that sold within 14 days of listing
   const eligible14=[];
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
+  allDBKeys().forEach(k=>{(DB[k]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
     if(i.isReturned)return;
     // Only include items listed long enough to have had a fair 14-day window
@@ -5683,13 +5828,13 @@ function calcYearlyStats(){
   const avgDays=soldWithDate.length?Math.round(soldWithDate.reduce((s,i)=>s+daysBetween(i.dateListed,i.dateSold),0)/soldWithDate.length):0;
   // Avg buy price: all items ever sourced — buying discipline metric regardless of outcome
   const allSourcingItems=[];
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{if((i.item||'').trim().toUpperCase()!=='MONTH END')allSourcingItems.push(i);});});
+  allDBKeys().forEach(k=>{(DB[k]||[]).forEach(i=>{if((i.item||'').trim().toUpperCase()!=='MONTH END')allSourcingItems.push(i);});});
   const avgCostPrice=allSourcingItems.length?allSourcingItems.reduce((s,i)=>s+(i.costPrice||0),0)/allSourcingItems.length:0;
   // Build category sell-through data — avg days and stale per category
   const catMap={};
   const today3=new Date().toISOString().split('T')[0];
-  MONTHS.forEach(m=>{
-    (DB[m]||[]).forEach(i=>{
+  allDBKeys().forEach(k=>{
+    (DB[k]||[]).forEach(i=>{
       if((i.item||"").trim().toUpperCase()==="MONTH END")return;
       const cat=i.category||'Uncategorised';
       if(!catMap[cat])catMap[cat]={sold:0,total:0,daysSum:0,stale:0,fast:0,avgS:0,slow:0};
@@ -5718,7 +5863,7 @@ function calcYearlyStats(){
   const returnRate=(soldCount+returnCount)>0?returnCount/(soldCount+returnCount)*100:0;
   // Partial refund stats
   let partialRefundCount=0;
-  MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
+  allDBKeys().forEach(k=>{(DB[k]||[]).forEach(i=>{
     if(i.returnHistory&&i.returnHistory.some(r=>r.type==='partial_seller'||r.type==='partial_ebay'))partialRefundCount++;
   });});
   const partialRefundRate=(soldCount+returnCount)>0?partialRefundCount/(soldCount+returnCount)*100:0;
@@ -5773,10 +5918,25 @@ function calcGrossProfit(i){
   const rev=i.salePrice+(i.postage||0)-bpf;
   // Full returns only: eBay refunds BPF back to seller (transaction fully reversed)
   // Partial returns: no BPF refund — eBay keeps the fee, buyer keeps the item
+  // Determine if this item has been relisted after a full return
+  // (isReturned=false but returnHistory has a full return entry, and no dateSold / resaleSalePrice)
+  const _wasRelisted = !i.isReturned && !i.dateSold && !i.resaleSalePrice &&
+    (i.returnHistory||[]).some(r=>r.type==='full_seller'||r.type==='full_ebay');
   const returnCost=(i.returnHistory||[]).reduce(function(s,r){
     const fullReturn=(r.type==='full_seller'||r.type==='full_ebay');
-    const netRefund=fullReturn?Math.max(0,(r.refundAmount||0)-bpf):(r.refundAmount||0);
-    return s+netRefund+(r.returnPostage||0);
+    if(fullReturn){
+      if(_wasRelisted){
+        // Sale 1 revenue already excluded (dateSold cleared on return).
+        // Only the return postage is a real additional cost here.
+        return s+(r.returnPostage||0);
+      }
+      // Standard path: item is returned and not yet relisted — charge refund net of BPF refund
+      const origSalePrice=r._salePriceAtReturn||r.refundAmount||i.salePrice||0;
+      const origBPF=calcEbayBPF(origSalePrice);
+      const netRefund=Math.max(0,(r.refundAmount||0)-origBPF);
+      return s+netRefund+(r.returnPostage||0);
+    }
+    return s+(r.refundAmount||0)+(r.returnPostage||0);
   },0);
   const partsCost=calcPartsCost(i);
   const cost=(i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+returnCost+partsCost;
@@ -6276,10 +6436,10 @@ function exportForSupabase(){
   const items=[];
   const parts=[];
   const returns=[];
-  MONTHS.forEach(function(m){
-    (DB[m]||[]).forEach(function(i){
+  allDBKeys().forEach(function(k){
+    (DB[k]||[]).forEach(function(i){
       items.push({
-        id:i.id, gid:i.gid||null, month:m,
+        id:i.id, gid:i.gid||null, month:k,
         item:i.item||'', category:i.category||null, location:i.location||null, source:i.source||null,
         date_listed:i.dateListed||null, date_sold:i.dateSold||null,
         sale_price:i.salePrice||0, postage:i.postage||0, cost_price:i.costPrice||0,
