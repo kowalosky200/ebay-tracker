@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>General-007 | eBay Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --bg:#f8f9fa;--surface:#ffffff;--surface2:#f1f3f5;--border:#dee2e6;--border2:#ced4da;
@@ -25,107 +24,39 @@
 html{overflow-x:hidden;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;min-height:100vh;transition:background 0.2s,color 0.2s;overflow-x:hidden;}
 
-/* NAV — Desktop: full width, single row */
-nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface);border-bottom:1px solid var(--border);}
-.nav-inner{width:100%;max-width:1148px;margin:0 auto;display:flex;align-items:center;height:58px;padding:0 24px;gap:0;}
-/* Brand */
-.brand{display:flex;align-items:center;cursor:pointer;user-select:none;flex-shrink:0;margin-right:28px;transition:opacity 0.15s;}
-.brand:hover{opacity:0.75;}
-.brand-text{font-weight:800;font-size:14px;letter-spacing:0.1em;}
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);box-shadow:0 1px 3px var(--shadow);}
+.nav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:16px;flex-wrap:nowrap;min-width:0;}
+.brand{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;transition:opacity 0.15s;}
+.brand:hover{opacity:0.8;}
+.brand-text{font-weight:700;font-size:18px;letter-spacing:-0.02em;}
 .brand-general{color:var(--text);}
 .brand-007{color:var(--accent);}
-/* Primary tabs — left cluster */
-.tabs-row{display:flex;align-items:center;gap:0;flex-shrink:0;}
-.tabs{display:flex;gap:0;}
-.tab{padding:0 14px;border:none;cursor:pointer;font-weight:500;font-size:13px;background:transparent;color:var(--text-secondary);transition:color 0.15s;white-space:nowrap;height:58px;display:flex;align-items:center;position:relative;}
-.tab::after{content:'';position:absolute;bottom:0;left:8px;right:8px;height:2px;background:var(--accent);border-radius:2px 2px 0 0;opacity:0;transition:opacity 0.15s;}
-.tab:hover{color:var(--text);}
-.tab.on{color:var(--text);font-weight:600;}
-.tab.on::after{opacity:1;}
-/* Overflow more menu */
+.tabs-row{display:flex;align-items:center;gap:4px;}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;}
+.tab{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;white-space:nowrap;}
+.tab:hover{color:var(--text);background:var(--surface2);}
+.tab.on{background:var(--accent);color:#000;}
 .nav-more{position:relative;}
-.nav-more-btn{padding:0 10px;border:none;cursor:pointer;font-weight:500;font-size:13px;background:transparent;color:var(--text-secondary);transition:color 0.15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;height:58px;gap:5px;}
-.nav-more-btn:hover{color:var(--text);}
-.nav-more-btn.on{color:var(--accent);}
+.nav-more-btn{padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--text-secondary);transition:all 0.15s;display:none;align-items:center;justify-content:center;flex-shrink:0;min-height:40px;}
+.nav-more-btn:hover{color:var(--text);background:var(--surface2);}
+.nav-more-btn.on{background:var(--accent);color:#000;}
 .nav-more-btn.has-items{display:flex;}
-.nav-more-menu{display:none;position:absolute;top:calc(100% + 4px);right:0;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px var(--shadow-md);z-index:300;overflow:hidden;padding:4px;}
+.nav-more-menu{display:none;position:absolute;top:calc(100% + 4px);right:0;min-width:150px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px var(--shadow-md);z-index:300;overflow:hidden;}
 .nav-more.open .nav-more-menu{display:block;}
-.nav-more-menu button{width:100%;padding:10px 14px;background:none;border:none;text-align:left;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-secondary);transition:all 0.15s;border-radius:8px;}
+.nav-more-menu button{width:100%;padding:10px 16px;background:none;border:none;text-align:left;cursor:pointer;font-size:13px;font-weight:600;color:var(--text-secondary);transition:all 0.15s;}
 .nav-more-menu button:hover{background:var(--surface2);color:var(--text);}
-.nav-more-menu button.on{color:var(--accent);font-weight:600;}
-/* Search — centred in remaining space */
-.nav-spacer{flex:1;}
-.search-wrap{position:relative;width:260px;}
-.search-wrap input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 32px 7px 34px;color:var(--text);font-size:13px;width:100%;transition:all 0.2s;height:34px;}
-.search-wrap input:focus{outline:none;border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px rgba(245,158,11,0.12);}
+.nav-more-menu button.on{background:var(--accent);color:#000;}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-row1{display:contents;}
+.search-wrap{position:relative;width:220px;}
+.search-wrap input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 32px 8px 36px;color:var(--text);font-size:13px;width:100%;transition:all 0.15s;}
+.search-wrap input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,0.1);}
 .search-wrap input::placeholder{color:var(--muted);}
-.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none;}
-.search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;display:none;padding:4px;line-height:1;}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;}
+.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;display:none;padding:4px;line-height:1;}
 .search-clear.show{display:block;}
 .search-clear:hover{color:var(--text);}
-/* User menu — right */
-.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;padding-left:16px;}
-.nav-row1{display:contents;}
-/* User avatar button */
-.user-menu-btn{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;border:1px solid var(--border);border-radius:20px;background:transparent;cursor:pointer;transition:all 0.15s;color:var(--text-secondary);font-size:13px;font-weight:500;}
-.user-menu-btn:hover{border-color:var(--accent);color:var(--text);background:var(--surface2);}
-.user-avatar{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#000;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.user-menu-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px var(--shadow-md);z-index:300;overflow:hidden;padding:4px;}
-.user-menu.open .user-menu-dropdown{display:block;}
-.user-menu{position:relative;}
-.user-menu-item{width:100%;padding:10px 14px;background:none;border:none;text-align:left;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-secondary);transition:all 0.15s;border-radius:8px;display:flex;align-items:center;gap:10px;}
-.user-menu-item:hover{background:var(--surface2);color:var(--text);}
-.user-menu-item.danger{color:var(--red);}
-.user-menu-item.danger:hover{background:rgba(239,68,68,0.08);}
-.user-menu-divider{height:1px;background:var(--border);margin:4px 8px;}
-/* Sync indicator */
-#sync-indicator{display:none;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text-secondary);white-space:nowrap;flex-shrink:0;}
-/* Mobile search icon btn — hidden on desktop */
-.nav-search-icon-btn{display:none;}
-/* Mobile search expand bar */
-.nav-search-expand{display:none;position:absolute;top:52px;left:0;right:0;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 4px 16px var(--shadow-md);z-index:201;}
-.nav-search-expand.open{display:block;}
-.nav-search-expand .search-wrap{width:100%;}
-/* BOTTOM NAV — mobile only */
-#bottom-nav{
-  display:none;
-  position:fixed;top:auto;bottom:0;left:0;right:0;
-  height:60px;background:var(--surface);border-top:1px solid var(--border);
-  z-index:200;padding-bottom:env(safe-area-inset-bottom);
-  box-shadow:0 -1px 0 var(--border);
-}
-.bnt{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;border:none;background:transparent;cursor:pointer;
-  color:var(--muted);font-size:10px;font-weight:500;letter-spacing:0.01em;
-  transition:color 0.15s;padding:0;
-  -webkit-tap-highlight-color:transparent;
-}
-.bnt:active{opacity:0.7;}
-.bnt.on{color:var(--accent);}
-.bnt svg{transition:transform 0.15s;}
-.bnt.on svg{transform:scale(1.1);}
-@media(max-width:900px) and (min-width:601px){
-  .kgrid-4{grid-template-columns:1fr 1fr!important;}
-  .insights{grid-template-columns:1fr 1fr 1fr!important;}
-  .bars-wrap{height:190px;gap:6px;}
-  .bar-pair{height:144px;}
-}
-@media(max-width:600px){
-  /* Hide entire top nav on mobile — bottom nav handles everything */
-  nav:not(#bottom-nav){display:none!important;}
-  body{padding-bottom:60px;}
-  .fab{bottom:72px!important;}
-}
-/* MORE SHEET */
-.more-sheet-row{display:flex;align-items:center;gap:16px;width:100%;padding:14px 22px;background:none;border:none;text-align:left;cursor:pointer;font-size:15px;font-weight:500;color:var(--text);-webkit-tap-highlight-color:transparent;transition:background 0.12s;}
-.more-sheet-row:active{background:var(--surface2);}
-.more-sheet-row svg{flex-shrink:0;color:var(--text-secondary);}
-.more-sheet-row.active-row{color:var(--accent);font-weight:600;}
-.more-sheet-row.active-row svg{color:var(--accent);}
-.more-sheet-danger{color:var(--red)!important;}
-.more-sheet-danger svg{color:var(--red)!important;}
-
 /* Search dropdown */
 .item-full-page{max-width:1100px;margin:0 auto;padding:20px 24px 80px;}
 .item-full-section{background:var(--surface2);border-radius:12px;padding:16px;margin-bottom:14px;}
@@ -182,14 +113,12 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .panel-section{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:600;}
 
 /* PAGES */
-.page{display:none;max-width:1100px;margin:0 auto;padding:20px 24px 120px;}
+.page{display:none;max-width:1400px;margin:0 auto;padding:24px 20px 120px;}
 .page.on{display:block;}
 
 /* CARDS */
-.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px;}
-.kgrid-3{grid-template-columns:repeat(3,1fr);}
-.kgrid-4{grid-template-columns:repeat(4,minmax(0,1fr));}
-.kcard{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:22px 20px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 3px var(--shadow);min-height:110px;display:flex;flex-direction:column;justify-content:space-between;}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:32px;}
+.kcard{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 3px var(--shadow);}
 .kcard.clickable{cursor:pointer;transition:border-color 0.15s,transform 0.1s;}
 .kcard.clickable:hover{border-color:var(--accent);transform:translateY(-1px);}
 .kcard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow-md);}
@@ -197,49 +126,49 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .kcard.active-filter::before{content:'▾';position:absolute;bottom:8px;right:12px;font-size:16px;color:var(--accent);}
 .kcard::after{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent);}
 .kcard.g::after{background:var(--green);}.kcard.r::after{background:var(--red);}.kcard.b::after{background:var(--blue);}.kcard.p::after{background:var(--purple);}
-.klabel{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;}
-.kval{font-size:28px;font-weight:700;line-height:1.1;letter-spacing:-0.02em;margin:6px 0 4px;}
+.klabel{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:600;}
+.kval{font-size:32px;font-weight:700;line-height:1;letter-spacing:-0.02em;}
 .ksub{font-size:12px;color:var(--text-secondary);margin-top:6px;}
 
 /* INSIGHTS */
-.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
-.insight-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:20px;display:flex;align-items:center;gap:16px;box-shadow:0 1px 3px var(--shadow);}
+.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+.insight-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 3px var(--shadow);}
 .insight-icon{font-size:22px;flex-shrink:0;}
 .insight-label{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:600;}
-.insight-val{font-size:22px;font-weight:700;letter-spacing:-0.01em;}
+.insight-val{font-size:20px;font-weight:700;letter-spacing:-0.01em;}
 .insight-sub{font-size:12px;color:var(--text-secondary);margin-top:2px;}
 
 /* ALERTS */
-.stale-alert{background:rgba(245,158,11,0.08);border:1.5px solid rgba(245,158,11,0.3);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.stale-alert{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:16px;margin-bottom:24px;display:flex;align-items:center;gap:12px;}
 .stale-dot{width:10px;height:10px;border-radius:50%;background:var(--warn);flex-shrink:0;animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
-@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 .stale-text{font-size:14px;color:var(--warn);font-weight:600;}
 .stale-items{font-size:13px;color:var(--text-secondary);margin-top:4px;}
 
 /* SECTION LABEL */
-.sl{display:flex;align-items:center;width:100%;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-secondary);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;margin:24px 0 12px;box-sizing:border-box;}
+.sl{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1.5px;margin:32px 0 16px;display:flex;align-items:center;gap:12px;font-weight:600;}
+.sl::after{content:'';flex:1;height:1px;background:var(--border);}
 
 /* MONTH GRID */
-.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px;}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:32px;}
 .mcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 3px var(--shadow);}
 .mcard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 12px var(--shadow-md);}
-.mcard-empty{opacity:0.45;}
+.mcard-empty{opacity:0.45;pointer-events:none;}
 .mname{font-weight:600;font-size:14px;margin-bottom:10px;color:var(--text);}
 .mval{font-size:26px;font-weight:700;letter-spacing:-0.01em;}
 .mval.pos{color:var(--green);}.mval.nil{color:var(--muted);}
 .msub{font-size:11px;color:var(--text-secondary);margin-top:5px;}
 
 /* CHART */
-.chart-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px var(--shadow);}
-.chart-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;display:flex;align-items:center;gap:16px;}
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:32px;margin-bottom:32px;box-shadow:0 1px 3px var(--shadow);}
+.chart-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:40px;display:flex;align-items:center;gap:16px;}
 .chart-legend{display:flex;gap:16px;margin-left:auto;}
 .leg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);}
 .leg-dot{width:10px;height:10px;border-radius:3px;}
-.bars-wrap{display:flex;align-items:flex-end;gap:10px;height:220px;padding-bottom:36px;padding-top:16px;position:relative;}
+.bars-wrap{display:flex;align-items:flex-end;gap:10px;height:220px;padding-bottom:36px;position:relative;}
 .bars-wrap::after{content:'';position:absolute;bottom:36px;left:0;right:0;height:1px;background:var(--border);}
 .bar-group{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;}
-.bar-pair{display:flex;align-items:flex-end;gap:3px;width:100%;height:168px;}
+.bar-pair{display:flex;align-items:flex-end;gap:3px;width:100%;height:184px;}
 .bar-rev{background:var(--blue);border-radius:4px 4px 0 0;width:55%;transition:opacity 0.15s;min-height:2px;}
 .bar-prof{background:var(--green);border-radius:4px 4px 0 0;width:45%;min-height:0;transition:opacity 0.15s;}
 .bar-group:not(.bar-zero):hover .bar-rev,.bar-group:not(.bar-zero):hover .bar-prof{opacity:0.7;}
@@ -325,43 +254,74 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 #toast.err{background:var(--red);color:#fff;border-color:var(--red-hover);}
 
 /* MOBILE */
-
+@media (max-width:768px){
+  /* Nav — single compact row: brand left, search+theme right, tabs below */
+  .nav-inner{flex-direction:column;gap:8px;padding:8px 16px;}
+  .nav-row1{display:flex;align-items:center;justify-content:space-between;width:100%;}
+  .tabs-row{display:flex;align-items:center;width:100%;overflow:visible;position:relative;}
+  .tabs{justify-content:flex-start;flex:1;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{flex-shrink:0;padding:6px 12px;font-size:12px;}
+  .nav-more-btn{flex-shrink:0;padding:6px 12px;font-size:12px;}
+  .nav-right{gap:8px;}
+  .search-wrap{width:160px;}
+  /* Content */
+  .kgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
+  .kgrid-3{grid-template-columns:1fr 1fr!important;}
+  .insights{grid-template-columns:1fr;gap:8px;}
+  .insight-card{padding:12px 16px;}
+  .insight-label{font-size:11px;}
+  .insight-val{font-size:18px;}
+  .chart-wrap{padding:20px 16px;}
+  .chart-title{flex-direction:column;align-items:flex-start;}
+  .chart-legend{margin-left:0;}
+  .bars-wrap{gap:6px;}
+  .item-row{padding:14px 16px;grid-template-columns:1fr;}
+  .item-actions{justify-content:flex-end;}
+  .fab{bottom:80px;right:20px;width:52px;height:52px;}
+  .slide-panel{width:100%;right:-100%;}
+  /* Tax page */
+  .tax-method-grid{grid-template-columns:1fr!important;}
+  .tax-year-select{width:100%!important;min-width:0!important;font-size:13px!important;}
+  .tax-box-row{flex-wrap:wrap;gap:8px!important;padding:12px 14px!important;}
+  .tax-box-desc{flex-basis:100%;order:2;}
+  .tax-box-val{order:3;margin-left:auto;}
+  .tax-box-tag{order:1;}
+  .tax-exp-row{padding:9px 14px!important;font-size:13px!important;}
+  .tax-method-card{padding:16px!important;}
+  .tax-method-card .tax-row{font-size:13px!important;}
+}
 
 @media (max-width:600px){
+  /* Add form — stack all 2-col grids to 1 col */
   .form-grid-2{grid-template-columns:1fr!important;}
+  /* Item page details grid — stack to 1 col */
   .ip-details-grid{grid-template-columns:1fr!important;}
   .ip-field-num{width:100%;}
+  /* BPF preview — stack fee breakdown and profit vertically */
   .bpf-preview-inner{flex-direction:column!important;gap:8px!important;}
   .bpf-breakdown{flex-direction:column;gap:4px;}
   .bpf-profit-right{text-align:left!important;}
+  /* Return fields */
   .return-fields{grid-template-columns:1fr;}
   .rtn-grid{grid-template-columns:1fr;}
+  /* Search dropdown */
   .search-dropdown{min-width:0;left:-40px;right:-40px;}
+  /* Slide panel padding */
   .slide-panel{padding:16px;}
   .panel-header{margin-bottom:14px;}
   .panel-close{padding:6px 10px;font-size:18px;}
   #panel-title{font-size:18px;line-height:1.2;}
+  /* Badges — slightly larger on mobile for readability */
   .item-badge{font-size:11px;padding:4px 8px;white-space:nowrap;}
-  /* iOS zoom prevention */
+  /* Filter chips — stack to full-width rows on mobile */
+  .filter-chips{flex-direction:column;width:100%;max-width:100%;gap:2px;}
+  .chip{justify-content:space-between;width:100%;border-radius:7px;}
+  .chip .chip-count{margin-left:auto;}
+  /* iOS zoom prevention — all modal/form inputs must be 16px+ */
   .fg input,.fg select,.fg textarea{font-size:16px!important;}
   .fg input[type=date]{text-align:left;direction:ltr;-webkit-text-fill-color:var(--text);}
   .fg input[type=date]::-webkit-date-and-time-value{text-align:left;}
-  /* Sort/filter row compact on mobile */
-  .filter-row{flex-direction:row;gap:8px;}
-  .sort-select{font-size:13px;padding:7px 10px;}
-  /* KPI card grids — stack on mobile */
-  .kgrid{grid-template-columns:1fr!important;}
-  .kgrid-3{grid-template-columns:1fr!important;}
-  .insights{grid-template-columns:1fr!important;}
-  /* Summary 4-card: 2x2 on mobile is fine, but stack if too tight */
-  .kgrid-4{grid-template-columns:1fr 1fr!important;}
-  /* Bar chart — more compact on mobile */
-  .bars-wrap{height:160px;gap:4px;padding-top:10px;}
-  .bar-pair{height:114px;}
-  .bar-label{font-size:9px;}
-  .chart-title{font-size:11px;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
-  .chart-legend{margin-left:0;gap:10px;}
-  .chart-wrap{padding:14px;}
 }
 
 /* EXTRAS */
@@ -399,7 +359,7 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .bpf-breakdown span{display:flex;align-items:center;gap:4px;}
 
 /* PAGE LAYOUT */
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
 .page-title{font-size:28px;font-weight:700;letter-spacing:-0.02em;}
 .page-subtitle{color:var(--text-secondary);font-size:14px;margin-top:4px;}
 .page-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
@@ -460,7 +420,8 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .item-checkbox-left{display:flex;align-items:center;flex-shrink:0;padding-right:6px;}
 
 /* FILTER ROW */
-.filter-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px;flex-wrap:nowrap;}
+.filter-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.filter-row .filter-chips{margin-bottom:0;}
 
 /* FILTER CHIPS — segmented toggle style */
 .filter-chips{display:flex;gap:0;flex-wrap:nowrap;margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:3px;width:fit-content;}
@@ -486,8 +447,8 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .sel-exit:hover{color:var(--text);background:var(--surface2);}
 
 /* SORT SELECT in header */
-.sort-select{padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;appearance:auto;width:auto;}
-.sort-select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(245,158,11,0.12);}
+.sort-select{padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;}
+.sort-select:focus{outline:none;border-color:var(--accent);}
 
 /* PARTS / EXPENSES ON ITEM */
 .parts-list{margin-top:8px;}
@@ -678,135 +639,53 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 </head>
 <body>
 
-<nav id="nav" style="display:none;">
+<nav>
   <div class="nav-inner">
-
-    <!-- Brand -->
-    <div class="brand" onclick="goToTab('summary')" style="margin-right:16px;">
-      <div class="brand-text">
-        <span class="brand-general">GENERAL</span><span class="brand-007">007</span>
+    <div class="nav-row1">
+      <div class="brand" onclick="goToTab('summary')">
+        <div class="brand-text">
+          <span class="brand-general">GENERAL</span><span class="brand-007">007</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="global-search" placeholder="Search items..." autocomplete="off"
+                 oninput="handleSearch(this.value)"
+                 onkeydown="handleSearchKey(event)"
+                 onfocus="if(this.value.trim())showSearchDropdown(this.value)">
+          <div class="search-dropdown" id="search-dropdown"></div>
+          <button class="search-clear" onclick="clearSearch()">×</button>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+          <span id="theme-icon">🌙</span>
+        </button>
       </div>
     </div>
-
-    <!-- Search — left, next to brand (LinkedIn-style) -->
-    <div class="search-wrap" style="width:220px;flex-shrink:0;">
-      <span class="search-icon">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      </span>
-      <input type="text" id="global-search" placeholder="Search items…"
-             autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false"
-             oninput="handleSearch(this.value)"
-             onkeydown="handleSearchKey(event)"
-             onfocus="if(this.value.trim())showSearchDropdown(this.value)">
-      <div class="search-dropdown" id="search-dropdown"></div>
-      <button class="search-clear" onclick="clearSearch()">×</button>
-    </div>
-
-    <!-- Spacer pushes tabs + user to right -->
-    <div class="nav-spacer"></div>
-
-    <!-- Primary tabs — always visible: Summary, Monthly, Stock -->
     <div class="tabs-row">
       <div class="tabs">
         <button class="tab on" data-tab="summary" onclick="goToTab('summary',this)">Summary</button>
         <button class="tab" data-tab="monthly" onclick="goToTab('monthly',this)">Monthly</button>
         <button class="tab" data-tab="stock" onclick="goToTab('stock',this)">Stock</button>
+        <button class="tab" data-tab="expenses" onclick="goToTab('expenses',this)">Expenses</button>
+        <button class="tab" data-tab="tax" onclick="goToTab('tax',this)">Tax / SA103</button>
+        <button class="tab" data-tab="data" onclick="goToTab('data',this)">Data</button>
       </div>
-      <!-- More dropdown — Expenses, Tax, Data always here, no dynamic overflow -->
-      <div class="nav-more" id="nav-more-wrap">
-        <button class="nav-more-btn has-items" id="nav-more-trigger" onclick="event.stopPropagation();toggleNavMore()" title="More pages" style="gap:5px;padding:0 12px;">
-          More
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="nav-more">
+        <button class="nav-more-btn" onclick="event.stopPropagation();toggleNavMore()" title="More">
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+            <rect y="0" width="16" height="2" rx="1" fill="currentColor"/>
+            <rect y="5" width="16" height="2" rx="1" fill="currentColor"/>
+            <rect y="10" width="16" height="2" rx="1" fill="currentColor"/>
+          </svg>
         </button>
-        <div class="nav-more-menu" id="nav-more-menu">
-          <button data-tab="expenses" onclick="goToTab('expenses',this);document.querySelector('.nav-more').classList.remove('open')">Expenses</button>
-          <button data-tab="tax" onclick="goToTab('tax',this);document.querySelector('.nav-more').classList.remove('open')">Tax / SA103</button>
-          <button data-tab="data" onclick="goToTab('data',this);document.querySelector('.nav-more').classList.remove('open')">Data</button>
-        </div>
+        <div class="nav-more-menu" id="nav-more-menu"></div>
       </div>
     </div>
-
-    <!-- Right: sync indicator + user menu -->
-    <div class="nav-right">
-      <div id="sync-indicator">
-        <svg width="14" height="14" viewBox="0 0 14 14" style="animation:spin 1s linear infinite;flex-shrink:0"><circle cx="7" cy="7" r="5.5" fill="none" stroke="var(--border2)" stroke-width="2"/><path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg>
-        <span id="sync-label">Saving…</span>
-      </div>
-      <div class="user-menu" id="user-menu">
-        <button class="user-menu-btn" onclick="event.stopPropagation();toggleUserMenu()" id="user-menu-btn">
-          <div class="user-avatar" id="user-avatar">G</div>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="user-menu-dropdown" id="user-menu-dropdown">
-          <button class="user-menu-item" onclick="toggleTheme();closeUserMenu()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            <span id="user-menu-theme-label">Dark mode</span>
-          </button>
-          <div class="user-menu-divider"></div>
-          <button class="user-menu-item danger" id="user-menu-signout" onclick="closeUserMenu();doSignOut()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            Sign out
-          </button>
-        </div>
-      </div>
-    </div>
-
   </div>
 </nav>
 
-<!-- BOTTOM NAV — always pinned to bottom, mobile + desktop -->
-<nav id="bottom-nav" style="display:none;">
-  <button class="bnt on" data-tab="summary" onclick="goToTab('summary',this)">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    Summary
-  </button>
-  <button class="bnt" data-tab="monthly" onclick="goToTab('monthly',this)">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-    Monthly
-  </button>
-  <button class="bnt" data-tab="stock" onclick="goToTab('stock',this)">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8l-2 4h12l-2-4z"/></svg>
-    Stock
-  </button>
-  <button class="bnt" id="bnt-search" onclick="toggleNavSearch()">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    Search
-  </button>
-  <button class="bnt" id="bnt-more" onclick="toggleMoreSheet()">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    Menu
-  </button>
-</nav>
-
-<!-- MORE SHEET — hamburger menu, slides up from bottom nav -->
-<div id="more-sheet-overlay" onclick="closeMoreSheet()" style="display:none;position:fixed;inset:0;z-index:300;background:var(--overlay);backdrop-filter:blur(2px);"></div>
-<div id="more-sheet" style="display:none;position:fixed;bottom:60px;left:0;right:0;z-index:301;background:var(--surface);border-top:1px solid var(--border);border-radius:20px 20px 0 0;padding:8px 0 16px;box-shadow:0 -8px 40px var(--shadow-md);">
-  <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px;"></div>
-  <button onclick="closeMoreSheet();goToTab('expenses',document.querySelector('[data-tab=\'expenses\']'))" class="more-sheet-row" data-sheet-tab="expenses">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-    <span>Expenses</span>
-  </button>
-  <button onclick="closeMoreSheet();goToTab('tax',document.querySelector('[data-tab=\'tax\']'))" class="more-sheet-row" data-sheet-tab="tax">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-    <span>Tax / SA103</span>
-  </button>
-  <button onclick="closeMoreSheet();goToTab('data',document.querySelector('[data-tab=\'data\']'))" class="more-sheet-row" data-sheet-tab="data">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-    <span>Data</span>
-  </button>
-  <div style="height:1px;background:var(--border);margin:6px 16px;"></div>
-  <button onclick="closeMoreSheet();toggleTheme()" class="more-sheet-row" id="more-sheet-theme">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    <span id="more-sheet-theme-label">Dark mode</span>
-  </button>
-  <div style="height:1px;background:var(--border);margin:6px 16px;"></div>
-  <button onclick="closeMoreSheet();doSignOut()" class="more-sheet-row more-sheet-danger">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    <span>Sign out</span>
-  </button>
-</div>
-
-<button id="fab" class="fab" onclick="openQuickAdd()" title="Quick add item" style="display:none;">+</button>
+<button class="fab" onclick="openQuickAdd()" title="Quick add item">+</button>
 
 <div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
 <div class="slide-panel" id="slide-panel">
@@ -820,7 +699,6 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
   <div id="panel-content"></div>
 </div>
 
-<div id="main-content" style="display:none;">
 <div class="page on" id="p-summary"></div>
 <div class="page" id="p-monthly"></div>
 <div class="page" id="p-stock"></div>
@@ -829,7 +707,6 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 <div class="page" id="p-data"></div>
 <div class="page" id="p-search"></div>
 <div class="page" id="p-item"></div>
-</div>
 
 <div id="toast"></div>
 
@@ -881,77 +758,6 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
       <button class="btn btn-s" onclick="closeResaleModal()" style="flex:1">Cancel</button>
     </div>
   </div>
-</div>
-
-<!-- ── AUTH OVERLAY ─────────────────────────────────────────────────────── -->
-<div id="auth-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;">
-
-  <!-- SIGN IN SCREEN -->
-  <div id="auth-screen-login" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 8px 40px var(--shadow-md);">
-    <div style="text-align:center;margin-bottom:28px;">
-      <div style="font-size:36px;margin-bottom:8px;">🔐</div>
-      <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;"><span style="color:var(--text)">GENERAL</span><span style="color:var(--accent)">007</span></div>
-      <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Sign in to continue</div>
-    </div>
-    <div id="auth-error" style="display:none;background:rgba(239,68,68,0.1);border:1px solid var(--red);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;"></div>
-    <div style="margin-bottom:14px;">
-      <label style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;">Email</label>
-      <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com"
-        style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.15s;"
-        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-        onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()">
-    </div>
-    <div style="margin-bottom:22px;">
-      <label style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;">Password</label>
-      <div style="position:relative;">
-        <input id="auth-pass" type="password" autocomplete="current-password" placeholder="••••••••"
-          style="width:100%;padding:10px 44px 10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.15s;box-sizing:border-box;"
-          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-          onkeydown="if(event.key==='Enter')doSignIn()">
-        <button type="button" onclick="(function(){const i=document.getElementById('auth-pass');const b=document.getElementById('auth-pass-eye');i.type=i.type==='password'?'text':'password';b.innerHTML=i.type==='password'?'<path d=\'M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z\' stroke=\'currentColor\' stroke-width=\'1.5\' fill=\'none\'/><circle cx=\'8\' cy=\'8\' r=\'2\' stroke=\'currentColor\' stroke-width=\'1.5\' fill=\'none\'/>':'<path d=\'M2 2l12 12M6.5 6.5A3 3 0 0011 11M4.2 4.2C2.8 5.3 1 8 1 8s3 5 7 5c1.4 0 2.7-.4 3.8-1.2M9 3.5C8.4 3.2 7.7 3 7 3 3 3 1 8 1 8s.8 1.4 2 2.8\' stroke=\'currentColor\' stroke-width=\'1.5\' fill=\'none\' stroke-linecap=\'round\'/>'})()"
-          id="auth-pass-eye"
-          style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:2px;display:flex;align-items:center;">
-          <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d='M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z' stroke='currentColor' stroke-width='1.5' fill='none'/><circle cx='8' cy='8' r='2' stroke='currentColor' stroke-width='1.5' fill='none'/></svg>
-        </button>
-      </div>
-    </div>
-    <button onclick="doSignIn()" id="auth-btn"
-      style="width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;transition:background 0.15s;">
-      Sign In
-    </button>
-    <button onclick="showForgotPassword()"
-      style="width:100%;padding:10px;background:none;border:none;color:var(--text-secondary);font-size:13px;cursor:pointer;margin-top:8px;text-decoration:underline;text-underline-offset:3px;">
-      Forgot password?
-    </button>
-    <div id="auth-loading" style="display:none;text-align:center;margin-top:12px;font-size:13px;color:var(--text-secondary);">Signing in…</div>
-  </div>
-
-  <!-- FORGOT PASSWORD SCREEN -->
-  <div id="auth-screen-reset" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 8px 40px var(--shadow-md);">
-    <button onclick="showLoginScreen()" style="background:none;border:none;color:var(--text-secondary);font-size:13px;cursor:pointer;padding:0;margin-bottom:20px;display:flex;align-items:center;gap:6px;">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Back to sign in
-    </button>
-    <div style="text-align:center;margin-bottom:28px;">
-      <div style="font-size:36px;margin-bottom:8px;">📧</div>
-      <div style="font-size:20px;font-weight:700;letter-spacing:-0.02em;">Reset Password</div>
-      <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Enter your email and we'll send a reset link</div>
-    </div>
-    <div id="reset-error" style="display:none;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;"></div>
-    <div style="margin-bottom:22px;">
-      <label style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;">Email</label>
-      <input id="reset-email" type="email" autocomplete="email" placeholder="you@example.com"
-        style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:border-color 0.15s;"
-        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-        onkeydown="if(event.key==='Enter')doResetPassword()">
-    </div>
-    <button onclick="doResetPassword()" id="reset-btn"
-      style="width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;transition:background 0.15s;">
-      Send Reset Link
-    </button>
-    <div id="reset-loading" style="display:none;text-align:center;margin-top:12px;font-size:13px;color:var(--text-secondary);">Sending…</div>
-  </div>
-
 </div>
 
 <script>
@@ -1028,611 +834,50 @@ function toggleTheme(){
   updateThemeIcon(next);
 }
 function updateThemeIcon(theme){
-  const icon=document.getElementById('theme-icon');
-  if(icon)icon.textContent=theme==='light'?'🌙':'☀️';
-  // Keep more sheet label in sync
-  const lbl=document.getElementById('more-sheet-theme-label');
-  if(lbl)lbl.textContent=theme==='dark'?'Light mode':'Dark mode';
-  // Keep user menu label in sync
-  const ulbl=document.getElementById('user-menu-theme-label');
-  if(ulbl)ulbl.textContent=theme==='dark'?'Light mode':'Dark mode';
-}
-function toggleMoreSheet(){
-  const sheet=document.getElementById('more-sheet');
-  const overlay=document.getElementById('more-sheet-overlay');
-  const isOpen=sheet.style.display!=='none';
-  if(isOpen){closeMoreSheet();return;}
-  // Sync theme label
-  const theme=document.documentElement.getAttribute('data-theme')||'light';
-  const lbl=document.getElementById('more-sheet-theme-label');
-  if(lbl)lbl.textContent=theme==='dark'?'Light mode':'Dark mode';
-  // Highlight active tab rows
-  const activePage=(document.querySelector('.page.on')||{id:''}).id.replace('p-','');
-  document.querySelectorAll('[data-sheet-tab]').forEach(r=>{
-    r.classList.toggle('active-row', r.dataset.sheetTab===activePage);
-  });
-  sheet.style.display='block';
-  overlay.style.display='block';
-  document.getElementById('bnt-more').classList.add('on');
-}
-function toggleUserMenu(){
-  const menu=document.getElementById('user-menu');
-  if(!menu)return;
-  menu.classList.toggle('open');
-}
-function closeUserMenu(){
-  const menu=document.getElementById('user-menu');
-  if(menu)menu.classList.remove('open');
-}
-// Close user menu on outside click
-document.addEventListener('click',()=>{
-  closeUserMenu();
-});
-
-function closeMoreSheet(){
-  document.getElementById('more-sheet').style.display='none';
-  document.getElementById('more-sheet-overlay').style.display='none';
-  document.getElementById('bnt-more').classList.remove('on');
+  document.getElementById('theme-icon').textContent=theme==='light'?'🌙':'☀️';
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SUPABASE DATA LAYER — all Supabase calls live here and ONLY here
-// Never call supabase.from() outside this block.
-// Mobile-portable: isolate any browser-only code here, not in render fns.
-// ═══════════════════════════════════════════════════════════════════════════
-
-const SUPABASE_URL = 'https://hqyglehtssgnlrfndwpy.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxeWdsZWh0c3NnbmxyZm5kd3B5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0NzI0MDYsImV4cCI6MjA5MTA0ODQwNn0.Ii7Lk2xjRyDi1GtDE2XB8HtacpbgWIdt8J7zi3bhd6A';
-const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:false,flowType:"implicit"}});
-
-// ── AUTH ─────────────────────────────────────────────────────────────────────
-
-async function doSignIn(){
-  const email = document.getElementById('auth-email').value.trim();
-  const pass  = document.getElementById('auth-pass').value;
-  const errEl = document.getElementById('auth-error');
-  const ldEl  = document.getElementById('auth-loading');
-  const btn   = document.getElementById('auth-btn');
-  errEl.style.display = 'none';
-  btn.style.display = 'none';
-  ldEl.style.display = 'block';
-  const {error} = await _sb.auth.signInWithPassword({email, password: pass});
-  if(error){
-    // Translate Supabase error codes into plain English
-    let msg = 'Sign in failed. Please try again.';
-    const raw = (error.message||'').toLowerCase();
-    if(raw.includes('invalid login') || raw.includes('invalid credentials') || raw.includes('email not confirmed')){
-      msg = 'Incorrect email or password. Please check your details and try again.';
-    } else if(raw.includes('email') && raw.includes('not found')){
-      msg = 'No account found with that email address.';
-    } else if(raw.includes('too many')){
-      msg = 'Too many attempts. Please wait a moment and try again.';
-    } else if(raw.includes('network') || raw.includes('fetch')){
-      msg = 'Network error. Check your connection and try again.';
+// DATABASE
+function initDB(){
+  // Preloaded data from Excel
+  const preloadedData = {"JAN":[],"FEB":[{"id":"feb_1","gid":"G007-0002","item":"Grand Turismo 1997 PS1","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-02-18","dateSold":"2026-02-21","salePrice":9.99,"postage":0,"costPrice":1.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_2","gid":"G007-0003","item":"Mag-Lite Torch","category":"Home & Garden","location":"Bed","source":"","dateListed":"2026-02-19","dateSold":"2026-03-03","salePrice":26,"postage":0,"costPrice":3.25,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_3","gid":"G007-0004","item":"Band of Brothers","category":"Books & Media","location":"Bed","source":"","dateListed":"2026-02-19","dateSold":null,"salePrice":9.99,"postage":0,"costPrice":3,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_4","gid":"G007-0005","item":"Nokia 3410 - Green Mint","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-03-13","salePrice":11,"postage":0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_5","gid":"G007-0006","item":"Sony Ericsson T610","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-03-11","salePrice":10.5,"postage":0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_6","gid":"G007-0007","item":"Motorolla W377 Pink","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-03-04","salePrice":24.99,"postage":0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[{"loggedAt":"2026-03-25","type":"full_seller","refundAmount":24.99,"returnPostage":2.94,"notes":""}],"isReturned":true,"_shippingMigrated":true,"grossProfit":-9.54},{"id":"feb_7","gid":"G007-0008","item":"Blackberry Curve 9320","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-02-27","salePrice":14.99,"postage":0,"costPrice":2.5,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_8","gid":"G007-0009","item":"LOTR Blue Ray Set - 1 Disc Missing","category":"Books & Media","location":"A101","source":"","dateListed":"2026-02-22","dateSold":"2026-03-06","salePrice":23.47,"postage":0,"costPrice":5,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_9","gid":"G007-0010","item":"Canon 550D - Complete Kit","category":"Cameras & Photography","location":"Bed","source":"","dateListed":"2026-02-25","dateSold":"2026-02-28","salePrice":149.99,"postage":0,"costPrice":80,"shippingCost":4.88,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_10","gid":"G007-0011","item":"Kids Music Piano Book","category":"Audio & Music","location":"Bed","source":"","dateListed":"2026-02-25","dateSold":"2026-03-14","salePrice":5.99,"postage":2.94,"costPrice":0.2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_11","gid":"G007-0012","item":"Star Wars Trilogy VHS Special Edition","category":"Books & Media","location":"A101","source":"","dateListed":"2026-02-25","dateSold":null,"salePrice":12.99,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_12","gid":"G007-0013","item":"Top Shine Elite Shoe Care Kit","category":"Clothing & Fashion","location":"Bed","source":"Charity Shop","dateListed":"2026-02-25","dateSold":"2026-04-01","salePrice":29.99,"postage":0,"costPrice":6,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":17.53},{"id":"feb_13","gid":"G007-0014","item":"Toy Story 3 Mr Potato Tub","category":"Toys & Games","location":"Wardrobe","source":"","dateListed":"2026-02-26","dateSold":"2026-03-01","salePrice":22.99,"postage":0,"costPrice":2.5,"shippingCost":3.88,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"feb_14","gid":"G007-0015","item":"Grand Turismo PS1 - Manual Only","category":"Electronics & Tech","location":"Wardrobe","source":"","dateListed":"2026-02-27","dateSold":null,"salePrice":4.99,"postage":0,"costPrice":2.5,"shippingCost":1,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false}],"MAR":[{"id":"mar_1","gid":"G007-0017","item":"Power Rangers Complete Season 1","category":"Books & Media","location":"A101","source":"","dateListed":"2026-03-02","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":6,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_2","gid":"G007-0018","item":"Google Nest Mini Gen 1 - 1","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-02","dateSold":"2026-03-04","salePrice":23.99,"postage":0,"costPrice":10.15,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_3","gid":"G007-0019","item":"The Singing Machine Lights SML283BK","category":"Audio & Music","location":"Wardrobe","source":"","dateListed":"2026-03-03","dateSold":null,"salePrice":37.99,"postage":0,"costPrice":15,"shippingCost":3.71,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_4","gid":"G007-0020","item":"George RR Martin Book Set","category":"Books & Media","location":"Bedroom","source":"","dateListed":"2026-03-03","dateSold":"2026-03-06","salePrice":29.99,"postage":0,"costPrice":7,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_5","gid":"G007-0021","item":"Mr & Mrs Potato Head Bundle","category":"Toys & Games","location":"Bedroom","source":"","dateListed":"2026-03-03","dateSold":"2026-03-09","salePrice":19.99,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_6","gid":"G007-0022","item":"DK Illustrated Family Encyclopedia 16 Books","category":"Books & Media","location":"Wardrobe","source":"","dateListed":"2026-03-07","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":6,"shippingCost":5.88,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_7","gid":"G007-0023","item":"Google Nest Mini Gen 1 - 2","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-07","dateSold":"2026-03-18","salePrice":22.82,"postage":0,"costPrice":11.2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_8","gid":"G007-0024","item":"Google Nest Mini Gen 1 - 3","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-07","dateSold":"2026-03-27","salePrice":23,"postage":0,"costPrice":12.25,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_9","gid":"G007-0025","item":"Acer Aspire E5-571","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-08","dateSold":"2026-03-18","salePrice":114.99,"postage":0,"costPrice":48.59,"shippingCost":5.88,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_10","gid":"G007-0026","item":"Canon 600D Astro Mod","category":"Cameras & Photography","location":"Bed","source":"","dateListed":"2026-03-08","dateSold":"2026-03-11","salePrice":189.99,"postage":0,"costPrice":66.85,"shippingCost":4.88,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_11","gid":"G007-0027","item":"MSI GeForce GTX 770 4GB Twin Frozr","category":"Electronics & Tech","location":"Bedroom","source":"","dateListed":"2026-03-09","dateSold":null,"salePrice":49.99,"postage":0,"costPrice":21.7,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_12","gid":"G007-0028","item":"Playstation Backpack - Blue","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-10","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":5.5,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_13","gid":"G007-0029","item":"Salus RT500RF Wireless Thermostat","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-11","dateSold":"2026-03-16","salePrice":65,"postage":0,"costPrice":10,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_14","gid":"G007-0030","item":"Siemens Remote Control 13A Adaptor 3 Pack","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-12","dateSold":"2026-03-18","salePrice":39.99,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_15","gid":"G007-0031","item":"Canon 1300D Full Kit and Lens","category":"Cameras & Photography","location":"Wardrobe","source":"","dateListed":"2026-03-13","dateSold":"2026-03-18","salePrice":189.99,"postage":0,"costPrice":120.99,"shippingCost":4.88,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[{"loggedAt":"2026-03-30","type":"full_seller","refundAmount":189.99,"returnPostage":4.26,"notes":""}],"isReturned":true,"_shippingMigrated":true},{"id":"mar_16","gid":"G007-0032","item":"Apple Magic Touchpad","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-15","dateSold":"2026-03-15","salePrice":22.99,"postage":0,"costPrice":6,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":11.72},{"id":"mar_18","gid":"G007-0034","item":"Apple Magic Keyboard 1314 - 2","category":"Electronics & Tech","location":"A101","source":"","dateListed":"2026-03-15","dateSold":"2026-03-18","salePrice":19.99,"postage":0,"costPrice":6,"shippingCost":4.63,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":7.29},{"id":"mar_19","gid":"G007-0035","item":"Job Lot Apple Magic Keyboard 1314/1255/1655","category":"Electronics & Tech","location":"Bag","source":"Car Boot Sale","dateListed":"2026-03-25","dateSold":"2026-04-02","salePrice":12,"postage":2.94,"costPrice":6,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":4.72},{"id":"mar_20","gid":"G007-0036","item":"HUSKY Tyre Chains","category":"Home & Garden","location":"Bedroom","source":"","dateListed":"2026-03-16","dateSold":null,"salePrice":37.99,"postage":0,"costPrice":15,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_21","gid":"G007-0037","item":"Samsung TV with remote","category":"Electronics & Tech","location":"Bedroom","source":"","dateListed":"2026-03-17","dateSold":null,"salePrice":47.5,"postage":0,"costPrice":7.5,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_22","gid":"G007-0038","item":"Geermac Amplidect 295","category":"Audio & Music","location":"Bed","source":"","dateListed":"2026-03-19","dateSold":"2026-03-26","salePrice":34.99,"postage":0,"costPrice":10,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_23","gid":"G007-0039","item":"Sony Walkman Docking Speaker","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":19.99,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_24","gid":"G007-0040","item":"Monopoly Original Hasbro Board Game","category":"Toys & Games","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":19.99,"postage":0,"costPrice":3.33,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_25","gid":"G007-0041","item":"Azatom Docking Station HouseDance-Max","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":5.99,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_26","gid":"G007-0042","item":"Saitek Cyborg Evo USB Joystick","category":"Electronics & Tech","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":5.99,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_27","gid":"G007-0043","item":"BT4600 Twin Landline Phone","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":"2026-03-30","salePrice":23,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":15.73},{"id":"mar_28","gid":"G007-0044","item":"Saturn V Space Rocket Blocks Building Set","category":"Toys & Games","location":"Wardrobe","source":"","dateListed":"2026-03-20","dateSold":"2026-03-28","salePrice":34,"postage":0,"costPrice":10,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false,"grossProfit":-14.86},{"id":"mar_29","gid":"G007-0045","item":"Big Button Phone for Elderly - 1","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":29.99,"postage":0,"costPrice":3.33,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_30","gid":"G007-0046","item":"Big Button Phone for Elderly - 2","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-20","dateSold":null,"salePrice":29.99,"postage":0,"costPrice":3.33,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_31","gid":"G007-0047","item":"Chad Valley Chess Board","category":"Toys & Games","location":"Bed","source":"","dateListed":"2026-03-21","dateSold":null,"salePrice":9.99,"postage":2.94,"costPrice":1,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_32","gid":"G007-0048","item":"Sony WH-100XM4 WIreless","category":"Audio & Music","location":"Desk","source":"","dateListed":"2026-03-22","dateSold":"2026-03-23","salePrice":85,"postage":0,"costPrice":35,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_33","gid":"G007-0049","item":"Solar Powered 1080p Security Camera","category":"Cameras & Photography","location":"Desk","source":"","dateListed":"2026-03-22","dateSold":"2026-03-24","salePrice":25,"postage":0,"costPrice":2,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[{"loggedAt":"2026-03-30","type":"partial_seller","refundAmount":3,"returnPostage":0,"notes":"missing 1/4\" mount"}],"isReturned":false,"_shippingMigrated":true},{"id":"mar_34","gid":"G007-0050","item":"Yamaha PSR-75 No PSU","category":"Audio & Music","location":"Bedroom","source":"","dateListed":"2026-03-22","dateSold":"2026-03-25","salePrice":19,"postage":0,"costPrice":3,"shippingCost":3.71,"packagingCost":0,"promoPercent":0.05,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_35","gid":"G007-0051","item":"Netgear N300 Wireless Router","category":"Electronics & Tech","location":"Bed","source":"","dateListed":"2026-03-25","dateSold":null,"salePrice":19.99,"postage":0,"costPrice":5,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"mar_36","gid":"G007-0052","item":"Smarter FridgeCam","category":"Electronics & Tech","location":"Desk","source":"Charity Shop","dateListed":"2026-03-25","dateSold":null,"salePrice":24.99,"postage":0,"costPrice":10,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnData":null,"returnHistory":[],"isReturned":false},{"id":"dup_1774817929412","gid":"G007-0053","item":"Apple Magic Keyboard 1314 - 3","category":"Electronics & Tech","location":"A101","source":"Car Boot Sale","dateListed":"2026-03-29","dateSold":"2026-03-31","salePrice":19.99,"postage":0,"costPrice":5,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"notes":"","parts":[],"returnHistory":[],"isReturned":false,"grossProfit":9.98},{"id":"qa_1774818261436","gid":"G007-0054","dateListed":"2026-03-29","item":"Philips HiFi Headphones","source":"Car Boot Sale","category":"Audio & Music","location":"","costPrice":15,"salePrice":49.99,"postage":2.94,"shippingCost":0,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false},{"id":"qa_1774873047959","gid":"G007-0055","dateListed":"2026-03-30","item":"Humax PVR-9150T","source":"Car Boot Sale","category":"Other","location":"Desk","costPrice":6.33,"salePrice":24.99,"postage":0,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"dup_1774876804923","gid":"G007-0056","dateListed":"2026-03-30","item":"Humax PVR-9150T - 2","source":"Car Boot Sale","category":"Other","location":"Desk","costPrice":6.33,"salePrice":24.99,"postage":0,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"dup_1774876808161","gid":"G007-0057","dateListed":"2026-03-30","item":"Humax PVR-9150T - 3","source":"Car Boot Sale","category":"Other","location":"Desk","costPrice":6.33,"salePrice":24.99,"postage":0,"shippingCost":5.21,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"qa_1774877366631","gid":"G007-0058","dateListed":"2026-03-30","item":"Nokia 130 RM-1037","source":"Car Boot Sale","category":"Electronics & Tech","location":"Shelves","costPrice":3,"salePrice":12.99,"postage":0,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"dup_1774878350769","gid":"G007-0059","dateListed":"2026-03-30","item":"Nokia 1616 w/ charger","source":"Car Boot Sale","category":"Electronics & Tech","location":"Shelves","costPrice":3,"salePrice":9.99,"postage":0,"shippingCost":2.7,"packagingCost":0,"promoPercent":0.03,"dateSold":"2026-04-02","grossProfit":3.21,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"qa_1774878463614","gid":"G007-0060","dateListed":"2026-03-30","item":"Baofeng UV-9R Pro","source":"Car Boot Sale","category":"Other","location":"Desk","costPrice":10,"salePrice":24.99,"postage":0,"shippingCost":2.94,"packagingCost":0,"promoPercent":0.03,"dateSold":null,"grossProfit":null,"isReturned":false,"notes":"","parts":[],"returnHistory":[]},{"id":"qa_1774959068462","gid":"G007-0061","dateListed":"2026-03-15","item":"Apple Magic Keybaord 1655","source":"Car Boot Sale","category":"Electronics & Tech","location":"Wardrobe","costPrice":6,"salePrice":24.99,"postage":0,"shippingCost":2.94,"packagingCost":0,"promoPercent":0,"dateSold":null,"grossProfit":14.42,"isReturned":true,"notes":"","parts":[],"returnHistory":[{"loggedAt":"2026-03-31","type":"full_seller","refundAmount":24.99,"returnPostage":0,"notes":"cmd,z,x keys not working"}],"_shippingMigrated":true},{"id":"dup_1774959352719","gid":"G007-0062","item":"Apple Magic Keyboard 1314 - 1","category":"Electronics & Tech","location":"A101","source":"Car Boot Sale","dateListed":"2026-03-15","dateSold":null,"salePrice":19.99,"postage":0,"costPrice":6,"shippingCost":0,"packagingCost":0,"promoPercent":0.03,"notes":"Bundled with (Apple Magic Keyboard 1314),  postage costs on there","parts":[],"returnHistory":[{"loggedAt":"2026-03-31","type":"full_seller","refundAmount":19.99,"returnPostage":0,"notes":"missing screw"}],"isReturned":false,"grossProfit":8.98,"_shippingMigrated":true,"resaleDateSold":"2026-03-31","resaleSalePrice":19.99,"resaleShippingCost":2.94}],"APR":[],"MAY":[],"JUN":[],"JUL":[],"AUG":[],"SEP":[],"OCT":[],"NOV":[],"DEC":[]};
+  
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if(!stored){
+    DB = preloadedData;
+    MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{i.category=autoCategory(i.item);}));
+    saveDB();
+  }else{
+    DB = JSON.parse(stored);
+    let changed=false;
+    // Only sync preloadedData fields back if the user hasn't imported their own data.
+    // Once _userOwned is true, localStorage is the source of truth — never overwrite it.
+    if(!DB._userOwned){
+      const RAW_FIELDS=['salePrice','costPrice','postage','shippingCost','packagingCost','promoPercent','dateSold','location'];
+      MONTHS.forEach(function(m){
+        (preloadedData[m]||[]).forEach(function(pre){
+          const live=(DB[m]||[]).find(function(i){return i.id===pre.id;});
+          if(!live)return;
+          RAW_FIELDS.forEach(function(field){if(live[field]!==pre[field]){live[field]=pre[field];changed=true;}});
+        });
+      });
     }
-    errEl.textContent = msg;
-    errEl.style.display = 'block';
-    btn.style.display = 'block';
-    ldEl.style.display = 'none';
-    return;
-  }
-  // onAuthStateChange will handle the rest
-}
-
-function showForgotPassword(){
-  document.getElementById('auth-screen-login').style.display = 'none';
-  document.getElementById('auth-screen-reset').style.display = 'block';
-  // Pre-fill email if already typed on login screen
-  const loginEmail = document.getElementById('auth-email').value.trim();
-  if(loginEmail) document.getElementById('reset-email').value = loginEmail;
-  document.getElementById('reset-error').style.display = 'none';
-  setTimeout(()=>document.getElementById('reset-email').focus(), 50);
-}
-
-function showLoginScreen(){
-  document.getElementById('auth-screen-reset').style.display = 'none';
-  document.getElementById('auth-screen-login').style.display = 'block';
-}
-
-async function doResetPassword(){
-  const email = document.getElementById('reset-email').value.trim();
-  const errEl = document.getElementById('reset-error');
-  const ldEl  = document.getElementById('reset-loading');
-  const btn   = document.getElementById('reset-btn');
-  if(!email){
-    errEl.style.background = 'rgba(239,68,68,0.1)';
-    errEl.style.border = '1px solid var(--red)';
-    errEl.style.color = 'var(--red)';
-    errEl.textContent = 'Please enter your email address.';
-    errEl.style.display = 'block';
-    return;
-  }
-  errEl.style.display = 'none';
-  btn.style.display = 'none';
-  ldEl.style.display = 'block';
-  const {error} = await _sb.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + window.location.pathname
-  });
-  ldEl.style.display = 'none';
-  btn.style.display = 'block';
-  if(error){
-    errEl.style.background = 'rgba(239,68,68,0.1)';
-    errEl.style.border = '1px solid var(--red)';
-    errEl.style.color = 'var(--red)';
-    errEl.textContent = 'Could not send reset email. Check the address and try again.';
-    errEl.style.display = 'block';
-  } else {
-    errEl.style.background = 'rgba(16,185,129,0.1)';
-    errEl.style.border = '1px solid var(--green)';
-    errEl.style.color = 'var(--green)';
-    errEl.textContent = '✓ Reset link sent — check your inbox.';
-    errEl.style.display = 'block';
-    btn.textContent = 'Send Again';
-  }
-}
-
-async function doSignOut(){
-  // If a sync is actively running, wait for it to finish before signing out.
-  // Updates the indicator label so the user knows why there's a brief pause.
-  if(_syncing){
-    const lbl = document.getElementById('sync-label');
-    if(lbl) lbl.textContent = 'Saving — please wait…';
-    await _waitForSync();
-    if(lbl) lbl.textContent = 'Saving…';
-  }
-  // Cancel any pending (not yet started) save timer
-  clearTimeout(_saveTimer);
-  _saveTimer = null;
-  _currentUserId = null;
-  DB = {};
-  _dbSnapshot = {};
-  // Reset UI immediately — don't wait for onAuthStateChange (it's async and can lag)
-  const _authBtn2 = document.getElementById('auth-btn');
-  const _authLd2  = document.getElementById('auth-loading');
-  const _authErr2 = document.getElementById('auth-error');
-  if(_authBtn2) _authBtn2.style.display = 'block';
-  if(_authLd2)  _authLd2.style.display  = 'none';
-  if(_authErr2) _authErr2.style.display = 'none';
-  document.getElementById('nav').style.display = 'none';
-  document.getElementById('bottom-nav').style.display = 'none';
-  document.getElementById('main-content').style.display = 'none';
-  const _fab2 = document.getElementById('fab');
-  if(_fab2) _fab2.style.display = 'none';
-  document.getElementById('auth-overlay').style.display = 'flex';
-  await _sb.auth.signOut();
-}
-
-// ── SESSION / TOKEN REFRESH GUARD ───────────────────────────────────────────
-// Call before any Supabase operation. Checks the current session and attempts
-// a silent token refresh if it has expired.
-async function _ensureSession(){
-  try{
-    const {data, error} = await _sb.auth.getSession();
-    if(error || !data.session){
-      // No active session — try a silent token refresh
-      const {data:refreshData, error:refreshErr} = await _sb.auth.refreshSession();
-      if(refreshErr || !refreshData.session){
-        // Still nothing — return false but do NOT call signOut().
-        // This path also runs before login exists, so we must never interfere.
-        return false;
+    MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{
+      const fresh=autoCategory(i.item);
+      if(i.category!==fresh){i.category=fresh;changed=true;}
+      if((i.returnHistory||[]).length>0&&!i._shippingMigrated){
+        const bakedIn=(i.returnHistory||[]).reduce(function(s,r){return s+(r.returnPostage||0);},0);
+        if(bakedIn>0){i.shippingCost=Math.max(0,(i.shippingCost||0)-bakedIn);}
+        i._shippingMigrated=true;changed=true;
       }
-    }
-    return true;
-  }catch(e){
-    console.warn('_ensureSession error:', e.message);
-    return false;
-  }
-}
-
-// Wraps a Supabase call: checks auth, retries once after a refresh if a 401 comes back.
-async function _sbCall(fn){
-  const ok = await _ensureSession();
-  if(!ok) return {error: new Error('Not authenticated')};
-  try{
-    const result = await fn();
-    // Supabase returns {error} on auth failures — catch and retry once with a refresh
-    if(result && result.error && (result.error.status===401 || result.error.message?.includes('JWT'))){
-      const {data:refreshData, error:refreshErr} = await _sb.auth.refreshSession();
-      if(refreshErr || !refreshData.session){
-        // Token genuinely expired mid-session — now safe to sign out
-        toast('Session expired — please sign in again','err');
-        DB = {};
-        _dbSnapshot = {};
-        await _sb.auth.signOut();
-        return result;
-      }
-      return await fn(); // retry once with fresh token
-    }
-    return result;
-  }catch(e){
-    return {error: e};
-  }
-}
-
-// ── ROW → JS ITEM (Supabase snake_case → app camelCase) ─────────────────────
-
-function _rowToItem(row, parts, returns){
-  const item = {
-    id:              row.id,
-    gid:             row.gid || null,
-    month:           row.month,
-    item:            row.item,
-    category:        row.category || null,
-    location:        row.location || null,
-    source:          row.source || null,
-    dateListed:      row.date_listed || null,
-    dateSold:        row.date_sold || null,
-    salePrice:       Number(row.sale_price) || 0,
-    postage:         Number(row.postage) || 0,
-    costPrice:       Number(row.cost_price) || 0,
-    shippingCost:    Number(row.shipping_cost) || 0,
-    packagingCost:   Number(row.packaging_cost) || 0,
-    promoPercent:    Number(row.promo_percent) || 0,
-    notes:           row.notes || '',
-    isReturned:      !!row.is_returned,
-    _postageMode:    row.postage_mode || 'simple',
-    _sdRateIdx:      row.sd_rate_idx != null ? row.sd_rate_idx : 1,
-    _sdBuyerPays:    row.sd_buyer_pays !== false,
-    resaleSalePrice:    row.resale_sale_price ? Number(row.resale_sale_price) : null,
-    resaleDateSold:     row.resale_date_sold || null,
-    resaleShippingCost: row.resale_shipping_cost ? Number(row.resale_shipping_cost) : null,
-    resalePromoPercent: row.resale_promo_percent ? Number(row.resale_promo_percent) : null,
-    grossProfit:     row.gross_profit != null ? Number(row.gross_profit) : null,
-    _shippingMigrated: true,
-    returnData:      null,
-    parts: (parts||[]).map(p=>({id:p.id, desc:p.description||'', cost:Number(p.cost)||0})),
-    returnHistory: (returns||[]).map(r=>({
-      id:             r.id,
-      loggedAt:       r.logged_at || null,
-      type:           r.type || null,
-      refundAmount:   Number(r.refund_amount) || 0,
-      returnPostage:  Number(r.return_postage) || 0,
-      notes:          r.notes || '',
-      _relistedAt:    r.relisted_at || null,
-      _relistCondition: r.relist_condition || null,
-    })),
-  };
-  return item;
-}
-
-// ── ITEM → ROW (app camelCase → Supabase snake_case) ────────────────────────
-
-function _itemToRow(i, month){
-  const uid = _sb.auth.getUser ? (_currentUserId || null) : null;
-  return {
-    id:               i.id,
-    user_id:          uid,
-    gid:              i.gid || null,
-    month:            month || i.month,
-    item:             i.item || '',
-    category:         i.category || null,
-    location:         i.location || null,
-    source:           i.source || null,
-    date_listed:      i.dateListed || null,
-    date_sold:        i.dateSold || null,
-    sale_price:       i.salePrice || 0,
-    postage:          i.postage || 0,
-    cost_price:       i.costPrice || 0,
-    shipping_cost:    i.shippingCost || 0,
-    packaging_cost:   i.packagingCost || 0,
-    promo_percent:    i.promoPercent || 0,
-    notes:            i.notes || null,
-    is_returned:      !!i.isReturned,
-    postage_mode:     i._postageMode || 'simple',
-    sd_rate_idx:      i._sdRateIdx != null ? i._sdRateIdx : 1,
-    sd_buyer_pays:    i._sdBuyerPays !== false,
-    resale_sale_price:    i.resaleSalePrice || null,
-    resale_date_sold:     i.resaleDateSold || null,
-    resale_shipping_cost: i.resaleShippingCost || null,
-    resale_promo_percent: i.resalePromoPercent || null,
-    gross_profit:     i.grossProfit || null,
-  };
-}
-
-// ── LOAD ALL DATA FROM SUPABASE → DB ────────────────────────────────────────
-
-async function loadFromSupabase(){
-  const ok = await _ensureSession();
-  if(!ok) throw new Error('Not authenticated — please sign in again.');
-  // Get current user id directly from session as belt-and-braces
-  const {data:{session}} = await _sb.auth.getSession();
-  if(!session) throw new Error('Session missing — please sign in again.');
-  _currentUserId = session.user.id;
-  const uid = _currentUserId;
-  // Fetch all tables in parallel — explicit .eq('user_id') on every query as
-  // belt-and-braces on top of RLS. Prevents NULL-user_id orphan rows or
-  // misconfigured policies from bleeding into the loaded DB.
-  const [itemsRes, partsRes, returnsRes, tripsRes, expensesRes] = await Promise.all([
-    _sb.from('items').select('*').eq('user_id', uid).order('date_listed', {ascending: true}),
-    _sb.from('item_parts').select('*').eq('user_id', uid),
-    _sb.from('item_returns').select('*').eq('user_id', uid).order('logged_at', {ascending: true}),
-    _sb.from('trips').select('*').eq('user_id', uid).order('date', {ascending: true}),
-    _sb.from('expenses').select('*').eq('user_id', uid).order('date', {ascending: true}),
-  ]);
-
-  if(itemsRes.error) throw new Error('Items load failed: ' + itemsRes.error.message);
-
-  // Index parts and returns by item_id for fast lookup
-  const partsMap = {};
-  (partsRes.data || []).forEach(p => {
-    if(!partsMap[p.item_id]) partsMap[p.item_id] = [];
-    partsMap[p.item_id].push(p);
-  });
-  const returnsMap = {};
-  (returnsRes.data || []).forEach(r => {
-    if(!returnsMap[r.item_id]) returnsMap[r.item_id] = [];
-    returnsMap[r.item_id].push(r);
-  });
-
-  // Rebuild DB in the exact shape the app expects
-  MONTHS.forEach(m => { DB[m] = []; });
-  (itemsRes.data || []).forEach(row => {
-    const m = row.month;
-    if(!DB[m]) DB[m] = [];
-    DB[m].push(_rowToItem(row, partsMap[row.id], returnsMap[row.id]));
-  });
-
-  // trips / expenses stored flat on DB (same as localStorage shape)
-  DB.trips = (tripsRes.data || []).map(t => ({
-    id:          t.id,
-    date:        t.date,
-    description: t.description || '',
-    mileage:     Number(t.mileage) || 0,
-    ratePerMile: Number(t.rate_per_mile) || 0.45,
-  }));
-  DB.expenses = (expensesRes.data || []).map(e => ({
-    id:          e.id,
-    date:        e.date,
-    description: e.description || '',
-    amount:      Number(e.amount) || 0,
-    category:    e.category || null,
-  }));
-  DB._userOwned = true;
-}
-
-// ── SAVE ITEM TO SUPABASE ────────────────────────────────────────────────────
-// Upserts the item row, then replaces its parts and returns in full.
-
-async function saveItemToSupabase(m, i){
-  const row = _itemToRow(i, m);
-
-  // Upsert main item row — conflict on (id, user_id) so two users with the
-  // same item ID never overwrite each other
-  const {error: itemErr} = await _sbCall(()=>_sb.from('items').upsert(row, {onConflict: 'id,user_id'}));
-  if(itemErr) throw new Error('Save item failed: ' + itemErr.message);
-
-  // Replace parts: delete old, insert new
-  await _sbCall(()=>_sb.from('item_parts').delete().eq('item_id', i.id));
-  if((i.parts||[]).length > 0){
-    const partsRows = (i.parts||[]).map(p => ({
-      item_id:     i.id,
-      user_id:     _currentUserId || null,
-      description: p.desc || p.description || '',
-      cost:        Number(p.cost) || 0,
     }));
-    const {error: partsErr} = await _sbCall(()=>_sb.from('item_parts').insert(partsRows));
-    if(partsErr) throw new Error('Save parts failed: ' + partsErr.message);
-  }
-
-  // Replace returns: delete old, insert new
-  await _sbCall(()=>_sb.from('item_returns').delete().eq('item_id', i.id));
-  if((i.returnHistory||[]).length > 0){
-    const retRows = (i.returnHistory||[]).map(r => ({
-      item_id:       i.id,
-      user_id:       _currentUserId || null,
-      logged_at:     r.loggedAt || null,
-      type:          r.type || null,
-      refund_amount: Number(r.refundAmount) || 0,
-      return_postage:Number(r.returnPostage) || 0,
-      notes:         r.notes || null,
-      relisted_at:   r._relistedAt || null,
-      relist_condition: r._relistCondition || null,
-    }));
-    const {error: retErr} = await _sbCall(()=>_sb.from('item_returns').insert(retRows));
-    if(retErr) throw new Error('Save returns failed: ' + retErr.message);
+    if(changed)saveDB();
   }
 }
-
-// ── DELETE ITEM FROM SUPABASE ────────────────────────────────────────────────
-// item_parts and item_returns cascade on delete via FK, so just delete item row.
-
-async function deleteItemFromSupabase(id){
-  const {error} = await _sbCall(()=>_sb.from('items').delete().eq('id', id));
-  if(error) throw new Error('Delete failed: ' + error.message);
-}
-
-// ── SAVE TRIP ────────────────────────────────────────────────────────────────
-
-async function saveTripToSupabase(t){
-  const row = {id:t.id, user_id:_currentUserId||null, date:t.date, description:t.description||'', mileage:t.mileage||0, rate_per_mile:t.ratePerMile||0.45};
-  const {error} = await _sbCall(()=>_sb.from('trips').upsert(row, {onConflict:'id'}));
-  if(error) throw new Error('Save trip failed: ' + error.message);
-}
-
-async function deleteTripFromSupabase(id){
-  const {error} = await _sbCall(()=>_sb.from('trips').delete().eq('id', id));
-  if(error) throw new Error('Delete trip failed: ' + error.message);
-}
-
-// ── SAVE EXPENSE ─────────────────────────────────────────────────────────────
-
-async function saveExpenseToSupabase(e){
-  const row = {id:e.id, user_id:_currentUserId||null, date:e.date, description:e.description||'', amount:e.amount||0, category:e.category||null};
-  const {error} = await _sbCall(()=>_sb.from('expenses').upsert(row, {onConflict:'id'}));
-  if(error) throw new Error('Save expense failed: ' + error.message);
-}
-
-async function deleteExpenseFromSupabase(id){
-  const {error} = await _sbCall(()=>_sb.from('expenses').delete().eq('id', id));
-  if(error) throw new Error('Delete expense failed: ' + error.message);
-}
-
-// ── LEGACY WRAPPERS (called throughout the app — now async-aware) ────────────
-// saveDB() is called after every mutation throughout the app.
-// Strategy: snapshot the DB state, debounce 400ms, then diff & persist to Supabase.
-
-let _dbSnapshot = null;   // last-known-saved state (JSON string per item id)
-let _saveTimer = null;
-let _currentUserId = null; // set on SIGNED_IN, cleared on SIGNED_OUT
-let _syncing = false;      // true while _persistChanges is actively running
-let _syncResolvers = [];   // resolve callbacks waiting for sync to finish
-
-function _setSyncing(val){
-  _syncing = val;
-  const el  = document.getElementById('sync-indicator');
-  if(el) el.style.display = val ? 'flex' : 'none';
-  if(!val){
-    // Wake up anyone waiting (e.g. sign-out guard)
-    const cbs = _syncResolvers.splice(0);
-    cbs.forEach(fn => fn());
-  }
-}
-
-// Returns a promise that resolves immediately if not syncing,
-// or waits until the current sync finishes before resolving.
-function _waitForSync(){
-  if(!_syncing) return Promise.resolve();
-  return new Promise(res => _syncResolvers.push(res));
-}
-
 function saveDB(){
-  DB._userOwned = true;
+  DB._userOwned=true;
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
   refreshActivePage();
-  // Debounce: wait 400ms of quiet before persisting (handles rapid edits)
-  clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(_persistChanges, 400);
-}
-
-// Build a flat map of id → JSON for all items + trips + expenses
-function _dbFingerprint(){
-  const fp = {};
-  MONTHS.forEach(m => {
-    (DB[m]||[]).forEach(i => { fp['item:'+i.id] = JSON.stringify(i) + '|' + m; });
-  });
-  (DB.trips||[]).forEach(t => { fp['trip:'+t.id] = JSON.stringify(t); });
-  (DB.expenses||[]).forEach(e => { fp['exp:'+e.id] = JSON.stringify(e); });
-  return fp;
-}
-
-async function _persistChanges(){
-  // Never persist if no user is logged in — prevents ghost saves after sign-out
-  if(!_currentUserId){ console.warn('_persistChanges: no user, skipping'); return; }
-  _setSyncing(true);
-  try{
-    const current = _dbFingerprint();
-    const prev    = _dbSnapshot || {};
-    const errors  = [];
-
-    // Detect changed / new items
-    for(const key of Object.keys(current)){
-      if(current[key] === prev[key]) continue;  // unchanged
-      try{
-        if(key.startsWith('item:')){
-          const id = key.slice(5);
-          const parts = current[key].split('|');
-          const month = parts[parts.length - 1];
-          const item = (DB[month]||[]).find(i => i.id === id);
-          if(item) await saveItemToSupabase(month, item);
-        } else if(key.startsWith('trip:')){
-          const id = key.slice(5);
-          const trip = (DB.trips||[]).find(t => t.id === id);
-          if(trip) await saveTripToSupabase(trip);
-        } else if(key.startsWith('exp:')){
-          const id = key.slice(4);
-          const exp = (DB.expenses||[]).find(e => e.id === id);
-          if(exp) await saveExpenseToSupabase(exp);
-        }
-      }catch(e){ errors.push(e.message); }
-    }
-
-    // Detect deletions
-    for(const key of Object.keys(prev)){
-      if(current[key] !== undefined) continue;  // still exists
-      try{
-        if(key.startsWith('item:')){
-          const id = key.slice(5);
-          await deleteItemFromSupabase(id);
-        } else if(key.startsWith('trip:')){
-          const id = key.slice(5);
-          await deleteTripFromSupabase(id);
-        } else if(key.startsWith('exp:')){
-          const id = key.slice(4);
-          await deleteExpenseFromSupabase(id);
-        }
-      }catch(e){ errors.push(e.message); }
-    }
-
-    if(errors.length > 0){
-      console.error('Supabase sync errors:', errors);
-      toast('⚠️ Cloud sync issue — check connection');
-    }
-
-    // Update snapshot to reflect what we just saved
-    _dbSnapshot = _dbFingerprint();
-  } finally {
-    _setSyncing(false);
-  }
-}
-
-let _dbLoading = false;
-
-// DATABASE (entry point — called on app init after auth confirmed)
-async function initDB(){
-  if(_dbLoading){ console.warn('initDB already in progress, skipping'); return; }
-  _dbLoading = true;
-  try{
-    showLoadingScreen('Loading your data…');
-    await Promise.race([
-      loadFromSupabase(),
-      new Promise((_,reject) => setTimeout(() => reject(new Error('Request timed out. Try refreshing.')), 15000))
-    ]);
-    // Snapshot MUST be set immediately after load — before any renderX call
-    // triggers saveDB(). Without this the diff engine thinks everything is new
-    // and re-upserts the entire DB on every page load.
-    _dbSnapshot = _dbFingerprint();
-    hideLoadingScreen();
-    renderSummary();
-  }catch(e){
-    console.error('initDB error:', e);
-    hideLoadingScreen();
-    _showLoadError(e.message);
-  } finally {
-    _dbLoading = false;
-  }
-}
-function _showLoadError(msg){
-  let el = document.getElementById('load-error-banner');
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'load-error-banner';
-    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9997;background:rgba(239,68,68,0.12);border-bottom:1px solid var(--red);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;';
-    el.innerHTML = `
-      <span style="font-size:13px;color:var(--red);" id="load-error-msg"></span>
-      <div style="display:flex;gap:8px;flex-shrink:0;">
-        <button onclick="initDB()" style="padding:6px 12px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">Retry</button>
-        <button onclick="document.getElementById('load-error-banner').remove()" style="padding:6px 10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text-secondary);cursor:pointer;">Dismiss</button>
-      </div>`;
-    document.body.appendChild(el);
-  }
-  document.getElementById('load-error-msg').textContent = '⚠️ ' + (msg || 'Failed to load data.');
-  el.style.display = 'flex';
-}
-
-function showLoadingScreen(msg){
-  let el = document.getElementById('app-loading');
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'app-loading';
-    el.style.cssText = 'position:fixed;inset:0;z-index:9998;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;';
-    el.innerHTML = '<div style="font-size:32px;">⏳</div><div style="font-size:15px;color:var(--text-secondary);" id="app-loading-msg"></div>';
-    document.body.appendChild(el);
-  }
-  document.getElementById('app-loading-msg').textContent = msg || 'Loading…';
-  el.style.display = 'flex';
-}
-function hideLoadingScreen(){
-  const el = document.getElementById('app-loading');
-  if(el) el.style.display = 'none';
 }
 
 function refreshActivePage(){
@@ -1645,9 +890,9 @@ function refreshActivePage(){
   else if(id==='p-stock')renderStock();
   else if(id==='p-expenses')renderExpenses();
   else if(id==='p-tax'&&typeof renderTax==='function')renderTax();
-  // p-item and p-search intentionally skipped
+  // p-item and p-search intentionally skipped — they manage their own re-render
+  // (p-item also uses _getSecStates/_applySecStates to preserve collapse state)
 }
-
 
 // BUYER PROTECTION FEE (Tiered eBay UK formula)
 // calcBuyerProtectionFee: now uses unified iterative calcEbayBPF
@@ -1656,24 +901,12 @@ function calcBuyerProtectionFee(p){return calcEbayBPF(p);}
 // NAVIGATION
 function goToTab(name,sourceEl){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.bnt').forEach(b=>b.classList.remove('on'));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   const activeTab=sourceEl||document.querySelector('[data-tab="'+name+'"]');
   if(activeTab)activeTab.classList.add('on');
-  // Sync bottom nav
-  const bntMatch=document.querySelector('#bottom-nav .bnt[data-tab="'+name+'"]');
-  if(bntMatch)bntMatch.classList.add('on');
   document.getElementById('p-'+name).classList.add('on');
   SELECTION_MODE=false;SELECTED_ITEMS.clear();
   STOCK_SELECTION_MODE=false;STOCK_SELECTED.clear();
-  // Mark More button active if on a "more" tab (Expenses/Tax/Data)
-  const morePages=['expenses','tax','data'];
-  const moreTrigger=document.getElementById('nav-more-trigger');
-  if(moreTrigger)moreTrigger.classList.toggle('on',morePages.includes(name));
-  // Sync More menu items active state
-  document.querySelectorAll('#nav-more-menu button[data-tab]').forEach(b=>{
-    b.className=b.dataset.tab===name?'on':'';
-  });
   document.querySelector('.nav-more')?.classList.remove('open');
   handleNavResize();
   window.scrollTo(0,0);
@@ -1688,31 +921,9 @@ function goToTab(name,sourceEl){
 
 let _itemPageOrigin='p-summary';
 let _monthOrigin='grid'; // 'grid' | 'summary' | other page id
-let _savedPanelState=null; // saved panel title+content+scroll for back-from-item-page
 
 function openItemPage(m,id,origin){
   _itemPageOrigin=origin||(document.querySelector('.page.on')?document.querySelector('.page.on').id:'p-summary');
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
-  document.getElementById('p-item').classList.add('on');
-  window.scrollTo(0,0);
-  renderItemPage(m,id);
-}
-
-// Called when "Full details →" is tapped inside a panel popup.
-// Saves the current panel state so exitItemPage() can restore it on ← Back.
-function openItemPageFromPanel(m,id){
-  const panel=document.getElementById('slide-panel');
-  const pageOn=document.querySelector('.page.on');
-  _savedPanelState={
-    title:document.getElementById('panel-title').textContent,
-    content:document.getElementById('panel-content').innerHTML,
-    scrollTop:panel.scrollTop||0,
-    pageId:pageOn?pageOn.id:'p-summary',
-    stack:PANEL_STACK.slice()
-  };
-  _itemPageOrigin='panel';
-  closePanel();
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('p-item').classList.add('on');
@@ -1732,33 +943,6 @@ function exitItemPage(){
     handleNavResize();
     renderSummary();
     showReturnedItems();
-    return;
-  }
-  if(origin==='panel'&&_savedPanelState){
-    // Restore the page the panel was on top of
-    const pageId=_savedPanelState.pageId||'p-summary';
-    document.getElementById(pageId).classList.add('on');
-    const tabMap={'p-summary':'summary','p-monthly':'monthly','p-stock':'stock','p-expenses':'expenses','p-tax':'tax','p-data':'data'};
-    const tabName=tabMap[pageId];
-    if(tabName){const tab=document.querySelector('[data-tab="'+tabName+'"]');if(tab)tab.classList.add('on');}
-    handleNavResize();
-    if(pageId==='p-monthly')renderMonth();
-    else if(pageId==='p-stock')renderStock();
-    else if(pageId==='p-summary')renderSummary();
-    // Reopen the panel with saved state
-    document.getElementById('panel-title').textContent=_savedPanelState.title;
-    document.getElementById('panel-content').innerHTML=_savedPanelState.content;
-    document.getElementById('panel-overlay').classList.add('on');
-    const panel=document.getElementById('slide-panel');
-    panel.classList.remove('dragging');
-    panel.style.transition='';
-    panel.style.transform='';
-    panel.classList.add('on');
-    panel.scrollTop=_savedPanelState.scrollTop||0;
-    document.body.style.overflow='hidden';
-    PANEL_STACK=_savedPanelState.stack||[];
-    updatePanelNav();
-    _savedPanelState=null;
     return;
   }
   document.getElementById(origin).classList.add('on');
@@ -1883,7 +1067,7 @@ function openTokenEdit(m,id,field,_alreadyAsync){
       else{i[field]=+v.toFixed(2);}
       if(i.dateSold||i.isReturned||i.resaleSalePrice)i.grossProfit=calcGrossProfit(i);
       DB._userOwned=true;
-      saveDB();
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
     }
     const pending=_nextTokenField;
     const pm=_tokenM||m;
@@ -1891,15 +1075,9 @@ function openTokenEdit(m,id,field,_alreadyAsync){
     _nextTokenField=null;
     _tokenM=null;
     _tokenId=null;
-    // If this token lives inside the slide-panel (not the full item page), re-render the panel
-    const inPanel=tok&&tok.closest('#slide-panel');
-    if(inPanel){
-      openItemDetail(m,id,true);
-    }else{
-      const states=_getSecStates();
-      renderItemPage(m,id);
-      _applySecStates(states);
-    }
+    const states=_getSecStates();
+    renderItemPage(m,id);
+    _applySecStates(states);
     if(pending){
       openTokenEdit(pm,pid,pending,true);
     }
@@ -2391,19 +1569,6 @@ function clearSearch(){
   document.querySelector('.search-clear').classList.remove('show');
   closeSearchDropdown();
 }
-function toggleNavSearch(){
-  const expand=document.getElementById('nav-search-expand');
-  const btn=document.getElementById('nav-search-icon-btn');
-  if(!expand)return;
-  const isOpen=expand.classList.toggle('open');
-  if(btn){btn.style.background=isOpen?'var(--surface2)':'';btn.style.borderColor=isOpen?'var(--accent)':'';}
-  if(isOpen)setTimeout(()=>{const inp=document.getElementById('global-search-mobile');if(inp)inp.focus();},50);
-}
-function clearMobileSearch(){
-  const inp=document.getElementById('global-search-mobile');
-  if(inp){inp.value='';handleSearch('');}
-  toggleNavSearch();
-}
 
 function openSearchPage(q){
   closeSearchDropdown();
@@ -2511,17 +1676,15 @@ function updatePanelNav(){
     backBtn.style.cursor='default';
   }
 }
-function openPanel(title,content,pushHistory,_meta){
+function openPanel(title,content,pushHistory){
   const panel=document.getElementById('slide-panel');
   if(pushHistory && document.getElementById('slide-panel').classList.contains('on')){
     PANEL_STACK.push({
       title:document.getElementById('panel-title').textContent,
       content:document.getElementById('panel-content').innerHTML,
-      scrollTop:panel.scrollTop,
-      _meta:panel._panelMeta||null
+      scrollTop:panel.scrollTop
     });
   }
-  panel._panelMeta=_meta||null;
   document.getElementById('panel-title').textContent=title;
   document.getElementById('panel-content').innerHTML=content;
   document.getElementById('panel-overlay').classList.add('on');
@@ -2546,17 +1709,8 @@ function panelBack(){
   if(!PANEL_STACK.length){closePanel();return;}
   const prev=PANEL_STACK.pop();
   const panel=document.getElementById('slide-panel');
-  // If the previous panel was a category panel, re-render it live so prices are fresh
-  if(prev._meta&&prev._meta.type==='category'){
-    panel._panelMeta=prev._meta;
-    showCategoryItems(prev._meta.cat,true);
-    panel.scrollTop=prev.scrollTop||0;
-    updatePanelNav();
-    return;
-  }
   document.getElementById('panel-title').textContent=prev.title;
   document.getElementById('panel-content').innerHTML=prev.content;
-  panel._panelMeta=prev._meta||null;
   panel.scrollTop=prev.scrollTop||0;
   updatePanelNav();
 }
@@ -2635,13 +1789,6 @@ function initPanelSwipe(){
 initPanelSwipe();
 
 function openQuickAdd(){
-  // If not on a monthly page, pre-select current month rather than SELECTED_MONTH
-  const activePage=(document.querySelector('.page.on')||{id:''}).id;
-  if(activePage!=='p-monthly'){
-    const now=new Date();
-    const monthKey=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][now.getMonth()]+'-'+String(now.getFullYear()).slice(-2);
-    if(MONTHS.includes(monthKey))SELECTED_MONTH=monthKey;
-  }
   const html=`
     <div class="panel-section">New item</div>
     ${formHTML()}
@@ -2652,22 +1799,6 @@ function openQuickAdd(){
 
 function submitQuickAdd(){
   const m=document.getElementById('qa-month').value;
-  // Read delivery mode
-  const isSimple=document.getElementById('qa-delivery-simple')&&document.getElementById('qa-delivery-simple').style.display!=='none';
-  let postage=0,shippingCost=0,packagingCost=0,_postageMode,_sdRateIdx=1,_sdBuyerPays=true;
-  if(isSimple){
-    _postageMode='simple';
-    _sdRateIdx=parseInt(document.getElementById('qa-sd-rate')?.value||'1')||1;
-    _sdBuyerPays=document.getElementById('qa-sd-buyer-pays')?.checked!==false;
-    const rate=SIMPLE_DELIVERY_RATES[_sdRateIdx]||SIMPLE_DELIVERY_RATES[0];
-    shippingCost=rate.cost;
-    postage=_sdBuyerPays?rate.cost:0;
-  }else{
-    _postageMode='custom';
-    postage=parseFloat(document.getElementById('qa-postage')?.value)||0;
-    shippingCost=parseFloat(document.getElementById('qa-shipping')?.value)||0;
-    packagingCost=parseFloat(document.getElementById('qa-packaging')?.value)||0;
-  }
   const item={
     id:'qa_'+Date.now(),
     gid:'G007-'+String(getNextGID()).padStart(4,'0'),
@@ -2678,10 +1809,13 @@ function submitQuickAdd(){
     location:document.getElementById('qa-location').value||'',
     costPrice:parseFloat(document.getElementById('qa-cost').value)||0,
     salePrice:parseFloat(document.getElementById('qa-price').value)||0,
-    postage,shippingCost,packagingCost,
-    _postageMode,_sdRateIdx,_sdBuyerPays,
+    postage:parseFloat(document.getElementById('qa-postage').value)||0,
+    shippingCost:parseFloat(document.getElementById('qa-shipping').value)||0,
+    packagingCost:parseFloat(document.getElementById('qa-packaging').value)||0,
     promoPercent:(parseFloat(document.getElementById('qa-promo').value)||0)/100,
-    dateSold:null,grossProfit:null,isReturned:false
+    dateSold:null,
+    grossProfit:null,
+    isReturned:false
   };
   item.category=item.category||autoCategory(item.item);
   if(!item.notes)item.notes='';if(!item.parts)item.parts=[];
@@ -2763,70 +1897,27 @@ function formHTML(){
         </div>
       </div>
     </div>
-    <div class="fg">
-      <label>Delivery</label>
-      <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px">
-        <button type="button" id="qa-mode-simple"
-          onclick="qaSetDeliveryMode('simple')"
-          style="flex:1;padding:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:var(--accent);color:#000;transition:all 0.15s">
-          Simple Delivery
-        </button>
-        <button type="button" id="qa-mode-custom"
-          onclick="qaSetDeliveryMode('custom')"
-          style="flex:1;padding:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;background:var(--surface2);color:var(--text-secondary);transition:all 0.15s">
-          Custom
-        </button>
+    <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg">
+        <label>Postage Charged to Buyer (£)</label>
+        <input type="number" id="qa-postage" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
       </div>
-
-      <div id="qa-delivery-simple">
-        <select id="qa-sd-rate" onchange="updateBPFPreview()" style="width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:8px">
-          ${SIMPLE_DELIVERY_RATES.map((r,idx)=>`<option value="${idx}">${r.label} — £${r.cost.toFixed(2)}</option>`).join('')}
-        </select>
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;cursor:pointer">
-          <input type="checkbox" id="qa-sd-buyer-pays" checked onchange="updateBPFPreview()" style="width:16px;height:16px;cursor:pointer">
-          Buyer pays postage
-        </label>
-      </div>
-
-      <div id="qa-delivery-custom" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
-          <div class="fg" style="margin-bottom:0">
-            <label style="margin-bottom:4px">Your cost (£)</label>
-            <input type="number" id="qa-shipping" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
-          </div>
-          <div class="fg" style="margin-bottom:0">
-            <label style="margin-bottom:4px">Buyer pays (£)</label>
-            <input type="number" id="qa-postage" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
-          </div>
-        </div>
-        <div class="fg" style="margin-bottom:0">
-          <label style="margin-bottom:4px">Packaging (£)</label>
-          <input type="number" id="qa-packaging" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
-        </div>
+      <div class="fg">
+        <label>Your Shipping Cost (£)</label>
+        <input type="number" id="qa-shipping" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
       </div>
     </div>
-
-    <div class="fg">
-      <label>Promo %</label>
-      <input type="number" id="qa-promo" step="0.1" placeholder="0" oninput="updateBPFPreview()">
+    <div class="form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg">
+        <label>Packaging (£)</label>
+        <input type="number" id="qa-packaging" step="0.01" placeholder="0.00" oninput="updateBPFPreview()">
+      </div>
+      <div class="fg">
+        <label>Promo %</label>
+        <input type="number" id="qa-promo" step="0.1" placeholder="0" oninput="updateBPFPreview()">
+      </div>
     </div>
   `;
-}
-
-function qaSetDeliveryMode(mode){
-  const simpleBtn=document.getElementById('qa-mode-simple');
-  const customBtn=document.getElementById('qa-mode-custom');
-  const simplePanel=document.getElementById('qa-delivery-simple');
-  const customPanel=document.getElementById('qa-delivery-custom');
-  if(!simpleBtn)return;
-  const isSimple=mode==='simple';
-  simpleBtn.style.background=isSimple?'var(--accent)':'var(--surface2)';
-  simpleBtn.style.color=isSimple?'#000':'var(--text-secondary)';
-  customBtn.style.background=isSimple?'var(--surface2)':'var(--accent)';
-  customBtn.style.color=isSimple?'var(--text-secondary)':'#000';
-  simplePanel.style.display=isSimple?'':'none';
-  customPanel.style.display=isSimple?'none':'';
-  updateBPFPreview();
 }
 
 function updateBPFPreview(){
@@ -2840,20 +1931,9 @@ function updateBPFPreview(){
   document.getElementById('bpf-total').textContent=fmt(net);
   preview.style.display='block';
   const cost=parseFloat(document.getElementById('qa-cost').value)||0;
-  // Read postage from whichever mode is active
-  const isSimple=document.getElementById('qa-delivery-simple')&&document.getElementById('qa-delivery-simple').style.display!=='none';
-  let shipping=0,buyerPostage=0,packaging=0;
-  if(isSimple){
-    const sdIdx=parseInt(document.getElementById('qa-sd-rate')?.value||'0')||0;
-    const rate=SIMPLE_DELIVERY_RATES[sdIdx]||SIMPLE_DELIVERY_RATES[0];
-    const buyerPays=document.getElementById('qa-sd-buyer-pays')?.checked!==false;
-    shipping=rate.cost;
-    buyerPostage=buyerPays?rate.cost:0;
-  }else{
-    shipping=parseFloat(document.getElementById('qa-shipping')?.value)||0;
-    buyerPostage=parseFloat(document.getElementById('qa-postage')?.value)||0;
-    packaging=parseFloat(document.getElementById('qa-packaging')?.value)||0;
-  }
+  const shipping=parseFloat(document.getElementById('qa-shipping').value)||0;
+  const buyerPostage=parseFloat(document.getElementById('qa-postage').value)||0;
+  const packaging=parseFloat(document.getElementById('qa-packaging').value)||0;
   const promoRaw=parseFloat(document.getElementById('qa-promo').value)||0;
   const promoPercent=promoRaw/100;
   const promoCost=net*promoPercent*1.20;
@@ -2924,7 +2004,7 @@ function toggleSellThroughBar(card,byCat){
   }
 }
 
-function showCategoryItems(cat,_fromBack){
+function showCategoryItems(cat){
   let items=[];
   MONTHS.forEach(m=>{(DB[m]||[]).forEach(i=>{
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
@@ -2932,27 +2012,6 @@ function showCategoryItems(cat,_fromBack){
   });});
   const sold=items.filter(i=>(i.dateSold||i.resaleSalePrice)&&!i.isReturned);
   const active=items.filter(i=>!i.dateSold&&!i.isReturned&&!i.resaleSalePrice);
-  // Sort: listed first (by days listed desc — most urgent top), then sold (most recent first), then returned
-  items.sort((a,b)=>{
-    const statusOrder=i=>{
-      if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice)return 0;
-      if((i.dateSold||i.resaleSalePrice)&&!i.isReturned)return 1;
-      return 2;
-    };
-    const so=statusOrder(a)-statusOrder(b);
-    if(so!==0)return so;
-    // Within listed: most days listed first (most urgent)
-    if(statusOrder(a)===0){
-      const _today=new Date().toISOString().split('T')[0];
-      const dA=a.dateListed?daysBetween(a.dateListed,_today):0;
-      const dB=b.dateListed?daysBetween(b.dateListed,_today):0;
-      return dB-dA;
-    }
-    // Within sold: most recent sale first
-    const dateA=(a.resaleDateSold||a.dateSold||'');
-    const dateB=(b.resaleDateSold||b.dateSold||'');
-    return dateB.localeCompare(dateA);
-  });
   const totalProfit=sold.reduce((s,i)=>s+calcGrossProfit(i),0);
   const soldWithDate=sold.filter(i=>i.dateSold&&i.dateListed);
   const avgDays=soldWithDate.length?Math.round(soldWithDate.reduce((s,i)=>s+daysBetween(i.dateListed,i.dateSold),0)/soldWithDate.length):null;
@@ -3003,7 +2062,7 @@ function showCategoryItems(cat,_fromBack){
         </div>
       </div>`;
     }).join('')}`;
-  openPanel(cat,html,false,{type:'category',cat});
+  openPanel(cat,html);
 }
 
 function showROIItems(){
@@ -3236,8 +2295,8 @@ function renderSummary(){
   const stats=calcYearlyStats();
 
   const html=`
-    <div class="sl">Overview</div>
-    <div class="kgrid kgrid-4">
+    <div class="sl" style="margin-top:0;">Overview</div>
+    <div class="kgrid" style="grid-template-columns:1fr 1fr;margin-bottom:16px;">
       <div class="kcard b clickable" onclick="showFilteredItems('revenue')">
         <div class="klabel">Total Revenue</div>
         <div class="kval">${fmt(stats.totalRev)}</div>
@@ -3260,7 +2319,7 @@ function renderSummary(){
       </div>
     </div>
 
-    <div class="insights">
+    <div class="insights" style="margin-bottom:32px;">
       <div class="insight-card">
         <div class="insight-icon">💰</div>
         <div>
@@ -3287,7 +2346,7 @@ function renderSummary(){
     <div class="sl">Inventory Health</div>
 
     ${stats.stale.length>0?`
-      <div class="stale-alert" style="cursor:pointer;" onclick="STOCK_FILTER='stale';goToTab('stock',document.querySelector('[data-tab=\\'stock\\']'))" title="View stale items in Stock page">
+      <div class="stale-alert" style="cursor:pointer;margin-bottom:24px;" onclick="STOCK_FILTER='stale';goToTab('stock',document.querySelector('[data-tab=\\'stock\\']'))" title="View stale items in Stock page">
         <div class="stale-dot"></div>
         <div style="flex:1">
           <div class="stale-text">⚠️ ${stats.stale.length} item${stats.stale.length!==1?'s':''} listed 30+ days</div>
@@ -3296,7 +2355,7 @@ function renderSummary(){
       </div>
     `:''}
 
-    <div class="chart-wrap" style="cursor:pointer;" onclick="toggleSellThroughBar(this,${JSON.stringify(stats.byCat).replace(/"/g,'&quot;')})">
+    <div class="chart-wrap" style="margin-bottom:32px;cursor:pointer;" onclick="toggleSellThroughBar(this,${JSON.stringify(stats.byCat).replace(/"/g,'&quot;')})">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div>
           <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Inventory Velocity</div>
@@ -3315,7 +2374,7 @@ function renderSummary(){
 
     <div class="sl">Activity</div>
 
-    <div class="chart-wrap">
+    <div class="chart-wrap" style="margin-bottom:24px;">
       <div class="chart-title">
         Monthly Performance
         <div class="chart-legend">
@@ -3420,7 +2479,7 @@ function renderMonthlyGrid(){
   // YTD stats
   const ytdStats=calcYearlyStats();
   const html=`
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
       <h1 style="font-size:26px;font-weight:700;letter-spacing:-0.02em;">Monthly</h1>
       <div style="display:flex;gap:24px;font-size:13px;color:var(--text-secondary);">
         <span>YTD profit <strong style="color:var(--text);font-size:15px;">${fmt(ytdStats.realisedProfit)}</strong></span>
@@ -3439,7 +2498,7 @@ function renderMonthlyGrid(){
             ${isCurrent?'<span style="font-size:10px;font-weight:700;color:var(--accent);letter-spacing:0.5px;text-transform:uppercase;">Now</span>':''}
           </div>
           ${isEmpty
-            ?'<div class="mval nil" style="font-size:16px">—</div><div class="msub" style="opacity:0.5">No items yet · tap to add</div>'
+            ?'<div class="mval nil" style="font-size:16px">—</div><div class="msub" style="opacity:0.5">No items yet</div>'
             :`<div class="mval ${ms.realisedProfit>0?'pos':'nil'}">${fmt(ms.realisedProfit)}</div>
               <div class="msub">${ms.soldCount} sold · ${ms.listedCount} active${ms.avgDays!==null?' · '+ms.avgDays+'d avg':''}</div>`
           }
@@ -3538,7 +2597,7 @@ function renderMonth(){
       </div>
     </div>
 
-    <div class="kgrid kgrid-4">
+    <div class="kgrid" style="grid-template-columns:1fr 1fr;">
       <div class="kcard">
         <div class="klabel">Revenue</div>
         <div class="kval">${fmt(stats.totalRev)}</div>
@@ -3564,17 +2623,17 @@ function renderMonth(){
 
 
     <div class="filter-row">
-      <select class="sort-select" onchange="setMonthFilter(this.value)">
-        <option value="listed" ${MONTH_FILTER==='listed'?'selected':''}>Listed (${cListed})</option>
-        <option value="all" ${MONTH_FILTER==='all'?'selected':''}>All (${cAll})</option>
-        <option value="sold" ${MONTH_FILTER==='sold'?'selected':''}>Sold (${cSold})</option>
-        ${cReturned>0?`<option value="returned" ${MONTH_FILTER==='returned'?'selected':''}>Returned (${cReturned})</option>`:''}
-      </select>
+      <div class="filter-chips">
+        <span class="chip ${MONTH_FILTER==='all'?'active':''}" onclick="setMonthFilter('all')">All <span class="chip-count">${cAll}</span></span>
+        <span class="chip ${MONTH_FILTER==='listed'?'active':''}" onclick="setMonthFilter('listed')">Listed <span class="chip-count">${cListed}</span></span>
+        <span class="chip ${MONTH_FILTER==='sold'?'active':''}" onclick="setMonthFilter('sold')">Sold <span class="chip-count">${cSold}</span></span>
+        ${cReturned>0?`<span class="chip ${MONTH_FILTER==='returned'?'active':''}" onclick="setMonthFilter('returned')">Returned <span class="chip-count">${cReturned}</span></span>`:''}
+      </div>
       <select class="sort-select" onchange="setMonthSort(this.value)">
-        <option value="date-listed" ${MONTH_SORT==='date-listed'?'selected':''}>↑ Date listed</option>
-        <option value="date-sold" ${MONTH_SORT==='date-sold'?'selected':''}>↑ Date sold</option>
-        <option value="profit" ${MONTH_SORT==='profit'?'selected':''}>↑ Profit</option>
-        <option value="price" ${MONTH_SORT==='price'?'selected':''}>↑ Price</option>
+        <option value="date-listed" ${MONTH_SORT==='date-listed'?'selected':''}>Date listed</option>
+        <option value="date-sold" ${MONTH_SORT==='date-sold'?'selected':''}>Date sold</option>
+        <option value="profit" ${MONTH_SORT==='profit'?'selected':''}>Profit</option>
+        <option value="price" ${MONTH_SORT==='price'?'selected':''}>Price</option>
       </select>
     </div>
 
@@ -3720,24 +2779,20 @@ function openItemDetail(m,id,noHistory){
     ?`<button class="btn btn-s" style="flex:1;justify-content:center;padding:12px" onclick="openReturn('${m}','${id}')">↩ Log Return</button>`
     :'';
 
-  // Stat strip — sale + cost as editable ip-tokens, profit read-only
-  const saleEditable=isUnsold;
+  // Compact stat strip
   const statStrip=`
-    <div style="display:grid;grid-template-columns:1fr 1fr${profit!==null?' 1fr':''};gap:8px;margin-bottom:16px">
-      <div class="ip-token${saleEditable?'':' locked'}" id="tok-salePrice-${id}"${saleEditable?` onpointerdown="tokenPointerDown('${m}','${id}','salePrice')" onclick="openTokenEdit('${m}','${id}','salePrice')"`:''}>
-        <div class="ip-token-label">Sale Price</div>
-        <div class="ip-token-val">${fmt(i.salePrice||0)}</div>
-        <div class="ip-token-sub">${saleEditable?'✏️ Tap to edit':'🔒 Locked'}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr${profit!==null?' 1fr':''};gap:1px;background:var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px">
+      <div style="background:var(--surface2);padding:12px;text-align:center">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:4px">Sale</div>
+        <div style="font-size:18px;font-weight:700">${fmt(i.salePrice||0)}</div>
       </div>
-      <div class="ip-token" id="tok-costPrice-${id}" onpointerdown="tokenPointerDown('${m}','${id}','costPrice')" onclick="openTokenEdit('${m}','${id}','costPrice')">
-        <div class="ip-token-label">Buy Price</div>
-        <div class="ip-token-val">${fmt(i.costPrice||0)}</div>
-        <div class="ip-token-sub">✏️ Tap to edit</div>
+      <div style="background:var(--surface2);padding:12px;text-align:center">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:4px">Cost</div>
+        <div style="font-size:18px;font-weight:700">${fmt(i.costPrice||0)}</div>
       </div>
-      ${profit!==null?`<div class="ip-token locked ${profit>=0?'pos':'neg'}">
-        <div class="ip-token-label">Profit</div>
-        <div class="ip-token-val">${fmt(profit)}</div>
-        <div class="ip-token-sub">${roi!==null?'ROI '+roi.toFixed(1)+'%':'—'}</div>
+      ${profit!==null?`<div style="background:var(--surface2);padding:12px;text-align:center">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:4px">Profit</div>
+        <div style="font-size:18px;font-weight:700;color:${profit>=0?'var(--green)':'var(--red)'}">${fmt(profit)}</div>
       </div>`:''}
     </div>`;
 
@@ -3748,23 +2803,15 @@ function openItemDetail(m,id,noHistory){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fg" style="margin-bottom:0">
           <label style="margin-bottom:4px">Location</label>
-          <input type="text" id="pd-location" value="${esc(i.location||'')}" placeholder="e.g. Bed, A101" onchange="savePanelQuickEdit('${m}','${id}')" onblur="savePanelQuickEdit('${m}','${id}')">
+          <input type="text" id="pd-location" value="${esc(i.location||'')}" placeholder="e.g. Bed, A101" onchange="savePanelQuickEdit('${m}','${id}',true)" onblur="savePanelQuickEdit('${m}','${id}',true)">
         </div>
         ${isUnsold?`<div class="fg" style="margin-bottom:0">
           <label style="margin-bottom:4px">Date listed</label>
-          <input type="date" id="pd-date-listed" value="${i.dateListed||''}" onchange="savePanelQuickEdit('${m}','${id}')" onblur="savePanelQuickEdit('${m}','${id}')">
+          <input type="date" id="pd-date-listed" value="${i.dateListed||''}" onchange="savePanelQuickEdit('${m}','${id}',true)" onblur="savePanelQuickEdit('${m}','${id}',true)">
         </div>`:`<div class="fg" style="margin-bottom:0">
           <label style="margin-bottom:4px">${i.resaleSalePrice?'Resold':'Date sold'}</label>
           <div style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-secondary)">${i.resaleSalePrice?(i.resaleDateSold||'—'):(i.dateSold||'—')}</div>
         </div>`}
-      </div>
-      <div style="margin-top:10px">
-        <div class="fg" style="margin-bottom:0">
-          <label style="margin-bottom:4px">Category</label>
-          <select id="pd-category" onchange="savePanelQuickEdit('${m}','${id}')">
-            ${ITEM_CATEGORIES.map(c=>`<option value="${c}"${c===i.category?' selected':''}>${c}</option>`).join('')}
-          </select>
-        </div>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:right">Auto-saves on change</div>
     </div>`;
@@ -3793,7 +2840,7 @@ function openItemDetail(m,id,noHistory){
     ${quickEdit}
     ${returnSection}
     <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding-top:12px;border-top:1px solid var(--border)">
-      <button class="btn btn-p" style="justify-content:center" onclick="openItemPageFromPanel('${m}','${id}')">Full details →</button>
+      <button class="btn btn-p" style="justify-content:center" onclick="closePanel();openItemPage('${m}','${id}')">Full details →</button>
       <button class="btn btn-s" onclick="editItem('${m}','${id}')" title="Edit">✏️</button>
       <button class="btn btn-s danger" onclick="deleteItem('${m}','${id}')" title="Delete">🗑️</button>
     </div>
@@ -3952,10 +2999,12 @@ function renderStock(){
       <div>
         <div class="page-title">Active Stock</div>
       </div>
-
+      <div class="page-actions">
+        <button class="btn btn-p" onclick="openQuickAdd()">+ Add Item</button>
+      </div>
     </div>
 
-    <div class="kgrid kgrid-3">
+    <div class="kgrid kgrid-3" style="grid-template-columns:repeat(3,1fr);">
       <div class="kcard b">
         <div class="klabel">Stock Value</div>
         <div class="kval">${fmt(totalValue)}</div>
@@ -3983,10 +3032,10 @@ function renderStock(){
 
 
       <div class="filter-row">
-        <select class="sort-select" onchange="setStockFilter(this.value)">
-          <option value="all" ${STOCK_FILTER==='all'?'selected':''}>All (${cAll})</option>
-          ${cStale>0?`<option value="stale" ${STOCK_FILTER==='stale'?'selected':''}>Stale 30d+ (${cStale})</option>`:''}
-        </select>
+        <div class="filter-chips">
+          <span class="chip ${STOCK_FILTER==='all'?'active':''}" onclick="setStockFilter('all')">All <span class="chip-count">${cAll}</span></span>
+          ${cStale>0?`<span class="chip ${STOCK_FILTER==='stale'?'active':''}" onclick="setStockFilter('stale')">Stale 30d+ <span class="chip-count">${cStale}</span></span>`:''}
+        </div>
         <select class="sort-select" onchange="setStockSort(this.value)">
           <option value="days" ${STOCK_SORT==='days'?'selected':''}>Oldest first</option>
           <option value="profit" ${STOCK_SORT==='profit'?'selected':''}>Est. profit</option>
@@ -4039,7 +3088,7 @@ function renderExpenses(){
       </div>
     </div>
 
-    <div class="kgrid kgrid-3">
+    <div class="kgrid kgrid-3" style="grid-template-columns:repeat(3,1fr)">
       <div class="kcard">
         <div class="klabel">Trip Expenses</div>
         <div class="kval">${fmt(totalTrips)}</div>
@@ -4131,7 +3180,6 @@ function addTrip(){
 
 function saveTrip(){
   const trip={
-    id:'trip_'+Date.now(),
     date:document.getElementById('trip-date').value,
     description:document.getElementById('trip-desc').value,
     mileage:parseFloat(document.getElementById('trip-miles').value)||0,
@@ -4173,7 +3221,6 @@ function addExpense(){
 
 function saveExpense(){
   const exp={
-    id:'exp_'+Date.now(),
     date:document.getElementById('exp-date').value,
     description:document.getElementById('exp-desc').value,
     category:document.getElementById('exp-cat').value,
@@ -4199,8 +3246,7 @@ function editTrip(idx){
 }
 function saveTripEdit(idx){
   const trips=DB.trips||[];if(!trips[idx])return;
-  const existingId = trips[idx].id || ('trip_'+Date.now());
-  trips[idx]={id:existingId,date:document.getElementById('trip-date').value,description:document.getElementById('trip-desc').value,mileage:parseFloat(document.getElementById('trip-miles').value)||0,ratePerMile:parseFloat(document.getElementById('trip-rate').value)||0.45};
+  trips[idx]={date:document.getElementById('trip-date').value,description:document.getElementById('trip-desc').value,mileage:parseFloat(document.getElementById('trip-miles').value)||0,ratePerMile:parseFloat(document.getElementById('trip-rate').value)||0.45};
   DB.trips=trips;saveDB();closePanel();toast('Trip updated');renderExpenses();
 }
 async function deleteTrip(idx){
@@ -4219,8 +3265,7 @@ function editExpense(idx){
 }
 function saveExpenseEdit(idx){
   const expenses=DB.expenses||[];if(!expenses[idx])return;
-  const existingId = expenses[idx].id || ('exp_'+Date.now());
-  expenses[idx]={id:existingId,date:document.getElementById('exp-date').value,description:document.getElementById('exp-desc').value,category:document.getElementById('exp-cat').value,amount:parseFloat(document.getElementById('exp-amt').value)||0};
+  expenses[idx]={date:document.getElementById('exp-date').value,description:document.getElementById('exp-desc').value,category:document.getElementById('exp-cat').value,amount:parseFloat(document.getElementById('exp-amt').value)||0};
   DB.expenses=expenses;saveDB();closePanel();toast('Expense updated');renderExpenses();
 }
 async function deleteExpense(idx){
@@ -4245,7 +3290,7 @@ function renderData(){
 
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px">
       <h3 style="font-weight:600;margin-bottom:12px">Import Data</h3>
-      <p style="color:var(--text-secondary);margin-bottom:16px;font-size:14px">Merge from a previous JSON export — new items added, duplicates flagged for review, nothing deleted</p>
+      <p style="color:var(--text-secondary);margin-bottom:16px;font-size:14px">Restore from a previous JSON export (replaces current data)</p>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importDB(event)">
       <button class="btn btn-s" onclick="document.getElementById('import-file').click()">📤 Import JSON</button>
     </div>
@@ -4268,21 +3313,8 @@ function renderData(){
 }
 
 function exportDB(){
-  // Build a clean export — strip user_id and internal flags so the backup
-  // is portable and never contains account-specific identifiers
-  const exportData = {};
-  MONTHS.forEach(m => {
-    exportData[m] = (DB[m]||[]).map(i => {
-      const clean = Object.assign({}, i);
-      delete clean.user_id;
-      if(clean.parts) clean.parts = clean.parts.map(p => { const cp=Object.assign({},p); delete cp.user_id; return cp; });
-      if(clean.returnHistory) clean.returnHistory = clean.returnHistory.map(r => { const cr=Object.assign({},r); delete cr.user_id; return cr; });
-      return clean;
-    });
-  });
-  if(DB.trips) exportData.trips = DB.trips.map(t => { const ct=Object.assign({},t); delete ct.user_id; return ct; });
-  if(DB.expenses) exportData.expenses = DB.expenses.map(e => { const ce=Object.assign({},e); delete ce.user_id; return ce; });
-  const json=JSON.stringify(exportData,null,2);
+  DB._userOwned=true;
+  const json=JSON.stringify(DB,null,2);
   const blob=new Blob([json],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -4296,127 +3328,65 @@ function exportDB(){
 function importDB(e){
   const file=e.target.files[0];
   if(!file)return;
-  // Reset file input so the same file can be re-selected if needed
-  e.target.value='';
   const reader=new FileReader();
   reader.onload=function(ev){
     try{
       const imported=JSON.parse(ev.target.result);
-      imported._userOwned=true;
+      imported._userOwned=true; // stamp immediately so reload after confirm is safe
 
+      // Diff: what would change
+      let willAdd=0,willUpdate=0,willRemove=0;
+      const addedItems=[],updatedItems=[],removedItems=[];
       const TRACKED=['salePrice','costPrice','dateSold','shippingCost','postage','packagingCost','promoPercent','location','item'];
-
-      // ── MERGE DIFF ─────────────────────────────────────────────────────────
-      // New   = in file, not in DB            → always added, no prompt
-      // Dupe  = in both (matched by id or name+date) → shown with Replace/Skip
-      // Untouched = in DB only                → never deleted (merge mode)
-      const newItems=[], dupeItems=[];
-
       MONTHS.forEach(m=>{
         const inc=(imported[m]||[]).filter(i=>(i.item||'').trim().toUpperCase()!=='MONTH END');
         const cur=(DB[m]||[]).filter(i=>(i.item||'').trim().toUpperCase()!=='MONTH END');
         inc.forEach(a=>{
           const b=cur.find(c=>c.id===a.id||(c.item===a.item&&c.dateListed===a.dateListed));
-          if(!b){
-            newItems.push({m, item:a.item, dateListed:a.dateListed, data:a});
-          } else if(TRACKED.some(f=>String(b[f]??'')!==String(a[f]??''))){
-            dupeItems.push({m, item:a.item, dateListed:a.dateListed, incoming:a, existing:b, replace:false});
-          }
-          // identical match → no action needed
+          if(!b){willAdd++;addedItems.push({m,item:a.item,dateListed:a.dateListed});}
+          else if(TRACKED.some(f=>String(b[f]??'')!==String(a[f]??''))){willUpdate++;updatedItems.push({m,item:a.item,dateListed:a.dateListed});}
+        });
+        cur.forEach(b=>{
+          if(!inc.find(a=>a.id===b.id||(a.item===b.item&&a.dateListed===b.dateListed))){willRemove++;removedItems.push({m,item:b.item,dateListed:b.dateListed});}
         });
       });
 
-      // Store on window for confirm to access
-      window._pendingImport = { imported, newItems, dupeItems };
-
-      // ── BUILD REVIEW PANEL HTML ─────────────────────────────────────────────
-      const isMob = window.innerWidth < 600;
-
-      function newRows(){
-        if(!newItems.length) return '';
-        const rows = newItems.slice(0,20).map(r=>
-          `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">
-            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">＋ ${esc(r.item)}</span>
-            <span style="color:var(--muted);flex-shrink:0;margin-left:8px">${r.m} · ${r.dateListed||'—'}</span>
-          </div>`).join('');
-        const more = newItems.length>20 ? `<div style="font-size:11px;color:var(--muted);padding:5px 0">…and ${newItems.length-20} more</div>` : '';
-        return rows+more;
+      function diffRows(items,icon){
+        if(!items.length)return'';
+        const rows=items.slice(0,20).map(r=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${icon} ${esc(r.item)}</span><span style="color:var(--muted);flex-shrink:0;margin-left:8px">${r.m} · ${r.dateListed||'—'}</span></div>`).join('');
+        return rows+(items.length>20?`<div style="font-size:11px;color:var(--muted);padding:5px 0">…and ${items.length-20} more</div>`:'');
       }
 
-      function dupeRows(){
-        if(!dupeItems.length) return '';
-        // Bulk toggle row
-        const bulk = `
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 10px;border-bottom:2px solid var(--border);margin-bottom:4px">
-            <span style="font-size:12px;font-weight:600;color:var(--text-secondary)">All duplicates:</span>
-            <div style="display:flex;gap:6px">
-              <button onclick="_importBulkDupe('replace')" style="padding:4px 10px;font-size:11px;font-weight:700;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer">Replace all</button>
-              <button onclick="_importBulkDupe('skip')" style="padding:4px 10px;font-size:11px;font-weight:700;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer">Skip all</button>
-            </div>
-          </div>`;
-        const rows = dupeItems.map((r,i)=>
-          `<div id="dupe-row-${i}" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;gap:8px">
-            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">⚠️ ${esc(r.item)}<span style="color:var(--muted);margin-left:6px">${r.m} · ${r.dateListed||'—'}</span></span>
-            <div style="display:flex;gap:4px;flex-shrink:0">
-              <button id="dupe-replace-${i}" onclick="_importToggleDupe(${i},'replace')"
-                style="padding:3px 8px;font-size:11px;font-weight:700;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all 0.1s">
-                Replace
-              </button>
-              <button id="dupe-skip-${i}" onclick="_importToggleDupe(${i},'skip')"
-                style="padding:3px 8px;font-size:11px;font-weight:700;border-radius:5px;border:1px solid var(--accent);background:rgba(245,158,11,0.12);color:var(--accent);cursor:pointer;transition:all 0.1s">
-                Skip ✓
-              </button>
-            </div>
-          </div>`).join('');
-        return bulk+rows;
-      }
-
-      const nothingToShow = !newItems.length && !dupeItems.length;
+      // Store imported JSON on window for confirm button to access
+      window._pendingImport=imported;
 
       const html=`
-        ${isMob ? `<div style="text-align:center;margin-bottom:12px;color:var(--text-secondary);font-size:12px;">
-          <span style="display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M8 13l-3-3M8 13l3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Scroll down to confirm
-          </span>
-        </div>` : ''}
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
           <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px;text-align:center">
-            <div style="font-size:24px;font-weight:700;color:var(--green)">${newItems.length}</div>
+            <div style="font-size:24px;font-weight:700;color:var(--green)">${willAdd}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px">New items</div>
           </div>
-          <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:12px;text-align:center">
-            <div style="font-size:24px;font-weight:700;color:var(--accent)">${dupeItems.length}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px">Duplicates</div>
+          <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:var(--blue)">${willUpdate}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Updated</div>
+          </div>
+          <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:var(--red)">${willRemove}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Removed</div>
           </div>
         </div>
-
         <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;padding:10px 12px;background:var(--surface2);border-radius:8px;line-height:1.6">
-          This will <strong style="color:var(--text)">merge into</strong> your current database. New items are added automatically. Items only in your DB are never deleted.
-          ${dupeItems.length>0 ? `<br><span style="color:var(--accent)">⚠️ ${dupeItems.length} duplicate${dupeItems.length!==1?'s':''} found — choose Replace or Skip for each below. Defaults to Skip.</span>` : ''}
+          This will <strong style="color:var(--text)">fully replace</strong> your current database. All returns, notes, and resale data from the imported file are preserved.
+          ${willRemove>0?`<br><span style="color:var(--red)">⚠️ ${willRemove} item${willRemove!==1?'s':''} currently in your DB will be removed.</span>`:''}
         </div>
-
-        ${nothingToShow ? `<div style="padding:20px 0;text-align:center;color:var(--muted);font-size:13px">Everything in this file is already up to date in your database.</div>` : ''}
-
-        ${newItems.length ? `
-          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">
-            New items (${newItems.length})
-          </div>
-          <div style="margin-bottom:16px">${newRows()}</div>` : ''}
-
-        ${dupeItems.length ? `
-          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">
-            Duplicates — choose action (${dupeItems.length})
-          </div>
-          <div style="margin-bottom:80px">${dupeRows()}</div>` : '<div style="margin-bottom:80px"></div>'}
-
-        <div style="position:sticky;bottom:0;background:var(--surface);padding:12px 0 4px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+        ${addedItems.length?`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">New items (${addedItems.length})</div><div style="margin-bottom:14px">${diffRows(addedItems,'＋')}</div>`:''}
+        ${updatedItems.length?`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Updated (${updatedItems.length})</div><div style="margin-bottom:14px">${diffRows(updatedItems,'↻')}</div>`:''}
+        ${removedItems.length?`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Will be removed (${removedItems.length})</div><div style="margin-bottom:14px">${diffRows(removedItems,'−')}</div>`:''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;padding-top:12px;border-top:1px solid var(--border)">
           <button class="btn btn-s" onclick="closePanel()">Cancel</button>
           <button class="btn btn-p" onclick="_confirmJSONImport()">Confirm import</button>
         </div>`;
-
-      openPanel('Review Import', html);
+      openPanel('Review Import',html);
     }catch(err){
       toast('Import failed: Invalid JSON file','err');
     }
@@ -4424,70 +3394,18 @@ function importDB(e){
   reader.readAsText(file);
 }
 
-// Toggle a single duplicate row between Replace and Skip
-function _importToggleDupe(idx, action){
-  if(!window._pendingImport) return;
-  window._pendingImport.dupeItems[idx].replace = (action === 'replace');
-  const replBtn = document.getElementById(`dupe-replace-${idx}`);
-  const skipBtn = document.getElementById(`dupe-skip-${idx}`);
-  if(!replBtn || !skipBtn) return;
-  if(action === 'replace'){
-    replBtn.style.cssText = 'padding:3px 8px;font-size:11px;font-weight:700;border-radius:5px;border:1px solid var(--blue);background:rgba(59,130,246,0.12);color:var(--blue);cursor:pointer;transition:all 0.1s';
-    skipBtn.style.cssText  = 'padding:3px 8px;font-size:11px;font-weight:700;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all 0.1s';
-  } else {
-    skipBtn.style.cssText  = 'padding:3px 8px;font-size:11px;font-weight:700;border-radius:5px;border:1px solid var(--accent);background:rgba(245,158,11,0.12);color:var(--accent);cursor:pointer;transition:all 0.1s';
-    replBtn.style.cssText  = 'padding:3px 8px;font-size:11px;font-weight:700;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all 0.1s';
-  }
-}
-
-// Bulk set all duplicates to replace or skip
-function _importBulkDupe(action){
-  if(!window._pendingImport) return;
-  window._pendingImport.dupeItems.forEach((_,i) => _importToggleDupe(i, action));
-}
-
-async function _confirmJSONImport(){
-  const pending = window._pendingImport;
-  if(!pending){ toast('No pending import','err'); return; }
-
-  const { imported, newItems, dupeItems } = pending;
-
-  // ── APPLY NEW ITEMS ─────────────────────────────────────────────────────────
-  // Add each new item into DB — strip user_id, auto-categorise
-  newItems.forEach(({m, data}) => {
-    delete data.user_id;
-    (data.parts||[]).forEach(p=>delete p.user_id);
-    (data.returnHistory||[]).forEach(r=>delete r.user_id);
-    data.category = autoCategory(data.item);
-    if(!DB[m]) DB[m] = [];
-    // Guard: don't add if somehow already present
-    if(!DB[m].find(x=>x.id===data.id)) DB[m].push(data);
-  });
-
-  // ── APPLY CHOSEN REPLACEMENTS ───────────────────────────────────────────────
-  dupeItems.filter(d=>d.replace).forEach(({m, incoming, existing}) => {
-    delete incoming.user_id;
-    (incoming.parts||[]).forEach(p=>delete p.user_id);
-    (incoming.returnHistory||[]).forEach(r=>delete r.user_id);
-    incoming.category = autoCategory(incoming.item);
-    const idx = (DB[m]||[]).findIndex(x=>x.id===existing.id);
-    if(idx > -1) DB[m][idx] = incoming;
-  });
-
-  DB._userOwned = true;
-  window._pendingImport = null;
-  closePanel();
-
-  const replacedCount = dupeItems.filter(d=>d.replace).length;
-  const skippedCount  = dupeItems.filter(d=>!d.replace).length;
-  let msg = `Added ${newItems.length} item${newItems.length!==1?'s':''}`;
-  if(replacedCount) msg += `, replaced ${replacedCount}`;
-  if(skippedCount)  msg += `, skipped ${skippedCount} duplicate${skippedCount!==1?'s':''}`;
-  toast(msg);
-
-  goToTab('summary', document.querySelector('[data-tab="summary"]'));
-  renderSummary();
+function _confirmJSONImport(){
+  const imported=window._pendingImport;
+  if(!imported){toast('No pending import','err');return;}
+  DB=imported;
+  DB._userOwned=true;
+  MONTHS.forEach(m=>(DB[m]||[]).forEach(i=>{i.category=autoCategory(i.item);}));
   saveDB();
+  window._pendingImport=null;
+  closePanel();
+  toast('Database imported successfully');
+  goToTab('summary',document.querySelector('[data-tab="summary"]'));
+  renderSummary();
 }
 
 function importExcel(e){
@@ -4659,25 +3577,13 @@ function processExcelFile(file){
 async function clearAllData(){
   const ok=await showConfirm('Clear all data?','This will permanently delete every item and expense. There is no undo.',{icon:'💥',okLabel:'Yes, clear everything'});
   if(!ok)return;
-  if(!_currentUserId){ toast('Not signed in','err'); return; }
-  try{
-    // Delete only THIS user's rows directly — never touches other users' data
-    await _sbCall(()=>_sb.from('item_parts').delete().eq('user_id',_currentUserId));
-    await _sbCall(()=>_sb.from('item_returns').delete().eq('user_id',_currentUserId));
-    await _sbCall(()=>_sb.from('items').delete().eq('user_id',_currentUserId));
-    await _sbCall(()=>_sb.from('trips').delete().eq('user_id',_currentUserId));
-    await _sbCall(()=>_sb.from('expenses').delete().eq('user_id',_currentUserId));
-    DB={};
-    MONTHS.forEach(m=>DB[m]=[]);
-    DB.trips=[];
-    DB.expenses=[];
-    _dbSnapshot=_dbFingerprint();
-    toast('All data cleared');
-    renderSummary();
-  }catch(e){
-    console.error('clearAllData error:',e);
-    toast('Clear failed: '+e.message,'err');
-  }
+  DB={};
+  MONTHS.forEach(m=>DB[m]=[]);
+  DB.trips=[];
+  DB.expenses=[];
+  saveDB();
+  toast('All data cleared');
+  renderSummary();
 }
 
 // ITEM ACTIONS
@@ -4792,21 +3698,7 @@ function savePanelQuickEdit(m,id,silent){
   if(fPrice&&fPrice.value!==''){const v=parseFloat(fPrice.value);if(!isNaN(v))item.salePrice=v;}
   if(item.dateSold)item.grossProfit=calcGrossProfit(item);
   saveDB();
-  if(!silent)toast('Saved');
-  // If the panel is open and showing this item, re-render it in place
-  const panel=document.getElementById('slide-panel');
-  const inPanel=panel&&panel.classList.contains('on')&&document.getElementById('tok-costPrice-'+id);
-  if(inPanel){
-    openItemDetail(m,id,true);
-    // Also refresh any category panel sitting in the stack beneath this one
-    PANEL_STACK.forEach(entry=>{
-      if(entry._meta&&entry._meta.type==='category'){
-        // Mark stale so panelBack re-renders it live (already does this, no extra work needed)
-      }
-    });
-    return;
-  }
-  // Otherwise refresh the underlying page
+  if(!silent)toast('Quick edits saved');
   const cur=document.querySelector('.page.on').id;
   if(cur==='p-summary')renderSummary();
   else if(cur==='p-monthly')renderMonth();
@@ -5738,20 +4630,59 @@ function toggleNavMore(){
 
 // Handle responsive navigation
 function handleNavResize(){
-  // Static nav layout — Summary/Monthly/Stock always visible, More menu is always present.
-  // No dynamic overflow calculation needed.
+  const tabs=document.querySelector('.tabs');
+  const tabsRow=document.querySelector('.tabs-row')||tabs;
+  const tabButtons=tabs?tabs.querySelectorAll('.tab'):[];
+  const moreBtn=tabsRow?tabsRow.querySelector('.nav-more-btn'):null;
+  const moreMenu=tabsRow?tabsRow.querySelector('.nav-more-menu'):null;
+  
+  if(!tabs||!moreBtn||!moreMenu)return;
+  
+  // Reset visibility
+  tabButtons.forEach(t=>t.style.display='');
+  moreBtn.classList.remove('has-items');
+  moreMenu.innerHTML='';
+  
+  // On mobile tabs are on their own row — measure tabs-row width
+  // On desktop they share a row with brand and nav-right
+  const isMobile=window.innerWidth<=768;
+  const navInner=document.querySelector('.nav-inner');
+  const navRight=document.querySelector('.nav-right');
+  const brandWidth=isMobile?0:(document.querySelector('.brand')?.offsetWidth||0);
+  const navRightWidth=isMobile?0:(navRight?.offsetWidth||0);
+  const navInnerWidth=isMobile?(tabsRow.offsetWidth||window.innerWidth):(navInner?.offsetWidth||600);
+  const moreBtnWidth=56;
+  const availableWidth=navInnerWidth - brandWidth - navRightWidth - moreBtnWidth - 16;
+  
+  let totalWidth=0;
+  const hiddenTabs=[];
+  
+  tabButtons.forEach((tab,idx)=>{
+    totalWidth+=tab.offsetWidth+4;
+    if(totalWidth>availableWidth && idx>=2){
+      hiddenTabs.push(tab);
+    }
+  });
+  
+  if(hiddenTabs.length>0){
+    moreBtn.classList.add('has-items');
+    hiddenTabs.forEach(tab=>{
+      tab.style.display='none';
+      const btn=document.createElement('button');
+      btn.textContent=tab.textContent;
+      const _apn=(document.querySelector('.page.on')||{id:''}).id.replace('p-','');
+      btn.className=tab.dataset.tab===_apn?'on':'';
+      btn.setAttribute('data-tab',tab.dataset.tab);
+      btn.onclick=()=>goToTab(tab.dataset.tab,btn);
+      moreMenu.appendChild(btn);
+    });
+    const _mapn=(document.querySelector('.page.on')||{id:''}).id.replace('p-','');
+    if(hiddenTabs.some(t=>t.dataset.tab===_mapn))moreBtn.classList.add('on');
+    else moreBtn.classList.remove('on');
+  }
 }
 
 window.addEventListener('resize',handleNavResize);
-window.addEventListener('resize',function(){
-  const isMobile = window.innerWidth <= 600;
-  const nav = document.getElementById('nav');
-  const bnav = document.getElementById('bottom-nav');
-  const appVisible = document.getElementById('main-content')?.style.display !== 'none';
-  if(!appVisible) return; // not logged in, don't touch
-  if(nav) nav.style.display = isMobile ? 'none' : '';
-  if(bnav) bnav.style.display = isMobile ? 'flex' : 'none';
-});
 window.addEventListener('load',handleNavResize);
 
 function _recalcRelist(currentPL,salePrice,bpf,shipping,packaging,postage){
@@ -5958,141 +4889,8 @@ function refreshPanelParts(m,id){
 }
 
 initTheme();
-
-// ── BOOT: auth-gated ─────────────────────────────────────────────────────────
-// Show auth overlay while we check session. If already signed in, boot straight
-// into the app. If not, show the sign-in form.
-
-(async function boot(){
-  const overlay = document.getElementById('auth-overlay');
-
-  // ⚠️ DEV MODE — remove before push
-  document.getElementById('auth-overlay').style.display = 'none';
-  document.getElementById('nav').style.display = window.innerWidth > 600 ? '' : 'none';
-  document.getElementById('bottom-nav').style.display = window.innerWidth > 600 ? 'none' : 'flex';
-  document.getElementById('main-content').style.display = '';
-  document.getElementById('fab').style.display = '';
-  try{ const raw=localStorage.getItem('ebay_db_v7'); if(raw) Object.assign(DB,JSON.parse(raw)); }catch(e){}
-  renderSummary(); return;
-
-
-
-  function showApp(){
-    overlay.style.display = 'none';
-    // Top nav — desktop only; bottom nav — mobile only
-    if(window.innerWidth > 600){
-      document.getElementById('nav').style.display = '';
-      document.getElementById('bottom-nav').style.display = 'none';
-    } else {
-      document.getElementById('nav').style.display = 'none';
-      document.getElementById('bottom-nav').style.display = 'flex';
-    }
-    document.getElementById('main-content').style.display = '';
-    document.getElementById('fab').style.display = '';
-    // Sync theme label on show
-    const _t = document.documentElement.getAttribute('data-theme')||'light';
-    const _ul = document.getElementById('user-menu-theme-label');
-    if(_ul) _ul.textContent = _t==='dark'?'Light mode':'Dark mode';
-  }
-
-  function showLogin(){
-    document.getElementById('nav').style.display = 'none';
-    document.getElementById('bottom-nav').style.display = 'none';
-    document.getElementById('main-content').style.display = 'none';
-    const fab = document.getElementById('fab');
-    if(fab) fab.style.display = 'none';
-    overlay.style.display = 'flex';
-    // Always reset sign-in button — it may be hidden from a previous successful
-    // sign-in (doSignIn hides it but never restores on success path)
-    const authBtn = document.getElementById('auth-btn');
-    const authLd  = document.getElementById('auth-loading');
-    const authErr = document.getElementById('auth-error');
-    if(authBtn) authBtn.style.display = 'block';
-    if(authLd)  authLd.style.display  = 'none';
-    if(authErr) authErr.style.display = 'none';
-  }
-
-  // Check session directly — avoids onAuthStateChange deadlock
-  let session = null;
-  try{
-    const {data} = await Promise.race([
-      _sb.auth.getSession(),
-      new Promise((_,reject) => setTimeout(() => reject(new Error('timeout')), 5000))
-    ]);
-    session = data?.session || null;
-  }catch(e){
-    console.warn('Session check failed:', e.message);
-  }
-
-  // Flag set BEFORE await so onAuthStateChange SIGNED_IN (which fires almost
-  // immediately on page load) never triggers a second concurrent initDB call.
-  let _initialLoadDone = !!session;
-
-  if(session){
-    _currentUserId = session.user.id;
-    showApp();
-    // Set avatar initial
-    const _av=document.getElementById('user-avatar');
-    if(_av && session.user?.email) _av.textContent=session.user.email[0].toUpperCase();
-    await initDB();
-    _dbSnapshot = _dbFingerprint();
-  } else {
-    showLogin();
-  }
-
-  // Listen for auth state changes
-  _sb.auth.onAuthStateChange(async (event, sess) => {
-    if(event === 'SIGNED_IN' && sess){
-      _currentUserId = sess.user.id;
-      showApp();
-      // Set avatar initial from email
-      const _av=document.getElementById('user-avatar');
-      if(_av && sess.user?.email) _av.textContent=sess.user.email[0].toUpperCase();
-      if(!_initialLoadDone){
-        _initialLoadDone = true;
-        await initDB();
-        _dbSnapshot = _dbFingerprint();
-      }
-      // else: page-load SIGNED_IN echo — already loaded, do nothing
-    } else if(event === 'TOKEN_REFRESHED' && sess){
-      // Silent token refresh — just update userId, no reload needed
-      _currentUserId = sess.user.id;
-    } else if(event === 'SIGNED_OUT' || (!sess && event !== 'INITIAL_SESSION')){
-      clearTimeout(_saveTimer);
-      _saveTimer = null;
-      _initialLoadDone = false;
-      _currentUserId = null;
-      DB = {};
-      _dbSnapshot = {};
-      showLogin();
-    }
-  });
-
-  // Re-check session when tab becomes visible again (phone wake, tab switch)
-  // If token expired while backgrounded, boot to login immediately
-  document.addEventListener('visibilitychange', async () => {
-    if(document.visibilityState !== 'visible') return;
-    if(!_currentUserId) return; // already on login screen
-    try{
-      const {data, error} = await _sb.auth.getSession();
-      if(error || !data.session){
-        // Session gone — try one silent refresh before giving up
-        const {data:rd, error:re} = await _sb.auth.refreshSession();
-        if(re || !rd.session){
-          toast('Session expired — please sign in again', 'err');
-          _currentUserId = null;
-          DB = {};
-          _dbSnapshot = {};
-          _initialLoadDone = false;
-          await _sb.auth.signOut();
-          showLogin();
-        }
-      }
-    }catch(e){
-      console.warn('Visibility session check failed:', e.message);
-    }
-  });
-})();
+initDB();
+renderSummary();
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SUPABASE MIGRATION PREP
