@@ -3614,7 +3614,9 @@ function renderMonthlyGrid(){
 
     let gridHTML='';
     if(!isCollapsed){
-      const cards=months.map(function(k){
+      // Past FYs: show most-recent month first (MAR→APR). Current FY: chronological (APR→now).
+      const displayMonths=isCurrentFY?months:[...months].reverse();
+      const cards=displayMonths.map(function(k){
         const ms=calcMonthStats(k);
         const hasItems=(DB[k]||[]).length>0;
         const hasSales=ms.soldCount>0||ms.listedCount>0;
@@ -5920,13 +5922,14 @@ function calcGrossProfit(i){
   const bpf=calcEbayBPF(i.salePrice);
   const grossInc=i.salePrice-bpf;
   const promoCost=grossInc*(i.promoPercent||0)*1.20;
-  const rev=i.salePrice+(i.postage||0)-bpf;
-  // Full returns only: eBay refunds BPF back to seller (transaction fully reversed)
-  // Partial returns: no BPF refund — eBay keeps the fee, buyer keeps the item
   // Determine if this item has been relisted after a full return
   // (isReturned=false but returnHistory has a full return entry, and no dateSold / resaleSalePrice)
+  // Full returns only: eBay refunds BPF back to seller (transaction fully reversed)
+  // Partial returns: no BPF refund — eBay keeps the fee, buyer keeps the item
   const _wasRelisted = !i.isReturned && !i.dateSold && !i.resaleSalePrice &&
     (i.returnHistory||[]).some(r=>r.type==='full_seller'||r.type==='full_ebay');
+  // When relisted: Sale 1 was fully reversed — no net revenue yet. Rev=0 until item sells again.
+  const rev=_wasRelisted ? 0 : i.salePrice+(i.postage||0)-bpf;
   const returnCost=(i.returnHistory||[]).reduce(function(s,r){
     const fullReturn=(r.type==='full_seller'||r.type==='full_ebay');
     if(fullReturn){
