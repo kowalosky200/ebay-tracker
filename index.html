@@ -2117,37 +2117,99 @@ function renderItemPage(m,id){
 
   // ── P&L receipt (read-only, derived) ─────────────────────────────────
   const partsCost=calcPartsCost(i);
-  const sale1Net=i.resaleSalePrice?(+((i.salePrice+(i.postage||0)-calcEbayBPF(i.salePrice))-((i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+calcPartsCost(i))-(i.returnHistory||[]).reduce(function(s,r){const f=(r.type==='full_seller'||r.type==='full_ebay');if(f){const osp=r._salePriceAtReturn||r.refundAmount||i.salePrice||0;return s+Math.max(0,(r.refundAmount||0)-calcEbayBPF(osp))+(r.returnPostage||0);}return s+(r.refundAmount||0)+(r.returnPostage||0);},0)).toFixed(2)):profit;
+
   function rcp(label,val,color,indent){
     return'<div class="ip-receipt-row'+(indent?' indent':'')+'"><span style="flex:1;color:'+(color&&color.includes('--text')?color:'var(--text-secondary)')+'">'+label+'</span><span class="ip-receipt-val" style="color:'+(color||'var(--text)')+'">'+val+'</span></div>';
   }
+  function rcpTotal(label,val,color,big){
+    const fs=big?'font-size:16px;':'font-size:14px;';
+    return'<div class="ip-receipt-row total"><span style="flex:1;'+fs+'">'+label+'</span><span class="ip-receipt-val" style="'+fs+'color:'+(color||(val>=0?'var(--green)':'var(--red)'))+'">'+fmt(val)+'</span></div>';
+  }
+  function rcpDiv(label){
+    return'<div class="ip-receipt-row section-head"><span>'+label+'</span><span></span></div>';
+  }
+
+  // ── Determine return flags ────────────────────────────────────────────
+  const hasFullReturn=(i.returnHistory||[]).some(r=>r.type==='full_seller'||r.type==='full_ebay');
+  const hasPartialReturn=(i.returnHistory||[]).some(r=>r.type==='partial_seller'||r.type==='partial_ebay');
+  const hasAnyReturn=hasFullReturn||hasPartialReturn;
+  const isResold=!!i.resaleSalePrice;
+
+  // ── Sale 1 receipt ────────────────────────────────────────────────────
+  // Revenue side
   let pb='';
+  pb+=rcpDiv('Revenue');
   pb+=rcp('Sale price',fmt(i.salePrice||0),'var(--green)');
   if((i.postage||0)>0)pb+=rcp('+ Buyer postage','+'+fmt(i.postage),'var(--green)');
   pb+=rcp('eBay BPF','−'+fmt(bpf),'var(--red)');
-  if((i.shippingCost||0)>0)pb+=rcp('Shipping cost','−'+fmt(i.shippingCost),'var(--red)');
+
+  // Selling costs
+  pb+=rcpDiv('Selling costs');
+  if((i.shippingCost||0)>0)pb+=rcp('Shipping','−'+fmt(i.shippingCost),'var(--red)');
   if((i.packagingCost||0)>0)pb+=rcp('Packaging','−'+fmt(i.packagingCost),'var(--red)');
   if(i.promoPercent)pb+=rcp('Promo fee ('+((i.promoPercent*100).toFixed(0))+'% +VAT)','−'+fmt(promoCost),'var(--red)');
   pb+=rcp('Item cost','−'+fmt(i.costPrice||0),'var(--red)');
   if(partsCost>0){
     const pts=i.parts||[];
-    if(pts.length===1){pb+=rcp(esc(pts[0].description),'−'+fmt(partsCost),'var(--red)');}
+    if(pts.length===1){pb+=rcp(esc(pts[0].description||pts[0].desc||'Part'),'−'+fmt(partsCost),'var(--red)');}
     else{
       pb+=rcp('Parts & expenses ('+pts.length+')','−'+fmt(partsCost),'var(--red)');
-      pts.forEach(function(p){pb+=rcp(esc(p.description),'−'+fmt(p.cost),'var(--red)',true);});
+      pts.forEach(function(p){pb+=rcp(esc(p.description||p.desc||''),'−'+fmt(p.cost),'var(--red)',true);});
     }
   }
-  if(hasReturn){
-    pb+='<div class="ip-receipt-row section-head"><span>Return impact</span><span></span></div>';
+
+  // Return costs (if any)
+  if(hasAnyReturn){
+    pb+=rcpDiv('Return costs');
     (i.returnHistory||[]).forEach(function(r){
-      const fullReturn=(r.type==='full_seller'||r.type==='full_ebay');
-      const lbl3={full_seller:'Full refund — you handled',full_ebay:'Full refund — eBay involved',partial_seller:'Partial refund — you handled',partial_ebay:'Partial refund — eBay decided'}[r.type]||r.type;
-      pb+=rcp(lbl3,'−'+fmt(r.refundAmount||0),'var(--accent)');
-      if(fullReturn)pb+=rcp('eBay refunds BPF back to you','+'+fmt(bpf),'var(--green)',true);
-      if((r.returnPostage||0)>0)pb+=rcp('Return postage','−'+fmt(r.returnPostage),'var(--red)');
+      const isFull=r.type==='full_seller'||r.type==='full_ebay';
+      const origSP=r._salePriceAtReturn||i.salePrice||0;
+      const origBPF=calcEbayBPF(origSP);
+      const lbl={
+        full_seller:'Full refund — you handled',
+        full_ebay:'Full refund — eBay stepped in',
+        partial_seller:'Partial refund — seller agreed',
+        partial_ebay:'Partial refund — eBay decided'
+      }[r.type]||r.type;
+      pb+=rcp(lbl,'−'+fmt(r.refundAmount||0),'var(--accent)');
+      if(isFull){
+        if(r.type==='full_seller'){
+          pb+=rcp('eBay credits BPF back','+'+fmt(origBPF),'var(--green)',true);
+        } else {
+          pb+=rcp('No BPF credit (eBay stepped in)','—','var(--muted)',true);
+        }
+      } else {
+        // Partial — proportional BPF credit
+        const refundRatio=origSP>0?(r.refundAmount||0)/origSP:0;
+        const partialCredit=+(origBPF*Math.min(refundRatio,1)).toFixed(2);
+        if(partialCredit>0)pb+=rcp('Proportional BPF credit','+'+fmt(partialCredit),'var(--green)',true);
+      }
+      if((r.returnPostage||0)>0)pb+=rcp('Return postage cost','−'+fmt(r.returnPostage),'var(--red)');
     });
   }
-  pb+='<div class="ip-receipt-row total"><span style="flex:1">'+(i.resaleSalePrice?'Sale 1 net':'Net profit / loss')+'</span><span class="ip-receipt-val" style="color:'+(sale1Net>=0?'var(--green)':'var(--red)')+'">'+fmt(sale1Net)+'</span></div>';
+
+  // Sale 1 total
+  // For a fully returned item the "net" is the loss before any resale
+  const sale1Label=isResold?'Sale 1 net':hasFullReturn&&!i.dateSold?'Net loss after return':hasAnyReturn?'Net profit / loss':'Net profit / loss';
+
+  // Compute sale1Net cleanly here for display
+  const _s1Rev=(i.salePrice||0)+(i.postage||0)-bpf;
+  const _s1SellingCosts=(i.shippingCost||0)+(i.packagingCost||0)+promoCost+(i.costPrice||0)+partsCost;
+  const _s1ReturnCosts=(i.returnHistory||[]).reduce(function(s,r){
+    const isFull=r.type==='full_seller'||r.type==='full_ebay';
+    const origSP=r._salePriceAtReturn||i.salePrice||0;
+    const origBPF=calcEbayBPF(origSP);
+    if(isFull){
+      const bpfCredit=r.type==='full_seller'?origBPF:0;
+      return s+Math.max(0,(r.refundAmount||0)-bpfCredit)+(r.returnPostage||0);
+    }
+    const refundRatio=origSP>0?(r.refundAmount||0)/origSP:0;
+    const partialCredit=origBPF*Math.min(refundRatio,1);
+    return s+Math.max(0,(r.refundAmount||0)-partialCredit)+(r.returnPostage||0);
+  },0);
+  const sale1Net=+(_s1Rev-_s1SellingCosts-_s1ReturnCosts).toFixed(2);
+
+  pb+=rcpTotal(sale1Label,sale1Net);
 
   // Sale 2 block
   let resaleHTML='';
@@ -2155,16 +2217,23 @@ function renderItemPage(m,id){
     const rBPF=calcEbayBPF(i.resaleSalePrice);
     const rGrossInc=i.resaleSalePrice-rBPF;
     const rPromoCost=rGrossInc*(i.resalePromoPercent||0)*1.20;
-    const rRev=i.resaleSalePrice-rBPF-(i.resaleShippingCost||0)-rPromoCost;
+    const rShipping=i.resaleShippingCost||0;
+    const rRev=i.resaleSalePrice-rBPF-rShipping-rPromoCost;
     const lifetimeProfit=profit;
     let s2b='';
+    // Start from the sale 1 loss so the journey is clear
+    s2b+=rcp('Carried from Sale 1',fmt(sale1Net),sale1Net>=0?'var(--green)':'var(--red)');
+    s2b+=rcpDiv('Sale 2 revenue');
     s2b+=rcp('Sale price',fmt(i.resaleSalePrice),'var(--green)');
     s2b+=rcp('eBay BPF','−'+fmt(rBPF),'var(--red)');
-    if((i.resaleShippingCost||0)>0)s2b+=rcp('Shipping cost','−'+fmt(i.resaleShippingCost),'var(--red)');
+    s2b+=rcpDiv('Sale 2 costs');
+    if(rShipping>0)s2b+=rcp('Shipping','−'+fmt(rShipping),'var(--red)');
     if(rPromoCost>0)s2b+=rcp('Promo fee ('+((i.resalePromoPercent||0)*100).toFixed(1)+'% +VAT)','−'+fmt(rPromoCost),'var(--red)');
-    s2b+=rcp('Item cost (sunk)','—','var(--muted)');
-    s2b+='<div class="ip-receipt-row total"><span style="flex:1">Sale 2 net</span><span class="ip-receipt-val" style="color:'+(rRev>=0?'var(--green)':'var(--red)')+'">'+fmt(rRev)+'</span></div>';
-    s2b+='<div class="ip-receipt-row" style="margin-top:6px;padding:10px 0 2px;border-top:2px solid var(--border)"><span style="flex:1;font-weight:700;font-size:13px">Lifetime P&amp;L</span><span class="ip-receipt-val" style="font-size:16px;color:'+(lifetimeProfit>=0?'var(--green)':'var(--red)')+'">'+fmt(lifetimeProfit)+'</span></div>';
+    s2b+=rcp('Item cost','sunk','var(--muted)');
+    s2b+=rcpTotal('Sale 2 net',rRev);
+    s2b+='<div class="ip-receipt-row" style="margin-top:6px;padding:10px 0 2px;border-top:2px solid var(--border)">';
+    s2b+='<span style="flex:1;font-weight:700;font-size:15px">Lifetime P&amp;L</span>';
+    s2b+='<span class="ip-receipt-val" style="font-size:18px;font-weight:800;color:'+(lifetimeProfit>=0?'var(--green)':'var(--red)')+'">'+fmt(lifetimeProfit)+'</span></div>';
     if(roi!==null)s2b+=rcp('Overall ROI',roi.toFixed(1)+'%','var(--muted)');
     resaleHTML=sec2('Sale 2 P&amp;L <span style="color:var(--muted);font-weight:400;font-size:11px">re-sold '+esc(i.resaleDateSold||'—')+'</span>',s2b,true,fmt(rRev),rRev>=0?'var(--green)':'var(--red)','ip-section-pnl','var(--purple)');
   }
@@ -2268,13 +2337,10 @@ function renderItemPage(m,id){
   if(i.gid)html+='<span class="ip-chip mono">'+esc(i.gid)+'</span>';
   html+='<span class="ip-chip">'+m+'</span>';
   html+='<div class="item-badge '+status+'">'+status+'</div>';
-  if(i._writtenOff)html+='<span class="item-badge" style="background:rgba(239,68,68,0.15);color:var(--red)">written off</span>';
   html+='</div></div>';
   html+='<div class="ip-actions">';
   if((!i.dateSold&&!i.resaleSalePrice)&&!i.isReturned)html+='<button class="btn btn-p ip-act-btn" onclick="markSold(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 15 15" fill="none"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg><span class="ip-act-label">Mark Sold</span></button>';
-  if(i.isReturned&&!i._writtenOff)html+='<button class="btn btn-p ip-act-btn" onclick="openRelist(\''+m+'\',\''+id+'\')">↩ <span class="ip-act-label">Relist</span></button>';
-  if(i.isReturned&&!i._writtenOff)html+='<button class="btn btn-s ip-act-btn" style="color:var(--red);border-color:var(--red)" onclick="writeOffItem(\''+m+'\',\''+id+'\')">✕ <span class="ip-act-label">Write Off</span></button>';
-  if(i.isReturned&&i._writtenOff)html+='<button class="btn btn-s ip-act-btn" onclick="undoWriteOff(\''+m+'\',\''+id+'\')">↩ <span class="ip-act-label">Undo Write Off</span></button>';
+  if(i.isReturned)html+='<button class="btn btn-p ip-act-btn" onclick="openRelist(\''+m+'\',\''+id+'\')">↩ <span class="ip-act-label">Relist</span></button>';
   if((i.dateSold||i.resaleSalePrice)&&!i.isReturned)html+='<button class="btn btn-s ip-act-btn" onclick="openReturn(\''+m+'\',\''+id+'\')">↩ <span class="ip-act-label">Return</span></button>';
   html+='<button class="btn btn-s ip-act-btn" onclick="duplicateItem(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 11V3a1 1 0 011-1h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="ip-act-label">Dupe</span></button>';
   html+='<button class="btn btn-s ip-act-btn ip-act-danger" onclick="deleteItem(\''+m+'\',\''+id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
@@ -5356,32 +5422,13 @@ function openReturn(m,id){
     </div>
     <div class="fg">
       <label>Return type</label>
-      <select id="rtn-type" onchange="onRtnTypeChange()">
+      <select id="rtn-type">
         <option value="full_seller">Full refund — seller handled</option>
         <option value="full_ebay">Full refund — eBay stepped in</option>
         <option value="partial_seller">Partial refund — seller agreed</option>
         <option value="partial_ebay">Partial refund — eBay decided</option>
       </select>
     </div>
-
-    <!-- Full-refund only: did the item physically come back? -->
-    <div id="rtn-physical-row" style="margin-bottom:16px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
-      <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">What happened to the item?</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button id="rtn-phys-yes" type="button" onclick="setRtnPhysical(true)"
-          style="padding:10px 8px;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:#000;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;line-height:1.3;text-align:center">
-          📦 Returned to me<br><span style="font-weight:400;font-size:11px">I have the item back</span>
-        </button>
-        <button id="rtn-phys-no" type="button" onclick="setRtnPhysical(false)"
-          style="padding:10px 8px;border-radius:8px;border:2px solid var(--border);background:var(--surface2);color:var(--text);font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;line-height:1.3;text-align:center">
-          🛒 Buyer kept it<br><span style="font-weight:400;font-size:11px">Refund only, no return</span>
-        </button>
-      </div>
-      <div id="rtn-physical-hint" style="margin-top:8px;font-size:11px;color:var(--text-secondary);line-height:1.4">
-        Item will go back into stock so you can relist or write it off.
-      </div>
-    </div>
-
     <div class="rtn-grid">
       <div class="fg">
         <label>Refund amount (£)</label>
@@ -5392,8 +5439,8 @@ function openReturn(m,id){
         <input type="date" id="rtn-date" value="${today}">
       </div>
     </div>
-    <div class="fg" id="rtn-postage-row">
-      <label>Return postage cost to you (£)</label>
+    <div class="fg">
+      <label>Return postage (£)</label>
       <input type="number" id="rtn-postage" step="0.01" value="0" placeholder="0.00">
     </div>
     <div class="fg">
@@ -5406,57 +5453,6 @@ function openReturn(m,id){
     </div>
   `;
   openPanel('Log Return', html);
-  // Default state: full refund, physical return = true
-  window._rtnPhysical = true;
-  onRtnTypeChange();
-}
-
-function onRtnTypeChange(){
-  const type = document.getElementById('rtn-type').value;
-  const isFull = type === 'full_seller' || type === 'full_ebay';
-  const physRow = document.getElementById('rtn-physical-row');
-  const postageRow = document.getElementById('rtn-postage-row');
-  if(physRow) physRow.style.display = isFull ? 'block' : 'none';
-  // Partial: postage field still relevant (return postage you might cover)
-  if(!isFull){
-    // Reset physical flag — irrelevant for partials
-    window._rtnPhysical = false;
-    if(postageRow) postageRow.style.display = 'block';
-    // Update refund default to 0 for partial so user types the actual amount
-    const refundEl = document.getElementById('rtn-refund');
-    // Don't overwrite if user already typed something meaningful
-  } else {
-    if(postageRow) postageRow.style.display = window._rtnPhysical ? 'block' : 'none';
-    setRtnPhysical(window._rtnPhysical !== false ? true : false);
-  }
-}
-
-function setRtnPhysical(physical){
-  window._rtnPhysical = physical;
-  const yes = document.getElementById('rtn-phys-yes');
-  const no  = document.getElementById('rtn-phys-no');
-  const hint = document.getElementById('rtn-physical-hint');
-  const postageRow = document.getElementById('rtn-postage-row');
-  if(!yes||!no) return;
-  if(physical){
-    yes.style.border = '2px solid var(--accent)';
-    yes.style.background = 'var(--accent)';
-    yes.style.color = '#000';
-    no.style.border = '2px solid var(--border)';
-    no.style.background = 'var(--surface2)';
-    no.style.color = 'var(--text)';
-    if(hint) hint.textContent = 'Item will go back into stock so you can relist or write it off.';
-    if(postageRow) postageRow.style.display = 'block';
-  } else {
-    no.style.border = '2px solid var(--red)';
-    no.style.background = 'rgba(239,68,68,0.1)';
-    no.style.color = 'var(--red)';
-    yes.style.border = '2px solid var(--border)';
-    yes.style.background = 'var(--surface2)';
-    yes.style.color = 'var(--text)';
-    if(hint) hint.textContent = 'Sale stays closed — refund cost logged against this item\'s profit. Settled immediately.';
-    if(postageRow) postageRow.style.display = 'none';
-  }
 }
 
 function saveReturn(m,id){
@@ -5465,10 +5461,7 @@ function saveReturn(m,id){
   const type=document.getElementById('rtn-type').value;
   const refundAmount=parseFloat(document.getElementById('rtn-refund').value)||0;
   const returnDate=document.getElementById('rtn-date').value;
-  const isFull=type==='full_seller'||type==='full_ebay';
-  // _rtnPhysical only matters for full refunds; partials never move the item
-  const physicalReturn = isFull ? (window._rtnPhysical !== false) : false;
-  const returnPostage=isFull && physicalReturn ? (parseFloat(document.getElementById('rtn-postage').value)||0) : 0;
+  const returnPostage=parseFloat(document.getElementById('rtn-postage').value)||0;
   const notes=document.getElementById('rtn-notes').value.trim();
 
   const entry={
@@ -5477,37 +5470,27 @@ function saveReturn(m,id){
     refundAmount:refundAmount,
     returnPostage:returnPostage,
     notes:notes,
-    _salePriceAtReturn:i.salePrice||0,  // snapshot for correct BPF refund calc
-    _physicalReturn: isFull ? physicalReturn : undefined  // audit flag
+    _salePriceAtReturn:i.salePrice||0  // snapshot: used to get correct BPF refund in calcGrossProfit
   };
 
   if(!i.returnHistory)i.returnHistory=[];
 
-  // Full return supersedes any existing partial entries
-  if(isFull){
+  // If logging a full return, remove any existing partial entries — they're superseded
+  if(type==='full_seller'||type==='full_ebay'){
     i.returnHistory=i.returnHistory.filter(r=>r.type==='full_seller'||r.type==='full_ebay');
   }
 
   i.returnHistory.push(entry);
 
-  if(isFull){
-    if(physicalReturn){
-      // Item physically back — goes to stock for relist/write-off decision
-      i.isReturned=true;
-      i.dateSold=null;
-    } else {
-      // Buyer kept it — sale stays closed, refund is just a cost hit
-      // dateSold stays set, isReturned stays false → settled immediately in P&L
-      // No state change needed — calcGrossProfit will pick up the refund from returnHistory
-    }
+  // Mark as fully returned only for full refund types
+  if(type==='full_seller'||type==='full_ebay'){
+    i.isReturned=true;
+    i.dateSold=null; // remove from sold — back to stock
   }
-  // Partial: dateSold stays, isReturned stays false — already settled, calcGrossProfit handles it
-
-  i.grossProfit=calcGrossProfit(i);
-  window._rtnPhysical=null;
   saveDB();
   toast('Return logged');
   closePanel();
+  // Always navigate to the item page so user can see the updated P&L/timeline
   openItemPage(m,id,document.querySelector('.page.on')?document.querySelector('.page.on').id:'p-summary');
 }
 
@@ -5589,35 +5572,6 @@ function undoRelist(m,id,rtnIdx){
   toast('Relist undone — item back to Returned');
 }
 
-async function writeOffItem(m,id){
-  const i=(DB[m]||[]).find(x=>x.id===id);
-  if(!i)return;
-  const profit=calcGrossProfit(i);
-  const ok=await showConfirm(
-    'Write off item?',
-    'This marks the item as a settled loss ('+fmt(profit)+'). It will count in your P&L and tax figures. You can undo this from the item page.',
-    {icon:'✕',okLabel:'Write Off',danger:true}
-  );
-  if(!ok)return;
-  i._writtenOff=true;
-  i._writtenOffDate=new Date().toISOString().split('T')[0];
-  i.grossProfit=calcGrossProfit(i);
-  saveDB();
-  toast('Written off — loss recorded in P&L');
-  renderItemPage(m,id);
-}
-
-function undoWriteOff(m,id){
-  const i=(DB[m]||[]).find(x=>x.id===id);
-  if(!i)return;
-  delete i._writtenOff;
-  delete i._writtenOffDate;
-  i.grossProfit=calcGrossProfit(i);
-  saveDB();
-  renderItemPage(m,id);
-  toast('Write-off reversed — item back to Returned');
-}
-
 // ── Returned items panel (opened from KPI card) ────────────────────────────
 function showReturnedItems(){
   const items=[];
@@ -5684,53 +5638,24 @@ function renderTax(){
   const taxYearEnd=new Date(selectedYear+1,3,5,23,59,59);
   function inTaxYear(ds){if(!ds)return false;const d=new Date(ds);return d>=taxYearStart&&d<=taxYearEnd;}
   const soldItems=[];
-  const returnedItems=[]; // isReturned=true — sale happened, refund paid, settled loss
   allDBKeys().forEach(function(k){(DB[k]||[]).forEach(function(i){
     if((i.item||'').trim().toUpperCase()==='MONTH END')return;
     if((i.dateSold||i.resaleSalePrice)&&!i.isReturned&&inTaxYear(i.dateSold||i.resaleDateSold))soldItems.push(i);
-    // Returned items: include if the original sale date (from returnHistory) is in tax year
-    // Buyer-kept (isReturned=false, dateSold set) are already caught above via dateSold
-    if(i.isReturned){
-      const saleDate=(i.returnHistory||[]).length>0?i.returnHistory[0].loggedAt:null;
-      if(inTaxYear(saleDate))returnedItems.push(i);
-    }
   });});
-
-  // Turnover = gross receipts: sold items + returned items (sale happened even if refunded)
-  const totalIncome=soldItems.reduce(function(s,i){return s+(i.salePrice||0)+(i.resaleSalePrice||0);},0)
-    +returnedItems.reduce(function(s,i){return s+(i.salePrice||0);},0);
-  const saleCount=soldItems.length+returnedItems.length;
-  const totalBPF=soldItems.reduce(function(s,i){return s+calcEbayBPF(i.salePrice||0)+(i.resaleSalePrice?calcEbayBPF(i.resaleSalePrice):0);},0)
-    +returnedItems.reduce(function(s,i){return s+calcEbayBPF(i.salePrice||0);},0);
-  const totalPromo=soldItems.reduce(function(s,i){var bpf=calcEbayBPF(i.salePrice||0);return s+((i.salePrice||0)-bpf)*(i.promoPercent||0)*1.20;},0)
-    +returnedItems.reduce(function(s,i){var bpf=calcEbayBPF(i.salePrice||0);return s+((i.salePrice||0)-bpf)*(i.promoPercent||0)*1.20;},0);
-  const totalPostage=soldItems.reduce(function(s,i){return s+(i.shippingCost||0)+(i.resaleShippingCost||0);},0)
-    +returnedItems.reduce(function(s,i){
-      return s+(i.shippingCost||0)
-        +(i.returnHistory||[]).reduce(function(s2,r){return s2+(r.returnPostage||0);},0);
-    },0);
-  const totalPackaging=soldItems.reduce(function(s,i){return s+(i.packagingCost||0);},0)
-    +returnedItems.reduce(function(s,i){return s+(i.packagingCost||0);},0);
-  const totalStockCost=soldItems.reduce(function(s,i){return s+(i.costPrice||0);},0)
-    +returnedItems.reduce(function(s,i){return s+(i.costPrice||0);},0);
-  const totalParts=soldItems.reduce(function(s,i){return s+calcPartsCost(i);},0)
-    +returnedItems.reduce(function(s,i){return s+calcPartsCost(i);},0);
-  // Refunds paid out = additional expense for returned items
-  const totalRefundsPaid=returnedItems.reduce(function(s,i){
-    return s+(i.returnHistory||[]).reduce(function(s2,r){return s2+(r.refundAmount||0);},0);
-  },0);
-  // Also include buyer-kept refunds (full refunds where item wasn't returned — dateSold still set)
-  const totalBuyerKeptRefunds=soldItems.reduce(function(s,i){
-    const hasBuyerKept=(i.returnHistory||[]).some(r=>(r.type==='full_seller'||r.type==='full_ebay')&&r._physicalReturn===false);
-    if(!hasBuyerKept)return s;
-    return s+(i.returnHistory||[]).filter(r=>r._physicalReturn===false).reduce(function(s2,r){return s2+(r.refundAmount||0);},0);
-  },0);
+  const totalIncome=soldItems.reduce(function(s,i){return s+(i.salePrice||0)+(i.resaleSalePrice||0);},0);
+  const saleCount=soldItems.length;
+  const totalBPF=soldItems.reduce(function(s,i){return s+calcEbayBPF(i.salePrice||0)+(i.resaleSalePrice?calcEbayBPF(i.resaleSalePrice):0);},0);
+  const totalPromo=soldItems.reduce(function(s,i){var bpf=calcEbayBPF(i.salePrice||0);return s+((i.salePrice||0)-bpf)*(i.promoPercent||0)*1.20;},0);
+  const totalPostage=soldItems.reduce(function(s,i){return s+(i.shippingCost||0)+(i.resaleShippingCost||0);},0);
+  const totalPackaging=soldItems.reduce(function(s,i){return s+(i.packagingCost||0);},0);
+  const totalStockCost=soldItems.reduce(function(s,i){return s+(i.costPrice||0);},0);
+  const totalParts=soldItems.reduce(function(s,i){return s+calcPartsCost(i);},0);
   const tripsInYear=(DB.trips||[]).filter(function(t){return inTaxYear(t.date);});
   const totalMiles=tripsInYear.reduce(function(s,t){return s+(t.mileage||0);},0);
   const totalMileage=+(totalMiles*0.45).toFixed(2);
   const expensesInYear=(DB.expenses||[]).filter(function(e){return inTaxYear(e.date);});
   const totalOtherExpenses=expensesInYear.reduce(function(s,e){return s+(e.amount||0);},0);
-  const totalActualExpenses=+(totalBPF+totalPromo+totalPostage+totalPackaging+totalStockCost+totalMileage+totalOtherExpenses+totalParts+totalRefundsPaid+totalBuyerKeptRefunds).toFixed(2);
+  const totalActualExpenses=+(totalBPF+totalPromo+totalPostage+totalPackaging+totalStockCost+totalMileage+totalOtherExpenses+totalParts).toFixed(2);
   const TRADING_ALLOWANCE=1000;
   const taxableTA=Math.max(0,+(totalIncome-TRADING_ALLOWANCE).toFixed(2));
   const taxableActual=Math.max(0,+(totalIncome-totalActualExpenses).toFixed(2));
@@ -5753,9 +5678,8 @@ function renderTax(){
     ['Postage paid',totalPostage],
     ['Packaging costs',totalPackaging],
     ['Stock cost (sold items)',totalStockCost],
-    ['Parts & item expenses',totalParts],
-    ['Refunds paid (returns)',totalRefundsPaid+totalBuyerKeptRefunds]
-  ].filter(function(r){return r[1]>0;}).map(function(row){
+    ['Parts & item expenses',totalParts]
+  ].map(function(row){
     var label=row[0],val=row[1];
     return '<div class="tax-exp-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);font-size:14px">'
       +'<span style="color:var(--text-secondary)">'+label+'</span>'
@@ -5939,13 +5863,6 @@ function calcYearlyStats(){
         if(i.resaleSalePrice)totalRev+=i.resaleSalePrice;
         realisedProfit+=prof;
         soldItems.push({...i,profit:prof});
-      }else if(i.isReturned){
-        // Returned and sitting in stock — settled loss (refund already paid)
-        soldCount++;
-        const prof=calcGrossProfit(i);
-        totalRev+=(i.salePrice||0);
-        realisedProfit+=prof;
-        soldItems.push({...i,profit:prof});
       }else if(!i.isReturned&&!i.resaleSalePrice){
         listedCount++;
         stockValue+=i.salePrice||0;
@@ -6028,29 +5945,16 @@ function calcMonthStats(m){
   let soldCount=0,listedCount=0,daysSum=0;
   (DB[m]||[]).forEach(i=>{
     if((i.item||"").trim().toUpperCase()==="MONTH END")return;
-    const isRelisted=!i.isReturned&&!i.dateSold&&!i.resaleSalePrice&&(i.returnHistory||[]).some(r=>r.type==='full_seller'||r.type==='full_ebay');
     if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){
-      // Clean sale, buyer-kept refund, or resold after return
       soldCount++;
       totalRev+=(i.salePrice||0);
       if(i.resaleSalePrice)totalRev+=i.resaleSalePrice;
       realisedProfit+=calcGrossProfit(i);
       if(i.dateSold&&i.dateListed)daysSum+=daysBetween(i.dateListed,i.dateSold);
-    }else if(i.isReturned){
-      // Returned and in stock (pending relist or write-off) — but still count as settled loss
-      // because the refund cash has already left. Include in realised P&L.
-      soldCount++;
-      totalRev+=(i.salePrice||0); // sale happened even if refunded
-      realisedProfit+=calcGrossProfit(i);
-    }else if(!isRelisted){
-      // Active listed stock (including relisted items — they're just stock again)
+    }else if(!i.isReturned&&!i.resaleSalePrice){
       listedCount++;
       stockValue+=i.salePrice||0;
       unrealisedProfit+=calcGrossProfit(i)||0;
-    }else{
-      // Relisted limbo — count as listed
-      listedCount++;
-      stockValue+=i.salePrice||0;
     }
   });
   const avgDays=soldCount?Math.round(daysSum/soldCount):null;
@@ -6095,13 +5999,22 @@ function calcGrossProfit(i){
         // Only the return postage is a real additional cost here.
         return s+(r.returnPostage||0);
       }
-      // Standard path: item is returned and not yet relisted — charge refund net of BPF refund
+      // full_seller: eBay credits BPF back → net refund cost = refund − BPF
+      // full_ebay:   eBay stepped in → BPF is NOT credited back → net refund cost = full refund amount
       const origSalePrice=r._salePriceAtReturn||r.refundAmount||i.salePrice||0;
       const origBPF=calcEbayBPF(origSalePrice);
-      const netRefund=Math.max(0,(r.refundAmount||0)-origBPF);
+      const bpfCredit=r.type==='full_seller'?origBPF:0;
+      const netRefund=Math.max(0,(r.refundAmount||0)-bpfCredit);
       return s+netRefund+(r.returnPostage||0);
     }
-    return s+(r.refundAmount||0)+(r.returnPostage||0);
+    // Partial refund: BPF credited proportionally
+    // credit = BPF × (refundAmount / salePrice)
+    const origSalePrice=r._salePriceAtReturn||i.salePrice||0;
+    const origBPF=calcEbayBPF(origSalePrice);
+    const refundRatio=origSalePrice>0?(r.refundAmount||0)/origSalePrice:0;
+    const partialBPFCredit=origBPF*Math.min(refundRatio,1);
+    const netPartialRefund=Math.max(0,(r.refundAmount||0)-partialBPFCredit);
+    return s+netPartialRefund+(r.returnPostage||0);
   },0);
   const partsCost=calcPartsCost(i);
   const cost=(i.costPrice||0)+(i.shippingCost||0)+(i.packagingCost||0)+promoCost+returnCost+partsCost;
