@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>General-007 | eBay Tracker</title>
+<title>Retrade</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -43,8 +43,17 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .brand{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;flex-shrink:0;margin-right:16px;transition:opacity 0.15s;}
 .brand:hover{opacity:0.8;}
 .brand-text{display:flex;flex-direction:column;gap:0;line-height:1;}
-.brand-general{font-family:'Inter',sans-serif;font-size:12px;font-weight:800;letter-spacing:0.16em;color:var(--text);text-transform:uppercase;}
-.brand-007{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--accent);letter-spacing:0.1em;}
+.brand-wordmark{font-family:'Inter',sans-serif;font-size:12px;font-weight:800;letter-spacing:0.16em;color:var(--text);text-transform:uppercase;}
+.brand-re{color:var(--text);}
+.brand-trade{color:var(--accent);text-shadow:0 0 10px rgba(245,166,35,.14);}
+.tab .tab-ic,.nav-more-btn .tab-ic{display:inline-flex;align-items:center;justify-content:center;opacity:.9}
+.tab{gap:8px;}
+.nav-more-btn{padding:0 10px;min-width:42px}
+.nav-more-btn .tab-label{display:none;}
+.nav-more-btn .tab-ic{margin:0;}
+@media(max-width:980px){.tab .tab-label{display:none}.tab{padding:0 10px}.tab .tab-ic{margin:0}}
+
+.brand-accent{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--accent);letter-spacing:0.1em;}
 .brand svg circle{filter:drop-shadow(0 0 3px rgba(245,166,35,0.4));}
 /* Primary tabs — left cluster */
 .tabs-row{display:flex;align-items:center;gap:0;flex-shrink:0;}
@@ -243,7 +252,7 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .mcard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 20px var(--shadow-md);}
 .mcard-empty{opacity:0.35;}
 .mname{font-family:var(--font-body);font-weight:500;font-size:12px;margin-bottom:8px;color:var(--text-secondary);letter-spacing:0;text-transform:none;}
-.mval{font-family:"Inter",system-ui,sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.04em;margin-bottom:6px;}
+.mval{font-family:"Inter",system-ui,sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.04em;margin-bottom:6px;font-variant-numeric:tabular-nums lining-nums;}
 .mval.pos{color:var(--green);}.mval.nil{color:var(--muted);}.mval.neg{color:var(--red);}
 .msub{font-size:11px;color:var(--muted);margin-top:4px;}
 
@@ -292,8 +301,8 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .item-row-gid{font-family:var(--font-mono);font-size:10px;color:var(--muted);opacity:0.6;font-weight:400;}
 .item-row-meta-sep{color:var(--border2);}
 .item-row-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;min-width:72px;}
-.item-row-price{font-size:14px;font-weight:600;font-family:var(--font-mono);color:var(--text);letter-spacing:-0.02em;}
-.item-row-profit{font-size:12px;font-weight:500;font-family:var(--font-mono);}
+.item-row-price{font-size:14px;font-weight:700;font-family:"Inter",system-ui,sans-serif;color:var(--text);letter-spacing:-0.03em;font-variant-numeric:tabular-nums lining-nums;}
+.item-row-profit{font-size:12px;font-weight:600;font-family:"Inter",system-ui,sans-serif;font-variant-numeric:tabular-nums lining-nums;}
 .item-row-profit.pos{color:var(--green);}
 .item-row-profit.neg{color:var(--red);}
 .item-row-profit.est{color:var(--muted);}
@@ -716,7 +725,7 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
   .item-full-page{padding:14px 16px 80px;}
 }
 
-/* ── G007 IDENTITY ─────────────────────────────────────────────────────── */
+/* ── RETRADE IDENTITY ───────────────────────────────────────────────────── */
 /* Ambient page glow — warms up the summary page */
 [data-theme="dark"] #p-summary{background-image:radial-gradient(ellipse 60% 30% at 50% 0%,rgba(245,166,35,0.04) 0%,transparent 60%);}
 [data-theme="dark"] #p-monthly{background-image:radial-gradient(ellipse 50% 25% at 50% 0%,rgba(125,185,247,0.03) 0%,transparent 55%);}
@@ -750,6 +759,210 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 .stat-num{font-family:"Inter",system-ui,sans-serif;font-size:26px;font-weight:700;letter-spacing:-0.04em;line-height:1.05;}
 .stat-num-sm{font-family:"Inter",system-ui,sans-serif;font-size:20px;font-weight:700;letter-spacing:-0.04em;line-height:1.05;}
 .stat-num-xs{font-family:"Inter",system-ui,sans-serif;font-size:17px;font-weight:600;letter-spacing:-0.03em;line-height:1.1;}
+
+.brand svg{display:none!important;}
+#auth-screen-login svg[width="62"], #auth-screen-reset svg[width="62"]{display:none!important;}
+
+
+/* ===== Retrade premium desktop redesign overrides ===== */
+:root{
+  --bg:#eef1f7;--surface:#ffffff;--surface2:#e8ecf4;--border:#c8d2e0;--border2:#a8b6cc;
+  --accent:#c89b2f;--accent-hover:#ad8424;--accent-dim:rgba(200,155,47,0.13);
+  --green:#0f9f6e;--green-hover:#0b865d;--green-dim:rgba(15,159,110,0.12);
+  --red:#dc5b5b;--red-hover:#c84848;--red-dim:rgba(220,91,91,0.12);
+  --blue:#5c7cfa;--purple:#7c61d9;--warn:#c89b2f;
+  --text:#0e1a2e;--text-secondary:#48607a;--muted:#7a90a8;
+  --shadow:rgba(14,25,44,0.09);--shadow-md:rgba(14,25,44,0.18);--overlay:rgba(12,18,28,0.46);
+  --radius-sm:12px;--radius:18px;--radius-lg:24px;
+}
+[data-theme="dark"]{
+  --bg:#0f1724;--surface:#141d2d;--surface2:#182235;--border:#223149;--border2:#31435f;
+  --accent:#d4a63d;--accent-hover:#e4b74e;--accent-dim:rgba(212,166,61,0.14);
+  --green:#22b07d;--green-hover:#2fc28f;--green-dim:rgba(34,176,125,0.14);
+  --red:#eb7070;--red-hover:#f18c8c;--red-dim:rgba(235,112,112,0.14);
+  --blue:#7aa2ff;--purple:#a686ff;--warn:#d4a63d;
+  --text:#eff4fb;--text-secondary:#9cafc8;--muted:#6f819b;
+  --shadow:rgba(0,0,0,0.35);--shadow-md:rgba(0,0,0,0.55);--overlay:rgba(6,11,18,0.72);
+}
+html,body{background:linear-gradient(180deg,var(--bg) 0%, color-mix(in srgb,var(--bg) 92%, #7d90bb 8%) 100%);} 
+body{font-size:14px;}
+.page{max-width:1280px;padding:28px 28px 120px;animation:pageFade .26s ease;}
+@keyframes pageFade{from{opacity:.0;transform:translateY(6px)}to{opacity:1;transform:none}}
+nav:not(#bottom-nav){background:color-mix(in srgb,var(--surface) 88%, transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid color-mix(in srgb,var(--border) 76%, transparent);}
+.nav-inner{max-width:1280px;height:68px;padding:0 24px;gap:16px;}
+.brand{margin-right:8px!important;position:relative;padding-right:18px;}
+.brand::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);height:24px;width:1px;background:linear-gradient(180deg,transparent,var(--border2),transparent);}
+.brand span{font-size:14px!important;letter-spacing:.14em!important;font-weight:800!important;}
+.search-wrap{width:300px!important;}
+.search-wrap input{height:42px;border-radius:14px;padding-left:38px;background:color-mix(in srgb,var(--surface2) 75%, var(--surface));}
+.search-wrap input:-webkit-autofill,.search-wrap input:-webkit-autofill:hover,.search-wrap input:-webkit-autofill:focus{transition:background-color 99999s ease-out 0s;-webkit-text-fill-color:var(--text);box-shadow:0 0 0 1000px color-mix(in srgb,var(--surface2) 75%, var(--surface)) inset;}
+.brand-name{color:var(--text);font-family:inherit;font-weight:800;letter-spacing:.16em;text-transform:uppercase;} .brand-name .gold{color:var(--accent);text-shadow:0 0 10px rgba(245,166,35,.18);}
+.brand-code{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 68%, #fff 32%), var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 12px color-mix(in srgb,var(--accent) 18%, transparent);}
+.search-icon{left:13px;}
+.tabs{gap:4px;}
+.tab,.nav-more-btn{height:42px;border-radius:12px;padding:0 14px;font-weight:600;color:var(--text-secondary);}
+.tab::after{display:none;}
+.tab.on,.nav-more-btn.on{background:var(--surface2);color:var(--text);box-shadow:inset 0 0 0 1px var(--border);}
+.nav-right{gap:10px;}
+.user-menu-btn{height:42px;border-radius:14px;padding:6px 12px 6px 6px;background:color-mix(in srgb,var(--surface2) 70%, transparent);}
+.user-avatar{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 60%, #fff 40%));color:#0c1320;font-size:11px;}
+.page-header{margin-bottom:22px;}
+.page-title{font-size:34px;font-weight:800;letter-spacing:-0.05em;}
+.page-subtitle{font-size:14px;color:var(--text-secondary);}
+.kgrid{gap:14px;margin-bottom:18px;}
+.kcard{border-radius:20px;padding:20px 20px 18px;border:1px solid var(--border);box-shadow:0 10px 30px var(--shadow);min-height:126px;background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 94%, #ffffff 6%) 0%,var(--surface) 100%);} 
+[data-theme="dark"] .kcard{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 92%, #1f2b40 8%) 0%,var(--surface) 100%);border-color:color-mix(in srgb,var(--border) 88%, transparent);}
+.kcard::after{height:2px;opacity:.95;background:linear-gradient(90deg,var(--accent),transparent 86%);} 
+.kcard.g::after{background:linear-gradient(90deg,var(--green),transparent 86%)}
+.kcard.r::after{background:linear-gradient(90deg,var(--red),transparent 86%)}
+.kcard.b::after{background:linear-gradient(90deg,var(--blue),transparent 86%)}
+.kcard.p::after{background:linear-gradient(90deg,var(--purple),transparent 86%)}
+.kcard:hover{transform:translateY(-3px);box-shadow:0 16px 42px var(--shadow-md);}
+.klabel{font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--muted);} 
+.kval,.stat-num,.stat-num-sm,.stat-num-xs,.insight-val{font-variant-numeric:tabular-nums lining-nums;letter-spacing:-0.05em;}
+.kval{font-size:34px;font-weight:800;margin:10px 0 6px;line-height:.98;}
+.ksub{font-size:12px;color:var(--text-secondary)}
+.insights{gap:14px;grid-template-columns:1fr;}
+.insight-card{border-radius:18px;padding:16px 16px;border:1px solid var(--border);box-shadow:0 10px 26px var(--shadow);align-items:flex-start;}
+[data-theme="dark"] .insight-card{border-color:color-mix(in srgb,var(--border) 88%, transparent);}
+.insight-icon{width:34px;height:34px;border-radius:12px;background:var(--surface2);}
+.sl{font-size:11px;letter-spacing:.14em;color:var(--text-secondary);margin:0 0 14px;}
+.sl::before{width:18px;border-radius:999px;background:linear-gradient(90deg,var(--accent),transparent)}
+.chart-wrap,.item-table,.section-card,.slide-panel,.month-picker-dropdown,.confirm-box{border-radius:22px;border:1px solid var(--border);box-shadow:0 12px 30px var(--shadow);}
+[data-theme="dark"] .chart-wrap,[data-theme="dark"] .section-card,[data-theme="dark"] .month-picker-dropdown,[data-theme="dark"] .confirm-box{border-color:color-mix(in srgb,var(--border) 88%, transparent);}
+.chart-wrap{padding:22px;margin-bottom:18px;background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 96%, #fff 4%) 0%, var(--surface) 100%);} 
+[data-theme="dark"] .chart-wrap{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 92%, #20304a 8%) 0%, var(--surface) 100%);}
+.chart-title{font-size:11px;letter-spacing:.12em;margin-bottom:18px;}
+.bars-wrap{height:264px;padding-top:18px;padding-bottom:40px;gap:10px;}
+.bars-wrap::after{bottom:40px;background:color-mix(in srgb,var(--border) 80%, transparent);} 
+.bar-pair{gap:4px;height:202px;}
+.bar-rev,.bar-prof{border-radius:6px 6px 2px 2px;box-shadow:0 8px 16px rgba(0,0,0,.08);} 
+.bar-rev{opacity:.55;background:linear-gradient(180deg,color-mix(in srgb,var(--blue) 80%, #fff 20%), var(--blue));}
+.bar-prof{opacity:.90;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 75%, #fff 25%), var(--accent));}
+[data-theme="dark"] .bar-rev{opacity:.60;background:linear-gradient(180deg,color-mix(in srgb,var(--blue) 90%, #dce7ff 10%), var(--blue));}
+[data-theme="dark"] .bar-prof{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 88%, #fff2bf 12%), var(--accent));}
+.bar-group:not(.bar-zero):hover .bar-rev,.bar-group:not(.bar-zero):hover .bar-prof{opacity:1!important;}
+.bar-label{font-size:10px;color:var(--text-secondary);margin-top:9px;}
+.item-table{overflow:visible;background:transparent;box-shadow:none;border:none;}
+.item-row{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 96%, #fff 4%) 0%, var(--surface) 100%);border:1px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:10px;box-shadow:0 10px 24px var(--shadow);}
+[data-theme="dark"] .item-row{border-color:color-mix(in srgb,var(--border) 88%, transparent);}
+.item-row:hover{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 98%, #fff 2%) 0%, var(--surface) 100%);transform:translateY(-1px);} 
+.item-row:last-child{border-bottom:1px solid color-mix(in srgb,var(--border) 88%, transparent);} 
+.item-row.selected{border-left:none;padding-left:18px;box-shadow:0 0 0 1px var(--accent),0 14px 30px var(--shadow-md);}
+.item-row-name{font-size:15px;font-weight:700;}
+.item-row-meta{font-size:12px;color:var(--text-secondary);}
+.item-row-price{font-size:16px;font-weight:700;}
+.item-row-profit{font-size:13px;font-weight:700;}
+.item-row-roi{font-size:11px;color:var(--text-secondary);}
+.filter-row,.list-toolbar{margin-bottom:14px;}
+.sort-select,.month-select,.period-select-inline,.period-select{height:42px;padding:0 40px 0 14px;border-radius:14px;background:color-mix(in srgb,var(--surface2) 78%, var(--surface));font-weight:600;border:1px solid var(--border);} 
+.btn{border-radius:14px;height:42px;padding:0 16px;font-weight:700;}
+.btn-p{background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 72%, #fff 28%));}
+.btn-s{background:color-mix(in srgb,var(--surface2) 70%, transparent);} 
+.empty-state{padding:86px 20px;border:1px dashed var(--border2);border-radius:24px;background:color-mix(in srgb,var(--surface) 55%, transparent);} 
+.mgrid{gap:14px;}
+.mcard{min-height:138px;border-radius:20px;padding:20px 18px;box-shadow:0 12px 26px var(--shadow);border:1px solid var(--border);background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 96%, #fff 4%), var(--surface));}
+[data-theme="dark"] .mcard{border-color:color-mix(in srgb,var(--border) 88%, transparent);}
+.mname{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);}
+.mval{font-size:28px;font-weight:800;letter-spacing:-.05em;font-family:"Inter",system-ui,sans-serif;font-variant-numeric:tabular-nums lining-nums;}
+.month-picker-title{font-size:32px;font-weight:800;letter-spacing:-.06em;}
+.fy-section{position:relative;}
+.fy-section::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;border-radius:999px;background:linear-gradient(180deg,var(--accent),transparent 55%);opacity:.14;transform:translateX(-10px);} 
+#p-item .item-full-page,.item-full-page{max-width:1240px;padding:28px 28px 120px;}
+.ip-topbar{margin-bottom:22px;}
+.ip-title{font-size:30px;font-weight:800;letter-spacing:-.05em;}
+.ip-tokens{gap:14px;}
+.ip-token,.ip-postage-row,.ip-section-pnl,.ip-relist-section{border-radius:20px;box-shadow:0 10px 24px var(--shadow);border:1px solid var(--border);}
+[data-theme="dark"] .ip-token,[data-theme="dark"] .ip-postage-row,[data-theme="dark"] .ip-section-pnl,[data-theme="dark"] .ip-relist-section{border-color:color-mix(in srgb,var(--border) 88%, transparent);}
+.ip-token{padding:18px 18px 16px;}
+.ip-token-label,.ip-section-title,.item-full-section-title{font-size:10px;letter-spacing:.12em;color:var(--muted)}
+.ip-token-val{font-size:28px;font-weight:800;}
+.ip-token-sub{font-size:12px;color:var(--text-secondary)}
+.ip-section-header{padding:16px 18px;}
+.ip-section-body{padding:0 18px 18px;}
+.ip-receipt-row{font-size:13px;padding:10px 0;}
+.ip-field,.ip-field-select,.ip-field-date{font-size:15px;}
+#auth-screen-login,#auth-screen-reset{max-width:420px;border-radius:28px;padding:42px 36px!important;box-shadow:0 22px 60px rgba(0,0,0,.18);} 
+#auth-screen-login > div:first-child + div + div span{letter-spacing:.16em!important;}
+#auth-btn,#preview-btn{height:48px;border-radius:16px;}
+.summary-shell{display:grid;grid-template-columns:minmax(0,1.84fr) minmax(340px,.92fr);gap:18px;align-items:start;}
+.summary-main{display:flex;flex-direction:column;gap:18px;min-height:100%;}
+.summary-side{display:grid;grid-template-rows:repeat(3,minmax(0,1fr));gap:18px;min-height:100%;align-self:stretch;}
+.panel-card{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 96%, #fff 4%), var(--surface));border:1px solid var(--border);border-radius:22px;padding:20px;box-shadow:0 12px 30px var(--shadow);} 
+[data-theme="dark"] .panel-card{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 92%, #20304a 8%), var(--surface));border-color:color-mix(in srgb,var(--border) 88%, transparent);}
+.metric-inline{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);} 
+[data-theme="dark"] .metric-inline{border-bottom-color:color-mix(in srgb,var(--border) 85%, transparent);}
+.metric-inline:last-child{border-bottom:none;padding-bottom:0;}
+.metric-inline:first-child{padding-top:0;}
+.metric-inline.clickable,.panel-card.clickable,.category-mini-row{cursor:pointer;transition:background .16s ease,border-color .16s ease,transform .16s ease;}
+.metric-inline.clickable:hover,.panel-card.clickable:hover{background:color-mix(in srgb,var(--surface2) 55%, transparent);}
+.category-mini-row:hover{background:color-mix(in srgb,var(--surface2) 72%, transparent);}
+.metric-k{font-size:12px;color:var(--text-secondary);font-weight:600;}
+.metric-v{font-size:22px;font-weight:800;letter-spacing:-.05em;}
+.hero-title{font-size:38px;font-weight:800;letter-spacing:-.06em;line-height:1.02;}
+.hero-sub{font-size:14px;color:var(--text-secondary);margin-top:8px;max-width:720px;}
+.dashboard-kicker{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:8px 0 8px;}
+.dashboard-kicker::before{content:'';display:block;width:18px;height:2px;border-radius:2px;background:var(--accent);opacity:.9}
+.page-intro-sub{font-size:13px;line-height:1.6;color:var(--text-secondary);max-width:780px}
+.category-mini-grid{display:grid;gap:8px;margin-top:14px}
+.category-mini-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--border) 86%, transparent);background:color-mix(in srgb,var(--surface2) 36%, transparent)}
+.category-mini-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.category-mini-val{font-size:12px;font-weight:700;color:var(--text-secondary);white-space:nowrap}
+.category-mini-footer{margin-top:12px;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.category-mini-footer:hover{opacity:.85}
+.desktop-only{display:block;}
+@media(max-width:1180px){.nav-inner{padding:0 14px;gap:10px}.search-wrap{display:none!important}.nav-spacer{display:none}.tabs-row{margin-left:auto}.nav-right{padding-left:10px}.tab,.nav-more-btn{padding:0 12px;font-size:12px}.brand{margin-right:8px!important}}
+@media(max-width:980px){.summary-shell{grid-template-columns:1fr}.desktop-only{display:none}.page,.item-full-page{padding:20px 18px 110px;}.nav-inner{padding:0 16px;}.hero-title{font-size:30px}.summary-main,.summary-side{display:contents}.summary-kpis{order:1}.summary-chart{order:2}.summary-snapshot{order:3}.summary-inventory{order:4}.summary-velocity{order:5}.summary-topflips{order:6}}
+@media(max-width:820px){.nav-right{gap:6px}.user-menu-btn{padding-right:6px}.tab,.nav-more-btn{padding:0 10px;font-size:12px}}
+/* ===== end overrides ===== */
+
+
+/* === Retrade v8 safe fixes === */
+@media (min-width: 601px){
+  nav:not(#bottom-nav){display:block!important;}
+  .nav-inner{max-width:1280px!important;display:grid!important;grid-template-columns:auto 1fr auto auto!important;align-items:center!important;gap:18px!important;}
+  .brand{margin-right:0!important;}
+  .search-wrap{display:block!important;width:100%!important;max-width:340px!important;min-width:220px!important;}
+  .nav-spacer{display:none!important;}
+  .tabs-row{justify-self:center!important;}
+  .tabs,.tabs-row{display:flex!important;align-items:center!important;}
+  .nav-right{justify-self:end!important;padding-left:0!important;}
+}
+.nav-more-btn,.tab,.bnt{position:relative}
+.page-header{align-items:flex-end!important}
+#p-summary .page-subtitle{display:none!important}
+#p-summary .page-title{font-size:30px!important;letter-spacing:-0.04em!important}
+#p-summary .kgrid,
+#p-summary .kgrid-4,
+#p-summary .insights,
+#p-summary .chart-wrap,
+#p-summary .item-table,
+#p-summary .section-card,
+#p-summary .bulk-bar,
+#p-summary .filter-chips,
+#p-summary .stale-alert{
+  display:inherit!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+#p-summary .kgrid{display:grid!important}
+#p-summary .kgrid-4{display:grid!important}
+#p-summary .insights{display:grid!important}
+#p-summary .chart-wrap{display:block!important}
+#p-summary .item-table{display:block!important}
+#p-summary .section-card{display:block!important}
+#p-summary .kcard,
+#p-summary .insight-card,
+#p-summary .chart-wrap,
+#p-summary .item-row,
+#p-summary .section-card,
+#p-summary .stale-alert{
+  visibility:visible!important;
+  opacity:1!important;
+}
+#p-summary .bars-wrap{display:flex!important;visibility:visible!important;opacity:1!important}
+#p-summary .bar-group{display:flex!important}
+
 </style>
 </head>
 <body>
@@ -759,20 +972,8 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 
     <!-- Brand -->
     <div class="brand" onclick="goToTab('summary')" style="margin-right:16px;">
-      <div style="display:flex;flex-direction:column;gap:3px;line-height:1;">
-        <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:800;letter-spacing:0.2em;color:var(--text);text-transform:uppercase;line-height:1;">General</span>
-        <svg width="38" height="14" viewBox="0 0 38 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;display:block;">
-  <!-- 0 -->
-  <rect x="0.7" y="0.7" width="8.6" height="12.6" rx="3.2" stroke="var(--accent)" stroke-width="1.4" fill="none"/>
-  <!-- 0 -->
-  <rect x="13.7" y="0.7" width="8.6" height="12.6" rx="3.2" stroke="var(--accent)" stroke-width="1.4" fill="none"/>
-  <!-- 7 — horizontal top bar -->
-  <line x1="27" y1="1.4" x2="37" y2="1.4" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round"/>
-  <!-- 7 — angled barrel stroke (top-right to bottom-left with pistol kick) -->
-  <path d="M36.2 1.4 L30.8 8.5 L29.2 13" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <!-- 7 — small serif/tick at barrel foot -->
-  <line x1="28.0" y1="11.8" x2="31.0" y2="13.4" stroke="var(--accent)" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
-</svg>
+      <div style="display:flex;flex-direction:column;gap:2px;line-height:1;">
+        <span style="font-family:'Inter',sans-serif;font-size:13px;line-height:1;"><span class="brand-name">Re<span class="gold">trade</span></span></span>
       </div>
     </div>
 
@@ -781,8 +982,8 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
       <span class="search-icon">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </span>
-      <input type="text" id="global-search" placeholder="Search items…"
-             autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false"
+      <input type="search" id="global-search" name="app-search" placeholder="Search items…"
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other"
              oninput="handleSearch(this.value)"
              onkeydown="handleSearchKey(event)"
              onfocus="if(this.value.trim())showSearchDropdown(this.value)">
@@ -796,16 +997,13 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
     <!-- Primary tabs — always visible: Summary, Monthly, Stock -->
     <div class="tabs-row">
       <div class="tabs">
-        <button class="tab on" data-tab="summary" onclick="goToTab('summary',this)">Summary</button>
-        <button class="tab" data-tab="monthly" onclick="goToTab('monthly',this)">Calendar</button>
-        <button class="tab" data-tab="stock" onclick="goToTab('stock',this)">Stock</button>
+        <button class="tab on" data-tab="summary" onclick="goToTab('summary',this)" title="Home"><span class="tab-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></span><span class="tab-label">Home</span></button>
+        <button class="tab" data-tab="monthly" onclick="goToTab('monthly',this)" title="Calendar"><span class="tab-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="tab-label">Calendar</span></button>
+        <button class="tab" data-tab="stock" onclick="goToTab('stock',this)" title="Stock"><span class="tab-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8l-2 4h12l-2-4z"/></svg></span><span class="tab-label">Stock</span></button>
       </div>
       <!-- More dropdown — Expenses, Tax, Data always here, no dynamic overflow -->
       <div class="nav-more" id="nav-more-wrap">
-        <button class="nav-more-btn has-items" id="nav-more-trigger" onclick="event.stopPropagation();toggleNavMore()" title="More pages" style="gap:5px;padding:0 12px;">
-          More
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+        <button class="nav-more-btn has-items" id="nav-more-trigger" onclick="event.stopPropagation();toggleNavMore()" title="More pages" style="gap:5px;padding:0 12px;" title="More"><span class="tab-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></span><span class="tab-label">More</span></button>
         <div class="nav-more-menu" id="nav-more-menu">
           <button data-tab="expenses" onclick="goToTab('expenses',this);document.querySelector('.nav-more').classList.remove('open')">Expenses</button>
           <button data-tab="tax" onclick="goToTab('tax',this);document.querySelector('.nav-more').classList.remove('open')">Tax / SA103</button>
@@ -822,13 +1020,13 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
       </div>
       <div class="user-menu" id="user-menu">
         <button class="user-menu-btn" onclick="event.stopPropagation();toggleUserMenu()" id="user-menu-btn">
-          <div class="user-avatar" id="user-avatar">G</div>
+          <div class="user-avatar" id="user-avatar">R</div>
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="user-menu-dropdown" id="user-menu-dropdown">
           <button class="user-menu-item" onclick="toggleTheme();closeUserMenu()">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            <span id="user-menu-theme-label">Dark mode</span>
+            <span id="user-menu-theme-label">Light mode</span>
           </button>
           <div class="user-menu-divider"></div>
           <button class="user-menu-item danger" id="user-menu-signout" onclick="closeUserMenu();doSignOut()">
@@ -846,7 +1044,7 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
 <nav id="bottom-nav" style="display:none;">
   <button class="bnt on" data-tab="summary" onclick="goToTab('summary',this)">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    Summary
+    Home
   </button>
   <button class="bnt" data-tab="monthly" onclick="goToTab('monthly',this)">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -885,7 +1083,7 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
   <div style="height:1px;background:var(--border);margin:6px 16px;"></div>
   <button onclick="closeMoreSheet();toggleTheme()" class="more-sheet-row" id="more-sheet-theme">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    <span id="more-sheet-theme-label">Dark mode</span>
+    <span id="more-sheet-theme-label">Light mode</span>
   </button>
   <div style="height:1px;background:var(--border);margin:6px 16px;"></div>
   <button onclick="closeMoreSheet();doSignOut()" class="more-sheet-row more-sheet-danger">
@@ -979,22 +1177,12 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
     <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:1px;height:40px;background:linear-gradient(to bottom,var(--accent),transparent);opacity:0.4;pointer-events:none;"></div>
     <div style="position:absolute;top:20px;left:50%;transform:translate(-50%,-50%);width:40px;height:1px;background:linear-gradient(to right,transparent,var(--accent),transparent);opacity:0.4;pointer-events:none;"></div>
     <div style="text-align:center;margin-bottom:32px;padding-top:8px;">
-      <div style="margin-bottom:20px;display:flex;flex-direction:column;align-items:center;gap:8px;"><svg width="62" height="22" viewBox="0 0 62 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;">
-  <!-- 0 -->
-  <rect x="1" y="1" width="14" height="20" rx="5" stroke="var(--accent)" stroke-width="1.8" fill="none"/>
-  <!-- 0 -->
-  <rect x="22" y="1" width="14" height="20" rx="5" stroke="var(--accent)" stroke-width="1.8" fill="none"/>
-  <!-- 7 — horizontal top bar -->
-  <line x1="43" y1="2" x2="61" y2="2" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
-  <!-- 7 — angled barrel stroke -->
-  <path d="M59.5 2 L51.5 13.5 L48.5 21" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <!-- 7 — barrel foot tick -->
-  <line x1="46.8" y1="19.5" x2="51.2" y2="21.5" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.65"/>
-</svg><div style="width:70%;height:2px;background:linear-gradient(90deg,transparent,#c0392b,transparent);border-radius:2px;opacity:0.7;"></div></div>
-      <span style="font-family:'Inter',sans-serif;font-size:22px;font-weight:800;letter-spacing:0.2em;color:#ffffff;text-transform:uppercase;display:block;text-align:center;line-height:1;">General</span>
-      <div style="font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:0.12em;text-transform:uppercase;font-family:'Space Mono',monospace;font-weight:400;">Intelligence Platform</div>
+      <div style="margin-bottom:18px;display:flex;flex-direction:column;align-items:center;gap:10px;">
+        <span style="font-family:'Inter',sans-serif;font-size:22px;font-weight:800;letter-spacing:0.18em;color:#ffffff;text-transform:uppercase;display:block;text-align:center;line-height:1;">Re<span style="color:var(--accent)">trade</span></span>
+        <div style="width:64px;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);border-radius:2px;opacity:0.85;"></div>
+      </div>
     </div>
-    <div id="auth-error" style="display:none;background:var(--red-dim);border:1px solid var(--red);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;"></div>
+    <div id="auth-error style="display:none;background:var(--red-dim);border:1px solid var(--red);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;"></div>
     <div style="margin-bottom:14px;">
       <label style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;">Email</label>
       <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com"
@@ -1019,6 +1207,10 @@ nav:not(#bottom-nav){position:sticky;top:0;z-index:200;background:var(--surface)
     <button onclick="doSignIn()" id="auth-btn"
       style="width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;transition:background 0.15s;">
       Sign In
+    </button>
+    <button onclick="startPreviewMode()" id="preview-btn"
+      style="width:100%;padding:12px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;transition:background 0.15s;margin-top:10px;">
+      Developer preview
     </button>
     <button onclick="showForgotPassword()"
       style="width:100%;padding:10px;background:none;border:none;color:var(--text-secondary);font-size:13px;cursor:pointer;margin-top:8px;text-decoration:underline;text-underline-offset:3px;">
@@ -1153,8 +1345,10 @@ function _migrateBareDBKeys(){
     delete DB[code];
   });
 }
-const STORAGE_KEY='ebay_db_v7';
-const THEME_KEY='ebay_theme';
+const STORAGE_KEY='retrade_db_v1';
+const LEGACY_STORAGE_KEYS=['ebay_db_v7'];
+const THEME_KEY='retrade_theme';
+const LEGACY_THEME_KEYS=['ebay_theme'];
 
 const ITEM_SOURCES=[
   'Car Boot Sale','Charity Shop','Retail Clearance','Online Marketplace','Estate Sale',
@@ -1212,7 +1406,42 @@ document.addEventListener('keydown',function(e){
 });
 
 // THEME
+function migrateLegacyLocalStorage(){
+  try{
+    if(!localStorage.getItem(STORAGE_KEY)){
+      for(const key of LEGACY_STORAGE_KEYS){
+        const legacy=localStorage.getItem(key);
+        if(legacy){
+          localStorage.setItem(STORAGE_KEY,legacy);
+          break;
+        }
+      }
+    }
+    if(!localStorage.getItem(THEME_KEY)){
+      for(const key of LEGACY_THEME_KEYS){
+        const legacy=localStorage.getItem(key);
+        if(legacy){
+          localStorage.setItem(THEME_KEY,legacy);
+          break;
+        }
+      }
+    }
+    const hasPreview = localStorage.getItem(PREVIEW_STORAGE_KEY) === '1';
+    if(!hasPreview){
+      for(const key of LEGACY_PREVIEW_STORAGE_KEYS){
+        if(localStorage.getItem(key) === '1'){
+          localStorage.setItem(PREVIEW_STORAGE_KEY,'1');
+          break;
+        }
+      }
+    }
+  }catch(e){
+    console.warn('Legacy storage migration skipped:', e);
+  }
+}
+
 function initTheme(){
+  migrateLegacyLocalStorage();
   const saved=localStorage.getItem(THEME_KEY)||'dark';
   document.documentElement.setAttribute('data-theme',saved);
   updateThemeIcon(saved);
@@ -1283,6 +1512,70 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const _sb = (typeof supabase !== 'undefined')
   ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:false,flowType:"implicit"}})
   : {auth:{getSession:async()=>({data:{session:null}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe:()=>{}}}}),signInWithPassword:async()=>({error:{message:'offline'}}),signOut:async()=>{},refreshSession:async()=>({data:{},error:true}),resetPasswordForEmail:async()=>({error:null})}};
+
+
+let _previewMode = false;
+const _previewParam = new URLSearchParams(window.location.search).get('preview');
+const PREVIEW_STORAGE_KEY='retrade_preview_mode';
+const LEGACY_PREVIEW_STORAGE_KEYS=['general_preview_mode'];
+const _previewStored = localStorage.getItem(PREVIEW_STORAGE_KEY) === '1' || LEGACY_PREVIEW_STORAGE_KEYS.some(function(k){ return localStorage.getItem(k) === '1'; });
+const PREVIEW_MODE_ENABLED = false; // set true only for local dev/preview builds
+
+function _buildPreviewDB(){
+  const now = new Date();
+  const monthKey = MONTHS[now.getMonth()] + '-' + String(now.getFullYear()).slice(-2);
+  const prevDate = d => {
+    const x = new Date(now);
+    x.setDate(x.getDate()-d);
+    return x.toISOString().split('T')[0];
+  };
+  const listedDate = prevDate(18);
+  const soldDate = prevDate(4);
+  return {
+    _userOwned: false,
+    [monthKey]: [
+      {
+        id:'preview-1', gid:'R-0001', item:'Sony WH-1000XM4 Headphones', costPrice:95, salePrice:149.99,
+        dateListed:listedDate, dateSold:soldDate, category:'Audio', postageMode:'sdp', postageKey:'small_parcel_2kg',
+        buyerPaysPostage:false, packagingCost:1.25, promoPercent:0.05, parts:[], returnHistory:[], isReturned:false,
+        resaleSalePrice:null, resaleDateSold:null, _wasRelisted:false, notes:'Demo preview item'
+      },
+      {
+        id:'preview-2', gid:'R-0002', item:'Canon Powershot G7', costPrice:55, salePrice:null,
+        dateListed:prevDate(6), dateSold:null, category:'Camera', postageMode:'sdp', postageKey:'small_parcel_2kg',
+        buyerPaysPostage:false, packagingCost:1.10, promoPercent:0.03, parts:[{desc:'Battery', cost:8, date:prevDate(5)}], returnHistory:[], isReturned:false,
+        resaleSalePrice:null, resaleDateSold:null, _wasRelisted:false, notes:'Active stock demo item'
+      },
+      {
+        id:'preview-3', gid:'R-0003', item:'Nintendo Switch Joy-Con Pair', costPrice:22, salePrice:39.99,
+        dateListed:prevDate(12), dateSold:prevDate(2), category:'Gaming', postageMode:'sdp', postageKey:'small_parcel_2kg',
+        buyerPaysPostage:true, packagingCost:0.80, promoPercent:0, parts:[], returnHistory:[], isReturned:false,
+        resaleSalePrice:null, resaleDateSold:null, _wasRelisted:false, notes:'Buyer paid postage demo item'
+      }
+    ],
+    expenses:[
+      {id:'preview-exp-1', label:'Packaging supplies', amount:12.40, date:prevDate(9), category:'Supplies', notes:'Demo expense'}
+    ],
+    trips:[
+      {id:'preview-trip-1', date:prevDate(8), miles:14, purpose:'Post office and sourcing', notes:'Demo mileage'}
+    ]
+  };
+}
+
+function enablePreviewMode(){
+  _previewMode = true;
+  _currentUserId = 'preview-user';
+  localStorage.setItem(PREVIEW_STORAGE_KEY,'1');
+  LEGACY_PREVIEW_STORAGE_KEYS.forEach(function(k){ if(k!==PREVIEW_STORAGE_KEY) localStorage.removeItem(k); });
+  DB = _buildPreviewDB();
+  _dbSnapshot = _dbFingerprint();
+}
+
+function disablePreviewMode(){
+  _previewMode = false;
+  localStorage.removeItem(PREVIEW_STORAGE_KEY);
+  LEGACY_PREVIEW_STORAGE_KEYS.forEach(function(k){ if(k!==PREVIEW_STORAGE_KEY) localStorage.removeItem(k); });
+}
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 
@@ -1371,6 +1664,22 @@ async function doResetPassword(){
 }
 
 async function doSignOut(){
+  if(_previewMode){
+    disablePreviewMode();
+    const url = new URL(window.location.href);
+    url.searchParams.delete('preview');
+    history.replaceState({}, '', url.toString());
+    _currentUserId = null;
+    DB = {};
+    _dbSnapshot = {};
+    document.getElementById('nav').style.display = 'none';
+    document.getElementById('bottom-nav').style.display = 'none';
+    document.getElementById('main-content').style.display = 'none';
+    const _fabPreview = document.getElementById('fab');
+    if(_fabPreview) _fabPreview.style.display = 'none';
+    document.getElementById('auth-overlay').style.display = 'flex';
+    return;
+  }
   // If a sync is actively running, wait for it to finish before signing out.
   // Updates the indicator label so the user knows why there's a brief pause.
   if(_syncing){
@@ -1695,6 +2004,13 @@ function _waitForSync(){
 }
 
 function saveDB(){
+  if(_previewMode){
+    DB._userOwned = false;
+    refreshActivePage();
+    clearTimeout(_saveTimer);
+    _saveTimer = null;
+    return;
+  }
   DB._userOwned = true;
   refreshActivePage();
   // Debounce: wait 400ms of quiet before persisting (handles rapid edits)
@@ -1873,7 +2189,7 @@ function goToTab(name,sourceEl){
   if(moreTrigger)moreTrigger.classList.toggle('on',morePages.includes(name));
   // Sync More menu items active state
   document.querySelectorAll('#nav-more-menu button[data-tab]').forEach(b=>{
-    b.className=b.dataset.tab===name?'on':'';
+    b.classList.toggle('on', b.dataset.tab===name);
   });
   document.querySelector('.nav-more')?.classList.remove('open');
   handleNavResize();
@@ -2869,7 +3185,7 @@ function submitQuickAdd(){
   }
   const item={
     id:'qa_'+Date.now(),
-    gid:'G007-'+String(getNextGID()).padStart(4,'0'),
+    gid:'R-'+String(getNextGID()).padStart(4,'0'),
     dateListed:document.getElementById('qa-date').value||new Date().toISOString().split('T')[0],
     item:document.getElementById('qa-item').value||'Untitled',
     source:document.getElementById('qa-source').value||'',
@@ -2895,7 +3211,9 @@ function submitQuickAdd(){
 function getNextGID(){
   let max=0;
   allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{
-    const n=parseInt((i.gid||'').replace('G007-',''))||0;
+    const gid=String(i.gid||'');
+    const m=gid.match(/(\d+)$/);
+    const n=m?parseInt(m[1],10):0;
     if(n>max)max=n;
   }));
   return max+1;
@@ -3484,274 +3802,152 @@ function showFilteredItems(filter){
 
 function setSummaryPeriod(p){SUMMARY_PERIOD=p;renderSummary();}
 
-function renderSummary(){
-  const stats=calcYearlyStats();
 
-  const periods=[
-    {key:'7d',label:'Last 7 days'},
-    {key:'30d',label:'Last 30 days'},
-    {key:'60d',label:'Last 60 days'},
-    {key:'90d',label:'Last 90 days'},
-    {key:'current_fy',label:'Current FY'},
-    {key:'prev_fy',label:'Previous FY'},
-  ];
-  const pickerHTML='';
-
-  const html=`
-    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin:20px 0 12px;">
-      <div class="sl" style="margin:0;">Overview</div>
-      <select class="period-select-inline" onchange="setSummaryPeriod(this.value)">
-        ${periods.map(p=>`<option value="${p.key}"${SUMMARY_PERIOD===p.key?' selected':''}>${p.label}</option>`).join('')}
-      </select>
-    </div>
-    <div class="kgrid kgrid-4">
-      <div class="kcard b clickable" onclick="showFilteredItems('revenue')">
-        <div class="klabel">Total Revenue</div>
-        <div class="kval">${fmt(stats.totalRev)}</div>
-        <div class="ksub">${stats.soldCount} items sold ›</div>
-      </div>
-      <div class="kcard g clickable" onclick="showFilteredItems('realised')">
-        <div class="klabel">Realised P&amp;L</div>
-        <div class="kval">${fmt(stats.realisedProfit)}</div>
-        <div class="ksub">${stats.soldCount>0?(stats.realisedProfit/stats.totalRev*100).toFixed(0)+'% margin ›':'—'}</div>
-      </div>
-      <div class="kcard clickable" onclick="showROIItems()">
-        <div class="klabel">Avg ROI</div>
-        <div class="kval">${stats.avgROI.toFixed(1)}%</div>
-        <div class="ksub">Per sold item ›</div>
-      </div>
-      <div class="kcard r clickable" onclick="showReturnedItems()">
-        <div class="klabel">Refund Rate</div>
-        <div class="kval">${stats.returnRate.toFixed(1)}%</div>
-        <div class="ksub">${stats.returnCount} full · <span style="color:var(--warn)">${stats.partialRefundCount} partial (${stats.partialRefundRate.toFixed(1)}%)</span> ›</div>
-      </div>
-    </div>
-
-    <div class="insights">
-      <div class="insight-card">
-        <div class="insight-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
-        <div>
-          <div class="insight-label">Avg Sale Price</div>
-          <div class="insight-val">${fmt(stats.avgSale)}</div>
-        </div>
-      </div>
-      <div class="insight-card">
-        <div class="insight-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
-        <div>
-          <div class="insight-label">Avg Buy Price</div>
-          <div class="insight-val">${fmt(stats.avgCostPrice)}</div>
-        </div>
-      </div>
-      <div class="insight-card">
-        <div class="insight-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
-        <div>
-          <div class="insight-label">Avg Profit (net)</div>
-          <div class="insight-val" style="color:var(--green)">${fmt(stats.avgProfit)}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="sl">Inventory Health</div>
-
-    ${(()=>{
-      const isFY=SUMMARY_PERIOD==='current_fy'||SUMMARY_PERIOD==='prev_fy';
-      if(isFY){
-        return stats.stale.length>0?`
-          <div class="stale-alert" style="cursor:pointer;" onclick="showStaleItems()" title="View stale items">
-            <div class="stale-dot"></div>
-            <div style="flex:1">
-              <div class="stale-text">&#x26A0;&#xFE0F; ${stats.stale.length} item${stats.stale.length!==1?'s':''} listed 30+ days</div>
-              <div class="stale-items">Tap to review &rsaquo;</div>
-            </div>
-          </div>`:'';
-      }
-      const range=_periodDateRange(SUMMARY_PERIOD);
-      let listedInPeriod=0,activeStockCount=0,activeStockVal=0;
-      allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{
-        if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-        if(!i.isReturned&&!i.dateSold&&!i.resaleSalePrice){
-          activeStockCount++;activeStockVal+=(i.salePrice||0);
-          if(i.dateListed&&i.dateListed>=range.from&&i.dateListed<=range.to)listedInPeriod++;
-        }
-      }));
-      return`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px">
-          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Active Stock</div>
-          <div class="stat-num-sm" style="color:var(--text)">${activeStockCount}</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">${fmt(activeStockVal)} potential revenue</div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px">
-          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Listed This Period</div>
-          <div class="stat-num-sm" style="color:var(--accent)">${listedInPeriod}</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">new items sourced</div>
-        </div>
-      </div>`;
-    })()}
-    ${(()=>{
-      const isFY=SUMMARY_PERIOD==='current_fy'||SUMMARY_PERIOD==='prev_fy';
-      const range=_periodDateRange(SUMMARY_PERIOD);
-      let periodSold=0,periodEligible=0,periodDaysSum=0,periodDaysCount=0;
-      const today=new Date().toISOString().split('T')[0];
-      allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{
-        if((i.item||'').trim().toUpperCase()==='MONTH END')return;
-        if(i.isReturned)return;
-        const saleDate=i.resaleSalePrice?i.resaleDateSold:i.dateSold;
-        const listedBefore=i.dateListed&&i.dateListed<=range.to;
-        if(!listedBefore)return;
-        if(saleDate&&saleDate>=range.from&&saleDate<=range.to){
-          periodSold++;periodEligible++;
-          const d=calcDaysToSell(i);
-          if(d!==null){periodDaysSum+=d;periodDaysCount++;}
-        } else if(!saleDate&&!i.resaleSalePrice){
-          periodEligible++;
-        }
-      }));
-      const periodSellPct=periodEligible>0?Math.round(periodSold/periodEligible*100):null;
-      const periodAvgDays=periodDaysCount>0?Math.round(periodDaysSum/periodDaysCount):null;
-      const mainNum=isFY?(stats.avgDays+''):(periodAvgDays!==null?(periodAvgDays+''):'&#8212;');
-      const mainColor=isFY?(stats.avgDays<=14?'var(--green)':stats.avgDays<=30?'var(--warn)':'var(--red)'):(periodAvgDays===null?'var(--muted)':periodAvgDays<=14?'var(--green)':periodAvgDays<=30?'var(--warn)':'var(--red)');
-      const subLine=isFY
-        ?(stats.soldCount+' sold &middot; '+stats.listedCount+' active'+(stats.totalStaleCount>0?' &middot; <span style="color:var(--warn);font-weight:600">'+stats.totalStaleCount+' stale</span>':''))
-        :(periodSellPct!==null?(periodSellPct+'% sell-through &middot; '+periodSold+' sold'):'No sales in period');
-      return`<div class="chart-wrap" style="cursor:pointer;" onclick="toggleSellThroughBar(this,${JSON.stringify(stats.byCat).replace(/"/g,'&quot;')})">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Inventory Velocity</div>
-            <div style="font-size:12px;color:var(--text-secondary);">${subLine}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:14px;">
-            <div style="text-align:right">
-              <div class="stat-num" style="letter-spacing:-0.02em;color:${mainColor};">${mainNum}<span style="font-size:14px;font-weight:500;color:var(--text-secondary);margin-left:2px">d</span></div>
-              <div style="font-size:10px;color:var(--text-secondary);font-weight:500;text-align:right;margin-top:1px;">avg days to sell</div>
-            </div>
-            <span class="st-chevron" style="font-size:18px;color:var(--muted);transition:transform 0.2s;display:inline-block;">&#9662;</span>
-          </div>
-        </div>
-        <div class="st-breakdown" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px;"></div>
-      </div>`;
-    })()}
-
-    <div class="sl">Activity</div>
-
-    <div class="chart-wrap">
-      <div class="chart-title">
-        ${SUMMARY_PERIOD==='7d'?'Daily (7 days)':SUMMARY_PERIOD==='30d'?'Weekly (30 days)':SUMMARY_PERIOD==='60d'?'Weekly (60 days)':SUMMARY_PERIOD==='90d'?'Weekly (90 days)':'Monthly Performance'}
-        <div class="chart-legend">
-          <div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>Revenue</div>
-          <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>Profit</div>
-        </div>
-      </div>
-      <div class="bars-wrap">
-        ${(()=>{
-          const range=_periodDateRange(SUMMARY_PERIOD);
-          const isFY=SUMMARY_PERIOD==='current_fy'||SUMMARY_PERIOD==='prev_fy';
-          const isWeekly=SUMMARY_PERIOD==='30d'||SUMMARY_PERIOD==='60d'||SUMMARY_PERIOD==='90d';
-          const isDaily=SUMMARY_PERIOD==='7d';
-
-          if(isFY){
-            const barKeys=SUMMARY_PERIOD==='prev_fy'?_fyKeys(_currentFYStart()-1):_fyKeys(_currentFYStart());
-            const maxVal=Math.max(...barKeys.map(k=>calcMonthStats(k).totalRev),1);
-            return barKeys.map(k=>{
-              const ms=calcMonthStats(k);
-              const isEmpty=ms.totalRev===0&&ms.listedCount===0;
-              const revH=(ms.totalRev/maxVal)*100;
-              const profH=(Math.max(0,ms.realisedProfit)/maxVal)*100;
-              return'<div class="bar-group'+(isEmpty?' bar-zero':'')+'" style="cursor:'+(isEmpty?'default':'pointer')+'" onclick="'+(isEmpty?'':'showMonthSnapshot(\''+k+'\')') +'">'
-                +'<div class="bar-pair" title="'+(isEmpty?'':'Click to view '+keyName(k))+'">'
-                +'<div class="bar-rev" style="height:'+(isEmpty?'0':revH)+'%"></div>'
-                +'<div class="bar-prof" style="height:'+(isEmpty?'0':profH)+'%"></div>'
-                +'</div>'
-                +'<div class="bar-label">'+MONTH_NAMES[keyCode(k)].slice(0,3)+'</div>'
-                +'</div>';
-            }).join('');
-          }
-
-          // Rolling period: build day or week buckets
-          function addDays(ds,n){const d=new Date(ds);d.setDate(d.getDate()+n);return d.toISOString().split('T')[0];}
-          function fmtShort(ds){const d=new Date(ds);return(d.getMonth()+1)+'/'+(d.getDate());}
-          const buckets=[];
-          if(isDaily){
-            let cur=range.from;
-            while(cur<=range.to){buckets.push({from:cur,to:cur,label:fmtShort(cur)});cur=addDays(cur,1);}
-          } else {
-            let cur=range.from;
-            while(cur<=range.to){
-              const end=addDays(cur,6)<=range.to?addDays(cur,6):range.to;
-              buckets.push({from:cur,to:end,label:fmtShort(cur)});
-              cur=addDays(cur,7);
-            }
-          }
-          const allSold=[];
-          allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{
-            if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){
-              const sd=i.resaleSalePrice?i.resaleDateSold:i.dateSold;
-              if(sd&&sd>=range.from&&sd<=range.to)allSold.push({rev:(i.salePrice||0)+(i.resaleSalePrice?i.resaleSalePrice:0),profit:calcGrossProfit(i)||0,date:sd});
-            }
-          }));
-          const bData=buckets.map(b=>{
-            const inB=allSold.filter(x=>x.date>=b.from&&x.date<=b.to);
-            return{label:b.label,rev:inB.reduce((s,x)=>s+x.rev,0),profit:inB.reduce((s,x)=>s+x.profit,0)};
-          });
-          const maxVal=Math.max(...bData.map(b=>b.rev),1);
-          const labelEvery=1;
-          return bData.map((b,idx)=>{
-            const isEmpty=b.rev===0;
-            const revH=(b.rev/maxVal)*100;
-            const profH=(Math.max(0,b.profit)/maxVal)*100;
-            const showLabel=idx%labelEvery===0||idx===bData.length-1;
-            return'<div class="bar-group'+(isEmpty?' bar-zero':'')+'" style="cursor:'+(isEmpty?'default':'pointer')+'" onclick="'+(isEmpty?'':"showRangeSnapshot('"+b.label+"','"+b.from+"','"+b.to+"')")+'">'
-              +'<div class="bar-pair" title="'+b.label+': '+fmt(b.rev)+' rev · '+fmt(b.profit)+' profit">'
-              +'<div class="bar-rev" style="height:'+(isEmpty?'0':revH)+'%"></div>'
-              +'<div class="bar-prof" style="height:'+(isEmpty?'0':profH)+'%"></div>'
-              +'</div>'
-              +'<div class="bar-label">'+(showLabel?b.label:'')+'</div>'
-              +'</div>';
-          }).join('');
-        })()}
-      </div>
-    </div>
-
-    </div>
-
-    ${(()=>{
-      const range=_periodDateRange(SUMMARY_PERIOD);
-      function inRangeTF(dateStr){if(!range.from)return true;if(!dateStr)return false;return dateStr>=range.from&&dateStr<=range.to;}
-      const sold=[];
-      allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{
-        if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){
-          const saleDate=i.resaleSalePrice?i.resaleDateSold:i.dateSold;
-          if(!inRangeTF(saleDate))return;
-          const profit=calcGrossProfit(i);
-          const roi=calcROI(i);
-          if(profit!==null)sold.push({...i,month:k,profit,roi});
-        }
-      }));
-      sold.sort((a,b)=>b.profit-a.profit);
-      const top=sold.slice(0,10);
-      if(!top.length)return'';
-      const rows=top.map((i,idx)=>{
-        const roiStr=i.roi!==null?'<div style="font-size:11px;color:var(--muted);margin-top:1px">'+i.roi.toFixed(0)+'% ROI</div>':'';
-        const profitCol=i.profit>=0?'var(--green)':'var(--red)';
-        return`<div style="display:flex;align-items:center;gap:12px;padding:11px 0;${idx<top.length-1?'border-bottom:1px solid var(--border);':''}cursor:pointer" onclick="openItemDetail('${i.month}','${i.id}')">
-          <div style="font-size:12px;font-weight:700;color:var(--muted);width:18px;text-align:right;flex-shrink:0">${idx+1}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.item)}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px">${keyName(i.month)} · ${i.dateSold}${i.gid?' · '+i.gid:''}</div>
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:13px;font-weight:700;font-family:var(--font-mono);color:${profitCol}">${fmt(i.profit)}</div>
-            ${roiStr}
-          </div>
-        </div>`;
-      }).join('');
-      return`<div class="sl">Top Flips</div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px 16px;box-shadow:0 1px 3px var(--shadow);">
-          ${rows}
-        </div>`;
-    })()}
-  `;
-  document.getElementById('p-summary').innerHTML=html;
+function openDashboardStock(filter){
+  goToTab('stock',document.querySelector('[data-tab="stock"]'));
+  if(filter)setStockFilter(filter);
 }
+
+function showVelocityCategoriesPanel(byCat){
+  if(!byCat||!byCat.length){
+    openPanel('Category Breakdown','<div style="padding:18px;color:var(--text-secondary)">No category data yet.</div>');
+    return;
+  }
+  const rows=byCat.map(c=>{
+    const avg=c.avgDays!==null?c.avgDays+'d avg':'—';
+    const sellPct=c.total?Math.round((c.sold/c.total)*100):0;
+    const stale=c.stale>0?`<span style="font-size:10px;background:var(--accent-dim);color:var(--accent);border-radius:999px;padding:2px 8px">${c.stale} stale</span>`:'';
+    return `<div style="padding:12px 14px;border-radius:12px;background:var(--surface2);margin-bottom:8px;cursor:pointer" onclick="showCategoryItems(${JSON.stringify(c.cat).replace(/"/g,'&quot;')})"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:5px"><div style="font-weight:700;font-size:13px;color:var(--text)">${esc(c.cat)}</div><div style="font-weight:800;font-size:13px;color:var(--accent)">${sellPct}%</div></div><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:var(--text-secondary)"><span>${c.sold}/${c.total} sold · ${avg}</span><span>${stale}</span></div></div>`;
+  }).join('');
+  openPanel('Category Breakdown',rows);
+}
+
+function renderSummary(){
+  const el=document.getElementById('p-summary');
+  if(!el) return;
+  try{
+    const stats=calcSummaryStats();
+    const tf=getSummaryDateRange();
+    const isFY=SUMMARY_PERIOD==='current_fy'||SUMMARY_PERIOD==='prev_fy';
+    const range={from:tf.from,to:tf.to};
+    const periods=[
+      {key:'7d',label:'Last 7 days'},{key:'30d',label:'Last 30 days'},{key:'60d',label:'Last 60 days'},{key:'90d',label:'Last 90 days'},
+      {key:'current_fy',label:'Current FY'},{key:'prev_fy',label:'Previous FY'}
+    ];
+    const activeStock=allItems().filter(i=>!i.isReturned&&!i.dateSold&&!i.resaleSalePrice);
+    const activeStockCount=activeStock.length;
+    const activeStockVal=activeStock.reduce((s,i)=>s+(i.salePrice||0),0);
+    const listedInPeriod=allItems().filter(i=>i.dateListed&&i.dateListed>=range.from&&i.dateListed<=range.to).length;
+    const catLeaders=Array.isArray(stats.byCat)?stats.byCat.slice(0,4):[];
+    const sold=[];
+    function inRangeTF(ds){return !!ds && ds>=range.from && ds<=range.to;}
+    allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{
+      if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){
+        const saleDate=i.resaleSalePrice?i.resaleDateSold:i.dateSold;
+        if(!inRangeTF(saleDate))return;
+        const profit=calcGrossProfit(i);
+        const roi=calcROI(i);
+        if(profit!==null)sold.push({...i,month:k,profit,roi});
+      }
+    }));
+    sold.sort((a,b)=>(b.profit||0)-(a.profit||0));
+    const top=sold.slice(0,8);
+    function addDays(ds,n){const d=new Date(ds);d.setDate(d.getDate()+n);return d.toISOString().split('T')[0];}
+    function fmtShort(ds){const d=new Date(ds);return (d.getMonth()+1)+'/'+d.getDate();}
+    const isDaily=SUMMARY_PERIOD==='7d';
+    let barsHTML='';
+    if(isFY){
+      const keys=_fyKeys(SUMMARY_PERIOD==='current_fy'?_currentFYStart():_currentFYStart()-1);
+      const monthData=keys.map(k=>{const ms=calcMonthStats(k);return{k,rev:ms.totalRev,profit:ms.realisedProfit};});
+      const maxVal=Math.max(...monthData.map(x=>x.rev),1);
+      barsHTML=monthData.map(({k,rev,profit})=>{
+        const isEmpty=rev===0;
+        const revH=(rev/maxVal)*100;
+        const profH=(Math.max(0,profit)/maxVal)*100;
+        return '<div class="bar-group'+(isEmpty?' bar-zero':'')+'" style="cursor:'+(isEmpty?'default':'pointer')+'" onclick="'+(isEmpty?'':("showMonthSnapshot('"+k+"')"))+'"><div class="bar-pair" title="'+keyName(k)+': '+fmt(rev)+' revenue · '+fmt(profit)+' profit"><div class="bar-rev" style="height:'+(isEmpty?0:revH)+'%"></div><div class="bar-prof" style="height:'+(isEmpty?0:profH)+'%"></div></div><div class="bar-label">'+MONTH_NAMES[keyCode(k)].slice(0,3)+'</div></div>';
+      }).join('');
+    } else {
+      const buckets=[]; let cur=range.from;
+      if(isDaily){while(cur<=range.to){buckets.push({from:cur,to:cur,label:fmtShort(cur)});cur=addDays(cur,1);}}
+      else {while(cur<=range.to){const end=addDays(cur,6)<=range.to?addDays(cur,6):range.to;buckets.push({from:cur,to:end,label:fmtShort(cur)});cur=addDays(cur,7);}}
+      const allSold=[];
+      allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{if((i.dateSold||i.resaleSalePrice)&&!i.isReturned){const sd=i.resaleSalePrice?i.resaleDateSold:i.dateSold;if(sd&&sd>=range.from&&sd<=range.to)allSold.push({rev:(i.salePrice||0)+(i.resaleSalePrice?i.resaleSalePrice:0),profit:calcGrossProfit(i)||0,date:sd});}}));
+      const bData=buckets.map(b=>{const inB=allSold.filter(x=>x.date>=b.from&&x.date<=b.to);return{...b,rev:inB.reduce((s,x)=>s+x.rev,0),profit:inB.reduce((s,x)=>s+x.profit,0)}});
+      const maxVal=Math.max(...bData.map(b=>b.rev),1);
+      barsHTML=bData.map((b)=>{
+        const isEmpty=b.rev===0;
+        const revH=(b.rev/maxVal)*100;
+        const profH=(Math.max(0,b.profit)/maxVal)*100;
+        return '<div class="bar-group'+(isEmpty?' bar-zero':'')+'" style="cursor:'+(isEmpty?'default':'pointer')+'" onclick="'+(isEmpty?'':("showRangeSnapshot('"+b.label+"','"+b.from+"','"+b.to+"')"))+'"><div class="bar-pair" title="'+b.label+': '+fmt(b.rev)+' revenue · '+fmt(b.profit)+' profit"><div class="bar-rev" style="height:'+(isEmpty?0:revH)+'%"></div><div class="bar-prof" style="height:'+(isEmpty?0:profH)+'%"></div></div><div class="bar-label">'+b.label+'</div></div>';
+      }).join('');
+    }
+    const topRows=top.length ? top.map((i,idx)=>{
+      const profitCol=(i.profit||0)>=0?'var(--green)':'var(--red)';
+      return `<div class="metric-inline clickable" onclick="openItemDetail('${i.month}','${i.id}')"><div><div class="metric-k">#${idx+1} · ${esc(i.item)}</div><div style="font-size:11px;color:var(--muted);margin-top:4px">${keyName(i.month)} · ${i.dateSold||i.resaleDateSold||''}</div></div><div style="text-align:right"><div class="metric-v" style="font-size:20px;color:${profitCol}">${fmt(i.profit)}</div><div style="font-size:11px;color:var(--text-secondary)">${i.roi!==null?i.roi.toFixed(0)+'% ROI':'—'}</div></div></div>`;
+    }).join('') : `<div style="font-size:13px;color:var(--text-secondary)">No completed sales in this period yet.</div>`;
+    const catRows=catLeaders.length ? catLeaders.map(c=>{
+      const sellPct=c.total?Math.round((c.sold/c.total)*100):0;
+      const avgDays=c.avgDays!==null?c.avgDays+'d avg':'No sales yet';
+      const safeCat=String(c.cat).replace(/'/g,"\'");
+      return `<div class="category-mini-row" onclick="showCategoryItems('${safeCat}')"><div><div class="metric-k">${esc(c.cat)}</div><div class="category-mini-meta">${c.sold}/${c.total} sold · ${avgDays}</div></div><div class="category-mini-val">${sellPct}% through</div></div>`;
+    }).join('') : `<div style="font-size:12px;color:var(--text-secondary)">Add more sold items to unlock category signals.</div>`;
+    const html=`
+      <div class="page-header" style="align-items:flex-start;gap:14px">
+        <div style="min-width:0;flex:1">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><div class="page-title">Command Centre</div></div>
+          <div class="page-intro-sub">Fast operational view for revenue, sourcing quality, stock health and velocity across your business.</div>
+        </div>
+        <div class="page-actions">
+          <select class="period-select-inline" onchange="setSummaryPeriod(this.value)">${periods.map(p=>`<option value="${p.key}"${SUMMARY_PERIOD===p.key?' selected':''}>${p.label}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="summary-shell">
+        <div class="summary-main">
+          <div class="kgrid kgrid-4 summary-kpis">
+            <div class="kcard b clickable" onclick="showFilteredItems('revenue')"><div class="klabel">Total revenue</div><div class="kval">${fmt(stats.totalRev||0)}</div><div class="ksub">${stats.soldCount||0} sold in view</div></div>
+            <div class="kcard g clickable" onclick="showFilteredItems('realised')"><div class="klabel">Net profit</div><div class="kval">${fmt(stats.realisedProfit||0)}</div><div class="ksub">${(stats.soldCount||0)>0&&(stats.totalRev||0)>0?((stats.realisedProfit/stats.totalRev)*100).toFixed(0)+'% margin':'No margin yet'}</div></div>
+            <div class="kcard clickable" onclick="showROIItems()"><div class="klabel">Avg ROI</div><div class="kval">${Number(stats.avgROI||0).toFixed(1)}%</div><div class="ksub">Across sold inventory</div></div>
+            <div class="kcard r clickable" onclick="showReturnedItems()"><div class="klabel">Refund rate</div><div class="kval">${Number(stats.returnRate||0).toFixed(1)}%</div><div class="ksub">${stats.returnCount||0} full · ${stats.partialRefundCount||0} partial</div></div>
+          </div>
+          <div class="chart-wrap summary-chart">
+            <div class="chart-title">Activity overview<div class="chart-legend"><div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>Revenue</div><div class="leg"><div class="leg-dot" style="background:var(--accent)"></div>Profit</div></div></div>
+            <div class="bars-wrap">${barsHTML}</div>
+          </div>
+          <div class="panel-card summary-topflips">
+            <div class="sl">Top flips</div>
+            ${topRows}
+          </div>
+        </div>
+        <div class="summary-side">
+          <div class="panel-card clickable summary-snapshot" onclick="showFilteredItems('revenue')">
+            <div class="sl">Snapshot</div>
+            <div class="metric-inline clickable" onclick="event.stopPropagation();showFilteredItems('revenue')"><div><div class="metric-k">Average sale price</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Ticket quality</div></div><div class="metric-v">${fmt(stats.avgSale||0)}</div></div>
+            <div class="metric-inline clickable" onclick="event.stopPropagation();showAvgCostItems()"><div><div class="metric-k">Average buy price</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Sourcing discipline</div></div><div class="metric-v">${fmt(stats.avgCostPrice||0)}</div></div>
+            <div class="metric-inline clickable" onclick="event.stopPropagation();showFilteredItems('realised')"><div><div class="metric-k">Average profit</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Per completed sale</div></div><div class="metric-v" style="color:var(--green)">${fmt(stats.avgProfit||0)}</div></div>
+          </div>
+          <div class="panel-card summary-inventory">
+            <div class="sl">Inventory health</div>
+            <div class="metric-inline clickable" onclick="openDashboardStock('all')"><div><div class="metric-k">Active stock</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Current live inventory</div></div><div class="metric-v">${activeStockCount}</div></div>
+            <div class="metric-inline clickable" onclick="showFilteredItems('stock')"><div><div class="metric-k">Active stock value</div><div style="font-size:11px;color:var(--muted);margin-top:4px">At current ask</div></div><div class="metric-v">${fmt(activeStockVal)}</div></div>
+            <div class="metric-inline clickable" onclick="openDashboardStock('all')"><div><div class="metric-k">Listed in period</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Fresh sourcing pace</div></div><div class="metric-v" style="color:var(--accent)">${listedInPeriod}</div></div>
+            ${(stats.stale&&stats.stale.length)>0?`<div style="margin-top:14px;padding:14px 15px;border-radius:16px;background:var(--accent-dim);border:1px solid rgba(245,166,35,.24);cursor:pointer" onclick="openDashboardStock('stale')"><div style="font-size:12px;font-weight:700;color:var(--accent)">${stats.stale.length} stale item${stats.stale.length!==1?'s':''}</div><div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Listed 30+ days. Open filtered stock.</div></div>`:''}
+          </div>          <div class="panel-card summary-velocity">
+            <div class="sl">Velocity</div>
+            <div class="metric-inline"><div><div class="metric-k">Average days to sell</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Current period signal</div></div><div class="metric-v">${stats.avgDays!==null&&stats.avgDays!==undefined?stats.avgDays+'d':'—'}</div></div>
+            <div class="metric-inline"><div><div class="metric-k">Sell-through</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Sold vs total viewed</div></div><div class="metric-v">${stats.sellThrough!==null&&stats.sellThrough!==undefined?Math.round(stats.sellThrough)+'%':'—'}</div></div>
+            <div id="velocity-cat-rows" style="display:none"><div class="category-mini-grid" style="margin-top:10px">${catLeaders.slice(0,3).map(c=>{const sellPct=c.total?Math.round((c.sold/c.total)*100):0; const safeCat=String(c.cat).replace(/'/g,"\'"); return `<div class="category-mini-row" onclick="showCategoryItems('${safeCat}')"><div><div class="metric-k">${esc(c.cat)}</div><div class="category-mini-meta">${c.avgDays!==null?c.avgDays+'d avg':'No sales yet'}</div></div><div class="category-mini-val">${sellPct}%</div></div>`;}).join('')}</div></div>
+            <div class="category-mini-footer" style="margin-top:12px" onclick="(function(){var el=document.getElementById('velocity-cat-rows');var open=el.style.display!=='none';el.style.display=open?'none':'block';event.currentTarget.textContent=open?'Category Breakdown \u203a':'Hide breakdown \u2715';})()">${catLeaders.length?'Category Breakdown ›':'No category data yet'}</div>
+          </div>
+        </div>
+      </div>`;
+    el.innerHTML=html;
+    window.__summaryByCat=stats.byCat||[];
+  }catch(err){
+    console.error('renderSummary failed', err);
+    el.innerHTML=`<div class="page-header"><div><div class="page-title">Command Centre</div><div class="page-subtitle">Fast operational view for revenue, sourcing quality, stock health and velocity across your business.</div></div></div><div class="section-card"><div class="section-card-title">Dashboard unavailable</div><div class="section-card-desc">There was a rendering issue. Reload the page or switch period to retry.</div><button class="btn btn-p" onclick="renderSummary()">Retry dashboard</button></div>`;
+  }
+}
+
 // ── BAR CHART SNAPSHOT PANEL ──────────────────────────────────────────────
 // monthKey e.g. "2025-04" — for FY monthly bars
 function showMonthSnapshot(monthKey){
@@ -3966,7 +4162,7 @@ function renderMonthlyGrid(){
   const fyYears=Array.from(fySet).sort(function(a,b){return b-a;}); // newest first
 
   let html='<div style="padding-bottom:80px;">';
-  html+='<h1 style="font-size:26px;font-weight:700;letter-spacing:-0.02em;margin-bottom:20px;">Calendar</h1>';
+  html+='<div class="page-header"><div><div class="page-title">Monthly View</div><div class="page-subtitle">Tax-year organised performance timeline.</div></div></div>';
 
   fyYears.forEach(function(fy){
     const months=_fyKeys(fy); // full Apr-Mar ordered list of 'MMM-YY' keys
@@ -4128,7 +4324,7 @@ function renderMonth(){
     return db<da?-1:db>da?1:0;
   });
 
-  const backLabel=_monthOrigin==='grid'?'← Calendar':_monthOrigin==='p-summary'?'← Summary':'← Back';
+  const backLabel=_monthOrigin==='grid'?'← Calendar':_monthOrigin==='p-summary'?'← Dashboard':'← Back';
   const backAction=_monthOrigin==='grid'
     ?`backToMonthlyGrid()`
     :_monthOrigin==='p-summary'
@@ -4561,100 +4757,36 @@ function renderStockRow(m,i){
 function renderStock(){
   const today=new Date().toISOString().split('T')[0];
   let allListed=[];
-  allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{
-    if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice)allListed.push({...i,month:k});
-  }));
-
-  // Counts
+  allDBKeys().forEach(k=>(DB[k]||[]).forEach(i=>{ if(!i.dateSold&&!i.isReturned&&!i.resaleSalePrice)allListed.push({...i,month:k}); }));
   const cAll=allListed.length;
   const cStale=allListed.filter(i=>daysBetween(i.dateListed,today)>=30).length;
-
-  // Apply filter
   let items=allListed;
   if(STOCK_FILTER==='stale')items=allListed.filter(i=>daysBetween(i.dateListed,today)>=30);
-
-  // Apply sort
-  items=[...items].sort((a,b)=>{
-    if(STOCK_SORT==='profit')return(calcGrossProfit(b)||0)-(calcGrossProfit(a)||0);
-    if(STOCK_SORT==='price')return(b.salePrice||0)-(a.salePrice||0);
-    // default: days listed desc (oldest first — most urgent)
-    return daysBetween(a.dateListed,today)<daysBetween(b.dateListed,today)?1:-1;
-  });
-
+  items=[...items].sort((a,b)=>{ if(STOCK_SORT==='profit')return(calcGrossProfit(b)||0)-(calcGrossProfit(a)||0); if(STOCK_SORT==='price')return(b.salePrice||0)-(a.salePrice||0); return daysBetween(a.dateListed,today)<daysBetween(b.dateListed,today)?1:-1; });
   const totalValue=allListed.reduce((s,i)=>s+(i.salePrice||0),0);
   const potentialProfit=allListed.reduce((s,i)=>s+(calcGrossProfit(i)||0),0);
   const avgAsking=allListed.length?totalValue/allListed.length:0;
-
   const html=`
     <div class="page-header">
       <div>
         <div class="page-title">Active Stock</div>
+        <div class="page-subtitle">Inventory view built for quick scanning, pricing confidence, and proactive cleanup.</div>
       </div>
-
     </div>
-
     <div class="kgrid kgrid-3">
-      <div class="kcard b">
-        <div class="klabel">Stock Value</div>
-        <div class="kval">${fmt(totalValue)}</div>
-        <div class="ksub">At asking price</div>
-      </div>
-      <div class="kcard p">
-        <div class="klabel">Est. Profit</div>
-        <div class="kval">${fmt(potentialProfit)}</div>
-        <div class="ksub">If all sell</div>
-      </div>
-      <div class="kcard">
-        <div class="klabel">Avg Asking</div>
-        <div class="kval">${fmt(avgAsking)}</div>
-        <div class="ksub">Per item</div>
-      </div>
+      <div class="kcard b"><div class="klabel">Live stock value</div><div class="kval">${fmt(totalValue)}</div><div class="ksub">Current asking total</div></div>
+      <div class="kcard g"><div class="klabel">Estimated profit</div><div class="kval">${fmt(potentialProfit)}</div><div class="ksub">If every item sells</div></div>
+      <div class="kcard"><div class="klabel">Average ask</div><div class="kval">${fmt(avgAsking)}</div><div class="ksub">Per active item</div></div>
     </div>
-
-    ${cAll===0?`
-      <div class="empty-state">
-        <div class="empty-state-icon">📬</div>
-        <div class="empty-state-text">No active listings</div>
-        <div class="empty-state-sub">Add items via + or import from Excel</div>
+    ${cAll===0?`<div class="empty-state"><div class="empty-state-text">No active listings</div><div class="empty-state-sub">Add stock to start building your live inventory command view.</div></div>`:`
+      <div class="panel-card" style="padding:16px 16px 8px;margin-bottom:16px;">
+        <div class="filter-row">
+          <select class="sort-select" onchange="setStockFilter(this.value)"><option value="all" ${STOCK_FILTER==='all'?'selected':''}>All live stock (${cAll})</option>${cStale>0?`<option value="stale" ${STOCK_FILTER==='stale'?'selected':''}>Stale 30d+ (${cStale})</option>`:''}</select>
+          <select class="sort-select" onchange="setStockSort(this.value)"><option value="days" ${STOCK_SORT==='days'?'selected':''}>Oldest first</option><option value="profit" ${STOCK_SORT==='profit'?'selected':''}>Best est. profit</option><option value="price" ${STOCK_SORT==='price'?'selected':''}>Highest ask</option></select>
+        </div>
+        <div class="list-toolbar" style="justify-content:space-between"><div class="list-count">${items.length} item${items.length!==1?'s':''} visible</div>${cStale>0?`<div style="font-size:12px;color:var(--text-secondary)">${cStale} stale item${cStale!==1?'s':''} need attention</div>`:''}</div>
       </div>
-    `:`
-
-
-      <div class="filter-row">
-        <select class="sort-select" onchange="setStockFilter(this.value)">
-          <option value="all" ${STOCK_FILTER==='all'?'selected':''}>All (${cAll})</option>
-          ${cStale>0?`<option value="stale" ${STOCK_FILTER==='stale'?'selected':''}>Stale 30d+ (${cStale})</option>`:''}
-        </select>
-        <select class="sort-select" onchange="setStockSort(this.value)">
-          <option value="days" ${STOCK_SORT==='days'?'selected':''}>Oldest first</option>
-          <option value="profit" ${STOCK_SORT==='profit'?'selected':''}>Est. profit</option>
-          <option value="price" ${STOCK_SORT==='price'?'selected':''}>Price</option>
-        </select>
-      </div>
-
-      <div class="list-toolbar">
-        ${STOCK_SELECTION_MODE?`
-          <button class="sel-check" onclick="${STOCK_SELECTED.size===items.length?'STOCK_SELECTED.clear();renderStock()':'selectAllStockVisible()'}">
-            <span class="sel-check-box ${STOCK_SELECTED.size===items.length?'all':STOCK_SELECTED.size>0?'some':''}">
-              ${STOCK_SELECTED.size===items.length?'\u2713':STOCK_SELECTED.size>0?'\u2212':''}
-            </span>
-            <span style="color:${STOCK_SELECTED.size>0?'var(--text)':'var(--text-secondary)'}">${STOCK_SELECTED.size>0?STOCK_SELECTED.size+' selected':'Select all'}</span>
-          </button>
-          ${STOCK_SELECTED.size>0?`
-            <button class="btn btn-s" style="padding:5px 10px;font-size:12px;display:inline-flex;align-items:center;gap:5px;color:var(--green)" onclick="stockBulkAction('sold')"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 1.5h4a1 1 0 011 1v4a.5.5 0 01-.15.35l-6 6a1 1 0 01-1.41 0l-4-4a1 1 0 010-1.41l6-6A.5.5 0 018.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="11" cy="4" r="0.8" fill="currentColor"/></svg> Mark Sold</button>
-            <button class="btn btn-s danger" style="padding:5px 10px;font-size:12px;display:inline-flex;align-items:center;gap:5px" onclick="stockBulkAction('delete')"><svg width="13" height="13" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 1h4M1 3.5h13M2.5 3.5l1 9a1 1 0 001 .9h6a1 1 0 001-.9l1-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 6.5v4M9 6.5v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg> Delete</button>
-          `:''}
-          <button class="sel-exit" onclick="toggleStockSelection()">\u2715 Done</button>
-        `:`
-          <button class="select-toggle" onclick="toggleStockSelection()">Select</button>
-        `}
-      </div>
-
-      <div class="item-table">
-        ${items.map(i=>renderStockRow(i.month,i)).join('')}
-      </div>
-    `}
-  `;
+      <div class="item-table">${items.map(i=>renderStockRow(i.month,i)).join('')}</div>`}`;
   document.getElementById('p-stock').innerHTML=html;
 }
 
@@ -4926,7 +5058,7 @@ function exportDB(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;
-  a.download=`general007_backup_${new Date().toISOString().split('T')[0]}.json`;
+  a.download=`retrade_backup_${new Date().toISOString().split('T')[0]}.json`;
   a.click();
   URL.revokeObjectURL(url);
   toast('Database exported');
@@ -5246,7 +5378,7 @@ function processExcelFile(file){
             // Truly new item — assign ID and GID
             DB[month].push({
               id:'xl_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),
-              gid:'G007-'+String(getNextGID()).padStart(4,'0'),
+              gid:'R-'+String(getNextGID()).padStart(4,'0'),
               source:'',category:autoCategory(itemName),notes:'',parts:[],
               returnData:null,returnHistory:[],isReturned:false,
               ...incoming
@@ -5289,7 +5421,7 @@ function processExcelFile(file){
         <div style="font-size:11px;color:var(--muted);padding:10px 12px;background:var(--surface2);border-radius:8px;line-height:1.6;margin-bottom:12px">
           Returns, notes, resale data and parts were not affected. Excel import never removes existing items.
         </div>
-        <button class="btn btn-p" style="width:100%" onclick="closePanel();goToTab('summary',document.querySelector('[data-tab=\\'summary\\']'));renderSummary()">Done — view summary</button>`;
+        <button class="btn btn-p" style="width:100%" onclick="closePanel();goToTab('summary',document.querySelector('[data-tab=\\'summary\\']'));renderSummary()">Done — view dashboard</button>`;
 
       openPanel('Import Complete',html);
     }catch(err){
@@ -5554,7 +5686,7 @@ function duplicateItem(m,id,context){
   if(!item)return;
   const copy=JSON.parse(JSON.stringify(item));
   copy.id='dup_'+Date.now();
-  copy.gid='G007-'+String(getNextGID()).padStart(4,'0');
+  copy.gid='R-'+String(getNextGID()).padStart(4,'0');
   copy.dateListed=new Date().toISOString().split('T')[0];
   copy.dateSold=null;copy.grossProfit=null;copy.isReturned=false;
   copy.returnHistory=[];delete copy.returnData;
@@ -6308,6 +6440,11 @@ function calcYearlyStats(period){
   return{totalRev,realisedProfit,unrealisedProfit,stockValue,soldCount,listedCount,totalItems,returnCount,returnRate,partialRefundCount,partialRefundRate,avgROI,avgSale,avgProfit,avgCostPrice,sellThrough,sellThrough14,sold14Count,eligible14Count:eligible14.length,avgDays,stale,byCat,totalStaleCount};
 }
 
+// ── Summary aliases ──────────────────────────────────────────────────────────
+function calcSummaryStats(){ return calcYearlyStats(SUMMARY_PERIOD); }
+function getSummaryDateRange(){ return _periodDateRange(SUMMARY_PERIOD); }
+function allItems(){ const r=[]; allDBKeys().forEach(function(k){ if(k==='trips'||k==='expenses'||k==='_userOwned'||k==='_taxYear')return; (DB[k]||[]).forEach(function(i){ r.push(i); }); }); return r; }
+
 function calcMonthStats(m){
   let totalRev=0,realisedProfit=0,unrealisedProfit=0,stockValue=0;
   let soldCount=0,listedCount=0,daysSum=0;
@@ -6455,11 +6592,21 @@ document.addEventListener('click',function(e){
   }
   if(!e.target.closest('.nav-more')){
     document.querySelector('.nav-more')?.classList.remove('open');
+    const active=(document.querySelector('.page.on')?.id||'p-summary').replace('p-','');
+    if(!['expenses','tax','data'].includes(active)){
+      const activeTab=document.querySelector('.tab[data-tab="'+active+'"]');
+      if(activeTab){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on')); activeTab.classList.add('on');}
+      document.getElementById('nav-more-trigger')?.classList.remove('on');
+    }
   }
 });
 
 function toggleNavMore(){
-  document.querySelector('.nav-more')?.classList.toggle('open');
+  const wrap=document.querySelector('.nav-more');
+  if(!wrap) return;
+  wrap.classList.toggle('open');
+  const trigger=document.getElementById('nav-more-trigger');
+  if(trigger) trigger.classList.toggle('on', wrap.classList.contains('open') || ['expenses','tax','data'].includes((document.querySelector('.page.on')?.id||'').replace('p-','')));
 }
 
 // Handle responsive navigation
@@ -6685,6 +6832,25 @@ function refreshPanelParts(m,id){
 
 initTheme();
 
+function startPreviewMode(){
+  enablePreviewMode();
+  const url = new URL(window.location.href);
+  url.searchParams.set('preview','1');
+  history.replaceState({}, '', url.toString());
+  document.getElementById('auth-overlay').style.display = 'none';
+  if(window.innerWidth > 600){
+    document.getElementById('nav').style.display = '';
+    document.getElementById('bottom-nav').style.display = 'none';
+  } else {
+    document.getElementById('nav').style.display = 'none';
+    document.getElementById('bottom-nav').style.display = 'flex';
+  }
+  document.getElementById('main-content').style.display = '';
+  document.getElementById('fab').style.display = '';
+  const av=document.getElementById('user-avatar'); if(av) av.textContent='P';
+  requestAnimationFrame(()=>goToTab('summary'));
+}
+
 // ── BOOT: auth-gated ─────────────────────────────────────────────────────────
 // Show auth overlay while we check session. If already signed in, boot straight
 // into the app. If not, show the sign-in form.
@@ -6746,6 +6912,7 @@ initTheme();
   let _initialLoadDone = !!session;
 
   if(session){
+    disablePreviewMode();
     _currentUserId = session.user.id;
     showApp();
     // Set avatar initial
@@ -6753,12 +6920,19 @@ initTheme();
     if(_av && session.user?.email) _av.textContent=session.user.email[0].toUpperCase();
     await initDB();
     _dbSnapshot = _dbFingerprint();
+  } else if(PREVIEW_MODE_ENABLED){
+    enablePreviewMode();
+    showApp();
+    const _av=document.getElementById('user-avatar');
+    if(_av) _av.textContent='P';
+    requestAnimationFrame(()=>goToTab('summary'));
   } else {
     showLogin();
   }
 
   // Listen for auth state changes
   _sb.auth.onAuthStateChange(async (event, sess) => {
+    if(_previewMode && event !== 'SIGNED_IN') return;
     if(event === 'SIGNED_IN' && sess){
       _currentUserId = sess.user.id;
       showApp();
@@ -6788,6 +6962,7 @@ initTheme();
   // Re-check session when tab becomes visible again (phone wake, tab switch)
   // If token expired while backgrounded, boot to login immediately
   document.addEventListener('visibilitychange', async () => {
+    if(_previewMode) return;
     if(document.visibilityState !== 'visible') return;
     if(!_currentUserId) return; // already on login screen
     try{
@@ -6939,5 +7114,12 @@ function exportForSupabase(){
 // Usage: open browser console and run: exportForSupabase()
 // Then paste the JSON into Supabase Table Editor > Import or use the REST API
 </script>
+
+
+
 </body>
 </html>
+<style>
+.nav-more.open .nav-more-btn{background:var(--surface2)!important;color:var(--text)!important;box-shadow:inset 0 0 0 1px var(--border)!important;}
+#nav-more-menu button{display:block;}
+</style>
