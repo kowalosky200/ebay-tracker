@@ -3,9 +3,8 @@
  * navigation/input coherence; surface-ownership.js arbitrates active dialogs,
  * panels and pages; workflow-qol.js owns fast editing shortcuts;
  * chart-polish.js, chart-motion.js, chart-finalize.js, chart-reveal.js,
- * chart-line-motion.js and motion-system.js are deliberately isolated
- * presentation layers so chart/UI motion can be iterated without touching
- * accounting, sync or lifecycle logic.
+ * chart-line-motion.js and motion-system.js own presentation motion;
+ * dashboard-details.js owns exact Command Centre drill-down semantics.
  */
 (function(){
   'use strict';
@@ -25,7 +24,8 @@
     finalize:'b7f72066',
     reveal:'79ff92a2',
     line:'fc7cee33',
-    motion:'a7fd273d'
+    motion:'a7fd273d',
+    dashboard:'4539b2fb'
   };
 
   /* First-paint motion pre-arm. The Sales SVG can be rendered by app-core before
@@ -50,7 +50,8 @@
     ['./chart-finalize.js',V.finalize,'low'],
     ['./chart-reveal.js',V.reveal,'low'],
     ['./chart-line-motion.js',V.line,'low'],
-    ['./motion-system.js',V.motion,'low']
+    ['./motion-system.js',V.motion,'low'],
+    ['./dashboard-details.js',V.dashboard,'auto']
   ];
 
   function url(src,version){return src+'?v='+version;}
