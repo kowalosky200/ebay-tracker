@@ -18,13 +18,21 @@ self.addEventListener('activate', event => {
   })());
 });
 
+function requestURL(request){
+  try{return new URL(request.url);}catch(_){return null;}
+}
+
 function isImmutableRuntime(request){
   if(request.method!=='GET')return false;
-  let url;
-  try{url=new URL(request.url);}catch(_){return false;}
-  if(url.origin!==self.location.origin)return false;
+  const url=requestURL(request);
+  if(!url||url.origin!==self.location.origin)return false;
   if(!/\.js$/i.test(url.pathname))return false;
   return /^[a-f0-9]{8}$/i.test(url.searchParams.get('v')||'');
+}
+
+function isMutableEntrypoint(request){
+  const url=requestURL(request);
+  return !!(url&&url.origin===self.location.origin&&/\/app\.js$/i.test(url.pathname));
 }
 
 async function planRuntime(request){
@@ -64,7 +72,15 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Everything mutable stays network-first. Browser HTTP caching may still
-  // revalidate efficiently, but RETRADE never serves stale HTML, app.js or data.
+  if(isMutableEntrypoint(event.request)){
+    // app.js is tiny and owns the content hashes above. Always revalidate it so a
+    // deploy changes runtime URLs immediately instead of waiting on a browser TTL;
+    // an unchanged file can still complete cheaply with normal HTTP validation.
+    event.respondWith(fetch(event.request,{cache:'no-cache'}));
+    return;
+  }
+
+  // Everything else mutable stays network-first. Browser HTTP caching may still
+  // revalidate efficiently, but RETRADE never serves Supabase/data from this cache.
   event.respondWith(fetch(event.request));
 });
