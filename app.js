@@ -21,7 +21,7 @@
     surface:'f31a3e3c',
     qol:'7c923b17',
     polish:'9481578c',
-    chartMotion:'c1f248c3',
+    chartMotion:'d27d650a',
     finalize:'b7f72066',
     reveal:'79ff92a2',
     line:'fc7cee33',
