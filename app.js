@@ -1,13 +1,14 @@
 /* RETRADE app entrypoint.
  * The production bundle is kept intact in app-core.js; workflow-system.js owns
- * navigation/input coherence; chart-polish.js, chart-motion.js, chart-finalize.js,
- * chart-reveal.js, chart-line-motion.js and motion-system.js are deliberately
- * isolated presentation layers so chart/UI motion can be iterated without
- * touching accounting, sync or lifecycle logic.
+ * navigation/input coherence; workflow-qol.js owns fast editing shortcuts;
+ * chart-polish.js, chart-motion.js, chart-finalize.js, chart-reveal.js,
+ * chart-line-motion.js and motion-system.js are deliberately isolated
+ * presentation layers so chart/UI motion can be iterated without touching
+ * accounting, sync or lifecycle logic.
  */
 (function(){
   'use strict';
-  var v='20260907-v1449';
+  var v='20260907-v1450';
 
   /* First-paint motion pre-arm. The Sales SVG can be rendered by app-core before
      the refinement layer is loaded; keeping it transparent until that layer has
@@ -25,6 +26,7 @@
   if(document.readyState==='loading'){
     writeScript('./app-core.js?v='+v);
     writeScript('./workflow-system.js?v='+v);
+    writeScript('./workflow-qol.js?v='+v);
     writeScript('./chart-polish.js?v='+v);
     writeScript('./chart-motion.js?v='+v);
     writeScript('./chart-finalize.js?v='+v);
@@ -37,11 +39,13 @@
   function append(src,onload){var s=document.createElement('script');s.src=src+'?v='+v;if(onload)s.onload=onload;document.head.appendChild(s);}
   append('./app-core.js',function(){
     append('./workflow-system.js',function(){
-      append('./chart-polish.js',function(){
-        append('./chart-motion.js',function(){
-          append('./chart-finalize.js',function(){
-            append('./chart-reveal.js',function(){
-              append('./chart-line-motion.js',function(){append('./motion-system.js');});
+      append('./workflow-qol.js',function(){
+        append('./chart-polish.js',function(){
+          append('./chart-motion.js',function(){
+            append('./chart-finalize.js',function(){
+              append('./chart-reveal.js',function(){
+                append('./chart-line-motion.js',function(){append('./motion-system.js');});
+              });
             });
           });
         });
