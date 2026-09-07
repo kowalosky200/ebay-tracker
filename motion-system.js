@@ -1,4 +1,4 @@
-/* RETRADE global motion coherence v1.4.49
+/* RETRADE global motion coherence v1.4.50
  * Presentation-only layer loaded last.
  *
  * Goals:
@@ -13,7 +13,7 @@
   'use strict';
 
   var EASE='cubic-bezier(.22,.61,.36,1)';
-  var FAST=135;
+  var FAST=120;
   var visibilityIntent=new WeakMap();
 
   function reducedMotion(){
@@ -21,26 +21,26 @@
   }
 
   function installStyles(){
-    ['rt-global-motion-v1447','rt-global-motion-v1449'].forEach(function(id){var old=document.getElementById(id);if(old)old.remove();});
-    var s=document.createElement('style');s.id='rt-global-motion-v1449';
+    ['rt-global-motion-v1447','rt-global-motion-v1449','rt-global-motion-v1450'].forEach(function(id){var old=document.getElementById(id);if(old)old.remove();});
+    var s=document.createElement('style');s.id='rt-global-motion-v1450';
     s.textContent='\
-:root{--rt-motion-ease:'+EASE+';--rt-motion-fast:135ms;--rt-motion-med:185ms;}\
-@keyframes rtPageEnterV1449{from{opacity:0;transform:translate3d(0,3px,0)}to{opacity:1;transform:translate3d(0,0,0)}}\
-@keyframes rtSurfaceEnterV1449{from{opacity:0;transform:translate3d(0,4px,0)}to{opacity:1;transform:translate3d(0,0,0)}}\
-@keyframes rtOverlayInV1449{from{opacity:0}to{opacity:1}}\
-@keyframes rtConfirmInV1449{from{opacity:0;transform:translate3d(0,4px,0) scale(.99)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}\
-.page.on:not(.rt-boot-noanim){animation:rtPageEnterV1449 165ms var(--rt-motion-ease) both!important;}\
-#panel-content{animation:rtSurfaceEnterV1449 175ms var(--rt-motion-ease) both!important;}\
-.slide-panel{transition:transform 195ms var(--rt-motion-ease)!important;}\
-#more-sheet{transition:transform 185ms var(--rt-motion-ease)!important;}\
-.country-panel{transition:opacity 120ms ease-out,transform 175ms var(--rt-motion-ease)!important;}\
-#confirm-modal.open{animation:rtOverlayInV1449 120ms ease-out both!important;}\
-#confirm-modal.open .confirm-box{animation:rtConfirmInV1449 175ms var(--rt-motion-ease) both!important;}\
-.fab-dial-item{transition:opacity 120ms ease-out,transform 165ms var(--rt-motion-ease)!important;}\
-#fab-dial,#search-fab{transition-property:opacity,scale,transform,bottom!important;transition-duration:120ms,150ms,150ms,165ms!important;transition-timing-function:ease-out,var(--rt-motion-ease),var(--rt-motion-ease),var(--rt-motion-ease)!important;}\
+:root{--rt-motion-ease:'+EASE+';--rt-motion-fast:120ms;--rt-motion-med:175ms;}\
+@keyframes rtPageEnterV1450{from{opacity:.72;transform:translate3d(0,2px,0)}to{opacity:1;transform:translate3d(0,0,0)}}\
+@keyframes rtSurfaceEnterV1450{from{opacity:0;transform:translate3d(0,4px,0)}to{opacity:1;transform:translate3d(0,0,0)}}\
+@keyframes rtOverlayInV1450{from{opacity:0}to{opacity:1}}\
+@keyframes rtConfirmInV1450{from{opacity:0;transform:translate3d(0,4px,0) scale(.99)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}\
+.page.on:not(.rt-boot-noanim){animation:rtPageEnterV1450 110ms var(--rt-motion-ease) both!important;}\
+#panel-content{animation:rtSurfaceEnterV1450 165ms var(--rt-motion-ease) both!important;}\
+.slide-panel{transition:transform 185ms var(--rt-motion-ease)!important;}\
+#more-sheet{transition:transform 175ms var(--rt-motion-ease)!important;}\
+.country-panel{transition:opacity 110ms ease-out,transform 165ms var(--rt-motion-ease)!important;}\
+#confirm-modal.open{animation:rtOverlayInV1450 110ms ease-out both!important;}\
+#confirm-modal.open .confirm-box{animation:rtConfirmInV1450 165ms var(--rt-motion-ease) both!important;}\
+.fab-dial-item{transition:opacity 110ms ease-out,transform 150ms var(--rt-motion-ease)!important;}\
+#fab-dial,#search-fab{transition-property:opacity,scale,transform,bottom!important;transition-duration:105ms,135ms,135ms,150ms!important;transition-timing-function:ease-out,var(--rt-motion-ease),var(--rt-motion-ease),var(--rt-motion-ease)!important;}\
 #fab-dial.rt-fab-motion-hidden,#search-fab.rt-fab-motion-hidden{opacity:0!important;scale:.96;pointer-events:none!important;}\
-.tab,.bnt,.nav-more-btn,.more-sheet-row{transition-property:color,background-color,opacity!important;transition-duration:110ms!important;transition-timing-function:ease-out!important;}\
-.tab svg,.bnt svg,.nav-more-btn svg{transition:transform 135ms var(--rt-motion-ease),color 110ms ease-out!important;}\
+.tab,.bnt,.nav-more-btn,.more-sheet-row{transition-property:color,background-color,opacity!important;transition-duration:80ms!important;transition-timing-function:ease-out!important;}\
+.tab svg,.bnt svg,.nav-more-btn svg{transition:transform 100ms var(--rt-motion-ease),color 80ms ease-out!important;}\
 .tab.on svg,.bnt.on svg{transform:translateY(-1px);}\
 /* Command Centre bars acknowledge the range immediately and finish their entire\
    left-to-right reveal in roughly half a second even on 30 daily columns. The\
@@ -171,5 +171,5 @@ button,.tab,.bnt,.nav-more-btn,.more-sheet-row,.fab-dial-item{touch-action:manip
     pageStructureObserver.observe(document.documentElement,{subtree:true,childList:true});
   }catch(_){}
 
-  window.__RT_GLOBAL_MOTION_BUILD='20260907-motion-system-3';
+  window.__RT_GLOBAL_MOTION_BUILD='20260907-motion-system-4';
 })();
