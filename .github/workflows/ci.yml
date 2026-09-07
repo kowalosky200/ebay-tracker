@@ -19,6 +19,7 @@ jobs:
           node --check app.js
           node --check workflow-system.js
           node --check surface-ownership.js
+          node --check interaction-health.js
           node --check workflow-qol.js
           node --check chart-polish.js
           node --check chart-motion.js
@@ -83,6 +84,23 @@ jobs:
           print('Motion performance guardrails passed')
           PY
 
+      - name: Interaction hit-test health
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          health=Path('interaction-health.js').read_text(encoding='utf-8')
+          assert "wrap('closeMoreSheet'" in health, 'More-sheet close must release hit-testing synchronously'
+          assert "wrap('toggleMoreSheet'" in health, 'More-sheet open/close semantics must stay explicit'
+          assert "wrap('closeAllCategoriesModal'" in health, 'closing category drawer must release hit-testing before animation removal'
+          assert "el.style.pointerEvents='none'" in health, 'closed visual surfaces must leave the hit-test path immediately'
+          assert "setAttribute('aria-hidden','true')" in health, 'closing surfaces must become semantically closed immediately'
+          assert '__RT_SURFACE_OWNERSHIP.reconcile' in health, 'surface ownership must be reconciled in the same task as close'
+          assert 'new MutationObserver' not in health, 'interaction health must not add a global mutation observer/polling loop'
+          assert "addEventListener('scroll'" in health and "visibilitychange" in health, 'iOS interrupted-gesture/background recovery hooks must remain'
+          print('Interaction hit-test guardrails passed')
+          PY
+
       - name: Dashboard drill coherence
         run: |
           python - <<'PY'
@@ -125,6 +143,7 @@ jobs:
               'core':'app-core.js',
               'workflow':'workflow-system.js',
               'surface':'surface-ownership.js',
+              'interaction':'interaction-health.js',
               'qol':'workflow-qol.js',
               'polish':'chart-polish.js',
               'chartMotion':'chart-motion.js',
@@ -152,7 +171,7 @@ jobs:
           entry=Path('app.js').read_text(encoding='utf-8')
           for required in ('app.js','app.css'):
               assert required in index, f'{required} is not referenced by index.html'
-          for required in ('workflow-system.js','surface-ownership.js','workflow-qol.js','chart-line-motion.js','motion-system.js','dashboard-details.js','stock-detail-profit.js'):
+          for required in ('workflow-system.js','surface-ownership.js','interaction-health.js','workflow-qol.js','chart-line-motion.js','motion-system.js','dashboard-details.js','stock-detail-profit.js'):
               assert required in entry, f'{required} is not loaded by app.js'
           print('Core file reference check passed')
           PY
