@@ -10,10 +10,9 @@
   'use strict';
 
   if(window.__RT_INTERACTION_HEALTH)return;
-  var BUILD='20260907-interaction-health-2';
+  var BUILD='20260907-interaction-health-3';
   var repairs=0;
   var healing=false;
-  var scrollHealTimer=0;
 
   function byId(id){return document.getElementById(id);}
   function ownershipReconcile(){
@@ -131,9 +130,8 @@
     }finally{
       healing=false;
     }
-    /* Reconciliation performs computed-style/layout reads. Keep it off the hot
-       pointer path unless we actually repaired something. Normal taps therefore
-       pay only a few cheap state checks, not a surface/layout pass. */
+    /* Reconciliation performs computed-style/layout reads, so recovery only pays
+       for it when something was actually repaired. */
     if(repairs!==before)ownershipReconcile();
   }
 
@@ -146,11 +144,9 @@
   }
 
   /* The More sheet was the primary intermittent-dead-page path. Core keeps the
-     sheet display:block for its ~300ms close animation. Surface ownership used
-     that visual presence as "still open", which kept .page.on inert. iOS can
-     postpone timeout/animation completion while scrolling or during interrupted
-     gestures, turning 300ms into an apparently frozen page. Semantic close now
-     ends ownership synchronously; the slide animation is free to finish later. */
+     sheet display:block for its close animation. Surface ownership used that
+     visual presence as "still open", which kept .page.on inert. Semantic close
+     now ends ownership synchronously; the slide animation is free to finish later. */
   wrap('closeMoreSheet',function(base){
     return function(){
       var out=base.apply(this,arguments);
@@ -199,22 +195,13 @@
     });
   });
 
-  /* If Safari suspends a timer/transition while the app backgrounds or the user
-     scrolls, repair semantic hit-testing on return/end. There is no polling and
-     no document MutationObserver. Scroll recovery is debounced so it does not do
-     work at frame rate while the user is actively scrolling. */
+  /* Recovery is intentionally OUT of the normal gesture path. A page/nav tap
+     must go straight to its own handler with no document-wide DOM queries first.
+     The actual close functions above prevent stale ownership at source; these
+     lifecycle edges are only a fallback for browser suspension/interruption. */
   window.addEventListener('pageshow',heal);
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')heal();});
-  window.addEventListener('scroll',function(){
-    if(scrollHealTimer)clearTimeout(scrollHealTimer);
-    scrollHealTimer=setTimeout(function(){scrollHealTimer=0;heal();},90);
-  },{passive:true});
   if('onscrollend' in window)window.addEventListener('scrollend',heal,{passive:true});
-
-  /* Final safety net: an unexpected stale backdrop that receives a tap repairs
-     itself before it can block subsequent interactions. Reconcile only runs when
-     a repair was actually needed. */
-  document.addEventListener('pointerdown',heal,true);
 
   heal();
 
