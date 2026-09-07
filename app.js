@@ -8,7 +8,7 @@
  */
 (function(){
   'use strict';
-  var v='20260907-v1451-inputfix1';
+  var v='20260907-v1452-fullpage-owner';
 
   /* First-paint motion pre-arm. The Sales SVG can be rendered by app-core before
      the refinement layer is loaded; keeping it transparent until that layer has
