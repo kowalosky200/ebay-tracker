@@ -5,7 +5,7 @@
 (function(){
   'use strict';
 
-  var BUILD='20260907-workflow-qol-1';
+  var BUILD='20260907-workflow-qol-2';
   var freshFocus=new WeakSet();
 
   function workflowSurface(el){
@@ -49,6 +49,14 @@
     return idx>=0&&idx<inputs.length-1?inputs[idx+1]:null;
   }
 
+  function decorateToken(input){
+    var token=input&&input.closest?input.closest('.ip-token'):null;
+    if(!token)return;
+    token.classList.remove('rt-qol-money','rt-qol-percent');
+    if(/^tok-promoPercent-/.test(token.id||''))token.classList.add('rt-qol-percent');
+    else if(/^tok-(salePrice|costPrice|estSalePrice)-/.test(token.id||''))token.classList.add('rt-qol-money');
+  }
+
   function configureToken(input){
     if(!input||!input.classList||!input.classList.contains('rt-token-native'))return;
     var next=nextTokenInput(input);
@@ -56,6 +64,7 @@
     input.setAttribute('enterkeyhint',next?'next':'done');
     input.setAttribute('autocorrect','off');
     input.setAttribute('autocapitalize','off');
+    decorateToken(input);
   }
 
   // First focus on a price/cost/percentage field means "replace this value".
@@ -148,6 +157,23 @@
     var token=e.target&&e.target.closest?e.target.closest('.ip-token.rt-native-edit'):null;
     if(token)configureToken(token.querySelector('input.rt-token-native'));
   },{passive:true,capture:true});
+
+  if(!document.getElementById('rt-workflow-qol-styles')){
+    var style=document.createElement('style');
+    style.id='rt-workflow-qol-styles';
+    style.textContent=[
+      '.ip-token.rt-qol-money .ip-token-val::before{content:"£";flex:0 0 auto;margin-right:1px}',
+      '.ip-token.rt-qol-percent .ip-token-val::after{content:"%";flex:0 0 auto;margin-left:1px}',
+      '.ip-token.rt-native-edit .rt-token-native{min-width:0;caret-color:currentColor;user-select:text;-webkit-user-select:text}',
+      '.ip-token.rt-native-edit:focus-within .ip-token-sub{color:var(--accent)}'
+    ].join('');
+    document.head.appendChild(style);
+  }
+
+  // Configure inputs already present at load time (for example a restored item
+  // route after a hard refresh). Later renders are handled by the wrapper above.
+  tokenInputs(document.getElementById('p-item')).forEach(configureToken);
+  tokenInputs(document.getElementById('slide-panel')).forEach(configureToken);
 
   console.info('[RETRADE] workflow QoL layer loaded',BUILD);
 })();
