@@ -5,7 +5,7 @@
 (function(){
   'use strict';
 
-  var BUILD='20260907-workflow-qol-2';
+  var BUILD='20260907-workflow-qol-3';
   var freshFocus=new WeakSet();
 
   function workflowSurface(el){
@@ -165,7 +165,10 @@
       '.ip-token.rt-qol-money .ip-token-val::before{content:"£";flex:0 0 auto;margin-right:1px}',
       '.ip-token.rt-qol-percent .ip-token-val::after{content:"%";flex:0 0 auto;margin-left:1px}',
       '.ip-token.rt-native-edit .rt-token-native{min-width:0;caret-color:currentColor;user-select:text;-webkit-user-select:text}',
-      '.ip-token.rt-native-edit:focus-within .ip-token-sub{color:var(--accent)}'
+      '.ip-token.rt-native-edit:focus-within .ip-token-sub{color:var(--accent)}',
+      '.ip-token.rt-native-edit:active{transform:none!important}',
+      '.ip-token.rt-native-edit,.ip-token.rt-native-edit input{touch-action:manipulation}',
+      '@media(max-width:600px){#p-item input:not([type="checkbox"]):not([type="radio"]),#p-item select,#p-item textarea,#slide-panel input:not([type="checkbox"]):not([type="radio"]),#slide-panel select,#slide-panel textarea{font-size:16px!important}}'
     ].join('');
     document.head.appendChild(style);
   }
