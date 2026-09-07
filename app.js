@@ -4,7 +4,8 @@
  * panels and pages; workflow-qol.js owns fast editing shortcuts;
  * chart-polish.js, chart-motion.js, chart-finalize.js, chart-reveal.js,
  * chart-line-motion.js and motion-system.js own presentation motion;
- * dashboard-details.js owns exact Command Centre drill-down semantics.
+ * dashboard-details.js owns exact Command Centre drill-down semantics;
+ * stock-detail-profit.js keeps sourced-stock panel estimates financially coherent.
  */
 (function(){
   'use strict';
@@ -25,7 +26,8 @@
     reveal:'79ff92a2',
     line:'fc7cee33',
     motion:'a7fd273d',
-    dashboard:'4539b2fb'
+    dashboard:'4539b2fb',
+    stockDetail:'62301cdf'
   };
 
   /* First-paint motion pre-arm. The Sales SVG can be rendered by app-core before
@@ -51,7 +53,8 @@
     ['./chart-reveal.js',V.reveal,'low'],
     ['./chart-line-motion.js',V.line,'low'],
     ['./motion-system.js',V.motion,'low'],
-    ['./dashboard-details.js',V.dashboard,'auto']
+    ['./dashboard-details.js',V.dashboard,'auto'],
+    ['./stock-detail-profit.js',V.stockDetail,'auto']
   ];
 
   function url(src,version){return src+'?v='+version;}
