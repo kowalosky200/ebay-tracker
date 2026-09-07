@@ -27,19 +27,19 @@ function isImmutableRuntime(request){
   return /^[a-f0-9]{8}$/i.test(url.searchParams.get('v')||'');
 }
 
-async function cacheRuntime(event){
-  const request=event.request;
+async function planRuntime(request){
   const cache=await caches.open(RUNTIME_CACHE);
   const cached=await cache.match(request);
-  if(cached)return cached;
+  if(cached)return {response:cached,settle:Promise.resolve()};
 
   const response=await fetch(request);
-  if(!response||!response.ok)return response;
+  if(!response||!response.ok)return {response,settle:Promise.resolve()};
 
   const copy=response.clone();
-  // Keep only the newest content-hashed version of each runtime pathname so a
-  // long-lived phone installation cannot accumulate old multi-megabyte bundles.
-  event.waitUntil((async()=>{
+  // Cache work runs under fetch-event waitUntil, not on the response path. The
+  // user gets the network response as soon as it arrives while the immutable copy
+  // is stored in the background for the next launch.
+  const settle=(async()=>{
     const wanted=new URL(request.url);
     const keys=await cache.keys();
     await Promise.all(keys.map(key=>{
@@ -47,16 +47,23 @@ async function cacheRuntime(event){
       return prior.pathname===wanted.pathname&&prior.href!==wanted.href?cache.delete(key):Promise.resolve(false);
     }));
     await cache.put(request,copy);
-  })());
-  return response;
+  })();
+
+  return {response,settle};
 }
 
 self.addEventListener('fetch', event => {
   if(event.request.method!=='GET')return;
+
   if(isImmutableRuntime(event.request)){
-    event.respondWith(cacheRuntime(event));
+    const plan=planRuntime(event.request);
+    // Both hooks are registered synchronously while the ExtendableEvent is live.
+    // The response does not wait for the background CacheStorage write.
+    event.respondWith(plan.then(result=>result.response));
+    event.waitUntil(plan.then(result=>result.settle));
     return;
   }
+
   // Everything mutable stays network-first. Browser HTTP caching may still
   // revalidate efficiently, but RETRADE never serves stale HTML, app.js or data.
   event.respondWith(fetch(event.request));
