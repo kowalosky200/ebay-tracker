@@ -11,7 +11,7 @@
 (function(){
   'use strict';
 
-  var BUILD='20260907-surface-ownership-1';
+  var BUILD='20260907-surface-ownership-2';
   var OPEN_SEQ=0;
   var scheduled=false;
   var currentOwner=null;
@@ -37,11 +37,6 @@
     '.platform-choice-overlay'
   ].join(',');
 
-  function cssEscape(value){
-    if(window.CSS&&typeof window.CSS.escape==='function')return window.CSS.escape(value);
-    return String(value).replace(/([ #;?%&,.+*~\':"!^$[\]()=>|/@])/g,'\\$1');
-  }
-
   function styleOf(el){
     try{return window.getComputedStyle(el);}catch(e){return null;}
   }
@@ -49,11 +44,16 @@
   function isOpen(el){
     if(!el||!el.isConnected||el.hidden)return false;
     if(el.id==='slide-panel'&&el.dataset.rtWorkflowSuspended==='true')return false;
-    if(el.getAttribute('aria-hidden')==='true')return false;
+
+    /* Our own suspension must not make an actually-open lower surface disappear
+       from arbitration. Otherwise it would be restored, rediscovered, suspended
+       again and oscillate forever. */
+    var managed=el.dataset.rtSurfaceSuspended==='true';
+    if(!managed&&el.getAttribute('aria-hidden')==='true')return false;
 
     var s=styleOf(el);
     if(!s||s.display==='none'||s.visibility==='hidden'||s.visibility==='collapse')return false;
-    if(s.pointerEvents==='none'&&Number(s.opacity||1)===0)return false;
+    if(!managed&&s.pointerEvents==='none'&&Number(s.opacity||1)===0)return false;
     if(el.id==='slide-panel'&&!el.classList.contains('on'))return false;
     if(!el.getClientRects||!el.getClientRects().length)return false;
     return true;
@@ -116,8 +116,7 @@
 
     root.querySelectorAll('[id]').forEach(function(el){
       var id=el.id;
-      if(!id||!ids.has(id))return;
-      if(state.ids.has(el))return;
+      if(!id||!ids.has(id)||state.ids.has(el))return;
       state.ids.set(el,id);
       el.removeAttribute('id');
     });
@@ -157,7 +156,6 @@
       if(el&&el.isConnected&&!el.id)el.id=id;
     });
     state.ids.clear();
-
     delete root.dataset.rtSurfaceSuspended;
 
     /* workflow-system may have taken ownership of the item panel while a modal
