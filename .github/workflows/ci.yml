@@ -77,6 +77,34 @@ jobs:
           print('Motion performance guardrails passed')
           PY
 
+      - name: Runtime asset hashes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, re
+
+          entry=Path('app.js').read_text(encoding='utf-8')
+          assets={
+              'core':'app-core.js',
+              'workflow':'workflow-system.js',
+              'surface':'surface-ownership.js',
+              'qol':'workflow-qol.js',
+              'polish':'chart-polish.js',
+              'chartMotion':'chart-motion.js',
+              'finalize':'chart-finalize.js',
+              'reveal':'chart-reveal.js',
+              'line':'chart-line-motion.js',
+              'motion':'motion-system.js',
+          }
+          for key,path in assets.items():
+              match=re.search(rf"\b{re.escape(key)}:'([a-f0-9]{{8}})'",entry)
+              assert match, f'missing content hash for {path} in app.js'
+              data=Path(path).read_bytes()
+              actual=hashlib.sha1(f'blob {len(data)}\0'.encode()+data).hexdigest()[:8]
+              assert match.group(1)==actual, f'{path} cache hash is stale: app.js={match.group(1)} actual={actual}'
+          print('Runtime asset hash map matches Git blobs')
+          PY
+
       - name: Core file references
         run: |
           python - <<'PY'
