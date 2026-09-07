@@ -17,6 +17,7 @@ jobs:
       - name: JavaScript syntax
         run: |
           node --check app.js
+          node --check workflow-system.js
           node --check accounting.js
           node --check reports.js
           node --check sw.js
