@@ -5,8 +5,10 @@
 (function(){
   'use strict';
 
-  var BUILD='20260907-workflow-3';
+  var BUILD='20260907-workflow-4';
   var accountPanelOrigin=null;
+  var fullPageFromPanel=false;
+  var openingFromPanel=false;
   var saveTimers=new Map();
 
   function getItem(month,id){
@@ -71,34 +73,65 @@
     recomputeItem(item);
   }
 
-  function visibleToken(field,id){
-    var wanted='tok-'+field+'-'+id;
-    var all=document.querySelectorAll('.ip-token[id]');
-    var first=null;
-    for(var n=0;n<all.length;n++){
-      if(all[n].id!==wanted)continue;
-      if(!first)first=all[n];
-      try{if(all[n].getClientRects().length)return all[n];}catch(e){}
+  function pageOwnsItem(id){
+    var page=document.getElementById('p-item');
+    return !!(page&&page.classList.contains('on')&&page.dataset.rtWorkflowView==='item'&&page.dataset.rtWorkflowItem===String(id));
+  }
+
+  function panelIsSuspended(){
+    var panel=document.getElementById('slide-panel');
+    return !!(panel&&panel.dataset.rtWorkflowSuspended==='true');
+  }
+
+  function suspendPanelForFullItem(){
+    var panel=document.getElementById('slide-panel');
+    if(!panel||panel.dataset.rtWorkflowSuspended==='true')return;
+
+    var active=document.activeElement;
+    if(active&&panel.contains(active)){
+      try{active.blur();}catch(e){}
     }
-    return first;
+
+    panel.dataset.rtWorkflowSuspended='true';
+    panel.setAttribute('aria-hidden','true');
+    try{panel.inert=true;}catch(e){}
+
+    /* Full Details and the slide-out render the same token IDs. While Full Details
+       owns the item, remove the popup copies from the document ID namespace so no
+       legacy document.getElementById() call can silently edit the hidden popup. */
+    panel.querySelectorAll('[id^="tok-"]').forEach(function(el){
+      if(el.dataset.rtOriginalId)return;
+      el.dataset.rtOriginalId=el.id;
+      el.removeAttribute('id');
+    });
   }
 
-  function anotherWorkflowInputFocused(root,current){
-    var a=document.activeElement;
-    return !!(a&&a!==current&&root&&root.contains(a)&&a.classList&&a.classList.contains('rt-token-native'));
+  function restoreSuspendedPanel(){
+    var panel=document.getElementById('slide-panel');
+    if(!panel||panel.dataset.rtWorkflowSuspended!=='true')return;
+
+    panel.querySelectorAll('[data-rt-original-id]').forEach(function(el){
+      el.id=el.dataset.rtOriginalId;
+      delete el.dataset.rtOriginalId;
+    });
+    delete panel.dataset.rtWorkflowSuspended;
+    panel.removeAttribute('aria-hidden');
+    try{panel.inert=false;}catch(e){}
   }
 
-  function refreshAfterTokenEdit(root,month,id,current){
-    setTimeout(function(){
-      if(anotherWorkflowInputFocused(root,current))return;
-      try{
-        if(root&&root.id==='slide-panel'){
-          if(typeof openItemDetail==='function')openItemDetail(month,id,true);
-        }else if(document.getElementById('p-item')&&document.getElementById('p-item').classList.contains('on')){
-          if(typeof renderItemPage==='function')renderItemPage(month,id);
-        }
-      }catch(err){console.error('[RETRADE] workflow refresh failed',err);}
-    },0);
+  function activeItemRoot(id){
+    if(pageOwnsItem(id))return document.getElementById('p-item');
+    var panel=document.getElementById('slide-panel');
+    if(panel&&!panelIsSuspended())return panel;
+    return null;
+  }
+
+  function tokenInRoot(root,field,id){
+    if(!root)return null;
+    var wanted='tok-'+field+'-'+id;
+    var tokens=root.querySelectorAll('.ip-token[id]');
+    for(var n=0;n<tokens.length;n++)if(tokens[n].id===wanted)return tokens[n];
+    return null;
   }
 
   function updateReceiptMirror(root,item,field){
@@ -145,12 +178,14 @@
     token.classList.add('rt-native-edit');
     token.dataset.rtNativeEditor='1';
 
-    /* The native input replaces app-core's temporary inject/blur/re-render editor.
-       Remove those inline handlers so a card tap can never invoke both systems. */
+    /* The stable input replaces app-core's temporary inject/blur/re-render editor.
+       A card can never invoke both editing systems. */
     token.removeAttribute('onpointerdown');
     token.removeAttribute('onclick');
     try{token.onpointerdown=null;token.onclick=null;}catch(e){}
 
+    /* Live input owns the visible value. Do not normalise the text while typing:
+       values such as `49.` must remain visible exactly as entered until Done/blur. */
     var live=function(){
       applyTokenValue(item,field,input.value);
       input.dataset.rtDirty='1';
@@ -195,8 +230,11 @@
     });
     input.addEventListener('blur',function(){
       token.classList.remove('rt-native-focused');
-      var changed=commit();
-      if(changed)refreshAfterTokenEdit(root,month,id,input);
+      commit();
+      /* Deliberately no render/navigation here. A field edit changes data only.
+         Full Details stays Full Details; Back is the only action that restores
+         the originating popup. This also removes a costly full-page rebuild from
+         the common one-number edit path. */
     });
 
     /* Fallback independent of workflow-qol: the entire card is a real focus
@@ -211,7 +249,7 @@
     if(!root||!item)return;
     var activeListing=!item.dateSold&&!item.resaleSalePrice&&!item.isReturned&&item.state!=='sourced'&&!item.scrappedAt;
     if(activeListing){
-      var saleTok=root.querySelector('.ip-token[id^="tok-salePrice-"]');
+      var saleTok=tokenInRoot(root,'salePrice',item.id);
       if(saleTok){
         var label=saleTok.querySelector('.ip-token-label');
         if(label)label.textContent='Asking Price';
@@ -310,6 +348,9 @@
     if(typeof window.openItemDetail==='function'&&!window.openItemDetail._rtWorkflowWrapped){
       var baseDetail=window.openItemDetail;
       var wrappedDetail=function(month,id){
+        /* While Full Details owns this item, stale save/render callbacks are not
+           allowed to resurrect the popup underneath or above it. */
+        if(panelIsSuspended()&&pageOwnsItem(id))return;
         var out=baseDetail.apply(this,arguments);
         try{enhanceTokenEditors(document.getElementById('slide-panel'),month,id);}catch(e){console.error('[RETRADE] panel editor enhancement failed',e);}
         return out;
@@ -321,12 +362,16 @@
     if(typeof window.openTokenEdit==='function'&&!window.openTokenEdit._rtWorkflowWrapped){
       var baseOpenToken=window.openTokenEdit;
       var wrappedOpenToken=function(month,id,field){
-        var tok=visibleToken(field,id);
+        var root=activeItemRoot(id);
+        var tok=tokenInRoot(root,field,id);
         var native=tok&&tok.querySelector('.rt-token-native');
         if(native){
           selectNativeInput(native);
           return;
         }
+        /* Do not fall through to app-core while a Full Details page owns the item;
+           core uses a global ID lookup and can target a duplicate popup token. */
+        if(pageOwnsItem(id))return;
         return baseOpenToken.apply(this,arguments);
       };
       wrappedOpenToken._rtWorkflowWrapped=true;
@@ -341,7 +386,20 @@
         var acct=null;
         try{if(typeof _acctCurrentAcct==='function')acct=_acctCurrentAcct();}catch(e){}
         accountPanelOrigin=acct?{accountId:acct.id,month:month,id:id}:null;
-        return baseFromPanel.apply(this,arguments);
+        fullPageFromPanel=true;
+        openingFromPanel=true;
+        var out;
+        try{
+          out=baseFromPanel.apply(this,arguments);
+        }finally{
+          openingFromPanel=false;
+        }
+        /* The base route has finished using the popup; Full Details now becomes
+           the exclusive owner until Back explicitly unwinds the route. */
+        suspendPanelForFullItem();
+        markItemView(month,id);
+        try{enhanceTokenEditors(document.getElementById('p-item'),month,id);}catch(e){console.error('[RETRADE] full-page editor enhancement failed',e);}
+        return out;
       };
       wrappedFromPanel._rtWorkflowWrapped=true;
       window.openItemPageFromPanel=wrappedFromPanel;
@@ -350,7 +408,11 @@
     if(typeof window.openItemPage==='function'&&!window.openItemPage._rtWorkflowWrapped){
       var baseOpenPage=window.openItemPage;
       var wrappedOpenPage=function(){
-        accountPanelOrigin=null;
+        if(!openingFromPanel){
+          accountPanelOrigin=null;
+          fullPageFromPanel=false;
+          restoreSuspendedPanel();
+        }
         return baseOpenPage.apply(this,arguments);
       };
       wrappedOpenPage._rtWorkflowWrapped=true;
@@ -360,17 +422,20 @@
     if(typeof window.exitItemPage==='function'&&!window.exitItemPage._rtWorkflowWrapped){
       var baseExit=window.exitItemPage;
       var wrappedExit=function(){
+        /* Back, not an edit commit, is what re-enables the originating popup. */
+        if(fullPageFromPanel)restoreSuspendedPanel();
+
         if(accountPanelOrigin){
           try{
             var acct=(typeof _accounts!=='undefined'?_accounts:[]).find(function(a){return a&&a.id===accountPanelOrigin.accountId;});
             if(acct&&typeof _renderAccountPage==='function'){
               /* p-item is shared by account detail and item detail. Restore the
-                 account DOM BEFORE app-core reactivates the saved panel origin,
-                 otherwise Back can reopen the item panel over the item page. */
+                 account DOM BEFORE app-core reactivates the saved panel origin. */
               _renderAccountPage(acct);
             }
           }catch(e){console.error('[RETRADE] account return restore failed',e);}
         }
+
         var hadAccountOrigin=!!accountPanelOrigin;
         var out=baseExit.apply(this,arguments);
         if(hadAccountOrigin){
@@ -383,6 +448,7 @@
           }catch(e){}
         }
         accountPanelOrigin=null;
+        fullPageFromPanel=false;
         return out;
       };
       wrappedExit._rtWorkflowWrapped=true;
@@ -402,6 +468,7 @@
     var style=document.createElement('style');
     style.id='rt-workflow-styles';
     style.textContent=[
+      '#slide-panel[data-rt-workflow-suspended="true"]{pointer-events:none!important}',
       '.ip-token.rt-native-edit{cursor:text;touch-action:manipulation;-webkit-tap-highlight-color:transparent}',
       '.ip-token.rt-native-edit .ip-token-val{display:flex;align-items:center;min-width:0;overflow:visible}',
       '.rt-token-native{display:block;width:100%;min-width:0;margin:0;padding:0;border:0;outline:0;background:transparent;color:var(--text)!important;-webkit-text-fill-color:var(--text)!important;font:inherit;font-weight:inherit;line-height:inherit;letter-spacing:inherit;-webkit-appearance:none;appearance:none;touch-action:manipulation;opacity:1!important;caret-color:var(--accent)}',
