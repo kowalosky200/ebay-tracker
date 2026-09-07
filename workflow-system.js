@@ -5,7 +5,7 @@
 (function(){
   'use strict';
 
-  var BUILD='20260907-workflow-1';
+  var BUILD='20260907-workflow-2';
   var accountPanelOrigin=null;
   var saveTimers=new Map();
 
@@ -18,6 +18,8 @@
       STOCK_STATE_FILTER='listed';
       STOCK_FILTER='all';
       STOCK_SOURCED_FILTER='all';
+      STOCK_SEARCH='';
+      if(typeof _scrollMap!=='undefined')delete _scrollMap.stock;
     }catch(e){}
   }
 
@@ -142,8 +144,8 @@
     if(!root||!item)return;
     var activeListing=!item.dateSold&&!item.resaleSalePrice&&!item.isReturned&&item.state!=='sourced'&&!item.scrappedAt;
     if(activeListing){
-      var saleTok=root.querySelector('#tok-salePrice-'+CSS.escape(item.id));
-      if(saleTok){
+      var saleTok=document.getElementById('tok-salePrice-'+item.id);
+      if(saleTok&&root.contains(saleTok)){
         var label=saleTok.querySelector('.ip-token-label');
         if(label)label.textContent='Asking Price';
       }
@@ -169,6 +171,22 @@
     }
   }
 
+  function markItemView(month,id){
+    var page=document.getElementById('p-item');
+    if(!page)return;
+    page.dataset.rtWorkflowView='item';
+    page.dataset.rtWorkflowItem=id||'';
+    page.removeAttribute('data-rt-workflow-account');
+  }
+
+  function markAccountView(acct){
+    var page=document.getElementById('p-item');
+    if(!page)return;
+    page.dataset.rtWorkflowView='account';
+    page.dataset.rtWorkflowAccount=acct&&acct.id?acct.id:'';
+    page.removeAttribute('data-rt-workflow-item');
+  }
+
   function enhanceTokenEditors(root,month,id){
     if(!root)return;
     var item=getItem(month,id);
@@ -181,11 +199,40 @@
     clarifyCurrentPrice(root,item);
   }
 
+  function installViewMarkers(){
+    if(typeof window._renderAccountPage==='function'&&!window._renderAccountPage._rtWorkflowWrapped){
+      var baseAccountRender=window._renderAccountPage;
+      var wrappedAccountRender=function(acct){
+        var out=baseAccountRender.apply(this,arguments);
+        markAccountView(acct);
+        return out;
+      };
+      wrappedAccountRender._rtWorkflowWrapped=true;
+      window._renderAccountPage=wrappedAccountRender;
+    }
+
+    if(typeof window._acctCurrentAcct==='function'&&!window._acctCurrentAcct._rtWorkflowWrapped){
+      var baseCurrentAcct=window._acctCurrentAcct;
+      var wrappedCurrentAcct=function(){
+        var page=document.getElementById('p-item');
+        if(page&&page.dataset.rtWorkflowView==='item')return null;
+        if(page&&page.dataset.rtWorkflowView==='account'&&page.dataset.rtWorkflowAccount&&typeof _accounts!=='undefined'){
+          var marked=_accounts.find(function(a){return a&&a.id===page.dataset.rtWorkflowAccount;});
+          if(marked)return marked;
+        }
+        return baseCurrentAcct.apply(this,arguments);
+      };
+      wrappedCurrentAcct._rtWorkflowWrapped=true;
+      window._acctCurrentAcct=wrappedCurrentAcct;
+    }
+  }
+
   function installItemRenderEnhancer(){
     if(typeof window.renderItemPage==='function'&&!window.renderItemPage._rtWorkflowWrapped){
       var baseRender=window.renderItemPage;
       var wrappedRender=function(month,id){
         var out=baseRender.apply(this,arguments);
+        markItemView(month,id);
         try{enhanceTokenEditors(document.getElementById('p-item'),month,id);}catch(e){console.error('[RETRADE] item editor enhancement failed',e);}
         return out;
       };
@@ -277,6 +324,13 @@
     }
   }
 
+  function flushFocusedWorkflowInput(){
+    var active=document.activeElement;
+    if(active&&active.classList&&active.classList.contains('rt-token-native')){
+      try{active.blur();}catch(e){}
+    }
+  }
+
   function injectStyles(){
     if(document.getElementById('rt-workflow-styles'))return;
     var style=document.createElement('style');
@@ -288,13 +342,16 @@
       '.rt-token-native:focus{outline:none}',
       '.ip-token.rt-native-edit:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim)}',
       '.rt-receipt-price-mirror{font-weight:600;color:var(--green);white-space:nowrap}',
-      '@media(max-width:600px){.rt-token-native{font-size:16px!important}.ip-token.rt-native-edit{min-height:92px}}'
+      '@media(max-width:600px){.ip-token.rt-native-edit{min-height:92px}}'
     ].join('');
     document.head.appendChild(style);
   }
 
   injectStyles();
+  installViewMarkers();
   installItemRenderEnhancer();
   installAccountPanelReturnFix();
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flushFocusedWorkflowInput();});
+  window.addEventListener('pagehide',flushFocusedWorkflowInput);
   console.info('[RETRADE] workflow coherence layer loaded',BUILD);
 })();
