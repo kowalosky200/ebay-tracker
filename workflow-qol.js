@@ -5,7 +5,7 @@
 (function(){
   'use strict';
 
-  var BUILD='20260907-workflow-qol-5';
+  var BUILD='20260907-workflow-qol-6';
   var freshFocus=new WeakSet();
 
   function workflowSurface(el){
@@ -184,13 +184,9 @@
     window.renderItemPage=wrappedRender;
   }
 
-  // Newly-created token inputs are configured before the next gesture wherever
-  // possible, but all behaviour is delegated so no observer is required for
-  // correctness and there is no permanent mutation-observer performance cost.
-  document.addEventListener('pointerover',function(e){
-    var token=e.target&&e.target.closest?e.target.closest('.ip-token.rt-native-edit'):null;
-    if(token)configureToken(token.querySelector('input.rt-token-native'));
-  },{passive:true,capture:true});
+  /* No pointerover listener here. Inputs are configured when rendered and again
+     on the actual focus/pointerdown gesture. Running next-input scans merely from
+     moving a mouse across cards was high-frequency work with no UX benefit. */
 
   if(!document.getElementById('rt-workflow-qol-styles')){
     var style=document.createElement('style');
