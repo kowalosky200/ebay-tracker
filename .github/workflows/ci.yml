@@ -27,6 +27,7 @@ jobs:
           node --check chart-line-motion.js
           node --check motion-system.js
           node --check dashboard-details.js
+          node --check stock-detail-profit.js
           node --check accounting.js
           node --check reports.js
           node --check sw.js
@@ -98,6 +99,21 @@ jobs:
           print('Dashboard drill coherence guardrails passed')
           PY
 
+      - name: Sourced stock estimate coherence
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          detail=Path('stock-detail-profit.js').read_text(encoding='utf-8')
+          assert '_estPotentialNet' in detail, 'sourced panel profit must reuse the canonical expected-profit estimate'
+          assert '_estPartnerCut' in detail, 'partner/consignment estimated share must be represented in sourced profit'
+          assert 'Est. Profit' in detail, 'sourced panel must expose an explicit estimated-profit token'
+          assert "'✎ Tap to edit'" in detail, 'Est. Sale helper must not masquerade as a naive profit number'
+          assert 'refreshPanelParts' in detail, 'inline parts changes must refresh estimated profit immediately'
+          assert "observer.observe(panel,{childList:true,subtree:true,characterData:true})" in detail, 'estimate edits must stay live without observing global style mutations'
+          print('Sourced stock estimate coherence guardrails passed')
+          PY
+
       - name: Runtime asset hashes
         run: |
           python - <<'PY'
@@ -117,6 +133,7 @@ jobs:
               'line':'chart-line-motion.js',
               'motion':'motion-system.js',
               'dashboard':'dashboard-details.js',
+              'stockDetail':'stock-detail-profit.js',
           }
           for key,path in assets.items():
               match=re.search(rf"\b{re.escape(key)}:'([a-f0-9]{{8}})'",entry)
@@ -135,7 +152,7 @@ jobs:
           entry=Path('app.js').read_text(encoding='utf-8')
           for required in ('app.js','app.css'):
               assert required in index, f'{required} is not referenced by index.html'
-          for required in ('workflow-system.js','surface-ownership.js','workflow-qol.js','chart-line-motion.js','motion-system.js','dashboard-details.js'):
+          for required in ('workflow-system.js','surface-ownership.js','workflow-qol.js','chart-line-motion.js','motion-system.js','dashboard-details.js','stock-detail-profit.js'):
               assert required in entry, f'{required} is not loaded by app.js'
           print('Core file reference check passed')
           PY
