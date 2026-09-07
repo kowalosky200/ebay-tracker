@@ -5,11 +5,11 @@
 (function(){
   'use strict';
 
-  var BUILD='20260907-workflow-qol-3';
+  var BUILD='20260907-workflow-qol-4';
   var freshFocus=new WeakSet();
 
   function workflowSurface(el){
-    return el&&el.closest?el.closest('#p-item,#slide-panel'):null;
+    return el&&el.closest?el.closest('#p-item,#slide-panel,[role="dialog"]'):null;
   }
 
   function isNumericInput(el){
@@ -69,7 +69,8 @@
 
   // First focus on a price/cost/percentage field means "replace this value".
   // A second tap while the same input remains focused is left alone so the user
-  // can deliberately place the caret for a small edit instead.
+  // can deliberately place the caret for a small edit instead. This applies to
+  // the item page, quick panel and lifecycle dialogs such as Mark Sold.
   document.addEventListener('focusin',function(e){
     var input=e.target;
     if(!isNumericInput(input)||!workflowSurface(input))return;
@@ -116,6 +117,26 @@
       input.blur();
     }
   },true);
+
+  // Mark Sold already defaults to today + current platform. The common action is
+  // correcting the actual sold price, so focus/select that directly. Resales stay
+  // date-first because their price was already established during Relist.
+  if(typeof window._openSaleModal==='function'&&!window._openSaleModal._rtQolWrapped){
+    var baseOpenSaleModal=window._openSaleModal;
+    var wrappedOpenSaleModal=function(id,focusId){
+      var preferred=(id==='sold-modal'&&document.getElementById('modal-price'))?'modal-price':focusId;
+      var out=baseOpenSaleModal.call(this,id,preferred);
+      if(id==='sold-modal'){
+        setTimeout(function(){
+          var price=document.getElementById('modal-price');
+          if(price&&document.activeElement===price)markFirstFocus(price);
+        },0);
+      }
+      return out;
+    };
+    wrappedOpenSaleModal._rtQolWrapped=true;
+    window._openSaleModal=wrappedOpenSaleModal;
+  }
 
   // Preserve the user's place when recalculation needs a full item-page render.
   // Opening a different item is not intercepted; this only applies when the same
@@ -168,7 +189,7 @@
       '.ip-token.rt-native-edit:focus-within .ip-token-sub{color:var(--accent)}',
       '.ip-token.rt-native-edit:active{transform:none!important}',
       '.ip-token.rt-native-edit,.ip-token.rt-native-edit input{touch-action:manipulation}',
-      '@media(max-width:600px){#p-item input:not([type="checkbox"]):not([type="radio"]),#p-item select,#p-item textarea,#slide-panel input:not([type="checkbox"]):not([type="radio"]),#slide-panel select,#slide-panel textarea{font-size:16px!important}}'
+      '@media(max-width:600px){#p-item input:not([type="checkbox"]):not([type="radio"]),#p-item select,#p-item textarea,#slide-panel input:not([type="checkbox"]):not([type="radio"]),#slide-panel select,#slide-panel textarea,[role="dialog"] input:not([type="checkbox"]):not([type="radio"]),[role="dialog"] select,[role="dialog"] textarea{font-size:16px!important}}'
     ].join('');
     document.head.appendChild(style);
   }
