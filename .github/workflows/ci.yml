@@ -18,6 +18,7 @@ jobs:
         run: |
           node --check app.js
           node --check workflow-system.js
+          node --check surface-ownership.js
           node --check workflow-qol.js
           node --check accounting.js
           node --check reports.js
@@ -64,7 +65,7 @@ jobs:
           entry=Path('app.js').read_text(encoding='utf-8')
           for required in ('app.js','app.css'):
               assert required in index, f'{required} is not referenced by index.html'
-          for required in ('workflow-system.js','workflow-qol.js'):
+          for required in ('workflow-system.js','surface-ownership.js','workflow-qol.js'):
               assert required in entry, f'{required} is not loaded by app.js'
           print('Core file reference check passed')
           PY
