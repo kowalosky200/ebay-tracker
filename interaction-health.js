@@ -10,10 +10,10 @@
   'use strict';
 
   if(window.__RT_INTERACTION_HEALTH)return;
-  var BUILD='20260907-interaction-health-1';
+  var BUILD='20260907-interaction-health-2';
   var repairs=0;
   var healing=false;
-  var scrollHealQueued=false;
+  var scrollHealTimer=0;
 
   function byId(id){return document.getElementById(id);}
   function ownershipReconcile(){
@@ -25,13 +25,18 @@
   }
 
   function closeHitTesting(el,aria){
-    if(!el)return;
-    if(el.style.pointerEvents!=='none'){el.style.pointerEvents='none';repairs++;}
+    if(!el)return false;
+    var changed=false;
+    if(el.style.pointerEvents!=='none'){
+      el.style.pointerEvents='none';
+      repairs++;changed=true;
+    }
     if(aria&&el.getAttribute('aria-hidden')!=='true'){
       el.setAttribute('aria-hidden','true');
       el.dataset.rtInteractionHealthHidden='1';
-      repairs++;
+      repairs++;changed=true;
     }
+    return changed;
   }
 
   function openHitTesting(el,aria){
@@ -65,9 +70,7 @@
   }
 
   function closeTransientBackdrop(id){
-    var el=byId(id);
-    if(!el)return;
-    closeHitTesting(el,false);
+    return closeHitTesting(byId(id),false);
   }
 
   function healLoadingLock(){
@@ -77,13 +80,16 @@
          typeof _enableLoadingControls==='function'){
         _enableLoadingControls();
         repairs++;
+        return true;
       }
     }catch(e){}
+    return false;
   }
 
   function heal(){
     if(healing)return;
     healing=true;
+    var before=repairs;
     try{
       var sheet=byId('more-sheet');
       if(sheet){
@@ -103,7 +109,10 @@
       var navMore=document.querySelector('.nav-more');
       if(!navMore||!navMore.classList.contains('open')){
         var navBd=byId('nav-more-backdrop');
-        if(navBd&&navBd.style.display!=='none'){navBd.style.display='none';repairs++;}
+        if(navBd&&navBd.style.display!=='none'){
+          navBd.style.display='none';
+          repairs++;
+        }
       }
 
       var panel=byId('slide-panel');
@@ -119,10 +128,13 @@
       if(catsPanel&&cats&&cats.getAttribute('aria-hidden')==='true')closeHitTesting(catsPanel,false);
 
       healLoadingLock();
-      ownershipReconcile();
     }finally{
       healing=false;
     }
+    /* Reconciliation performs computed-style/layout reads. Keep it off the hot
+       pointer path unless we actually repaired something. Normal taps therefore
+       pay only a few cheap state checks, not a surface/layout pass. */
+    if(repairs!==before)ownershipReconcile();
   }
 
   function wrap(name,make){
@@ -188,21 +200,21 @@
   });
 
   /* If Safari suspends a timer/transition while the app backgrounds or the user
-     starts a scroll, repair semantic hit-testing on return. No polling and no
-     global MutationObserver: this work only runs at meaningful interaction edges. */
+     scrolls, repair semantic hit-testing on return/end. There is no polling and
+     no document MutationObserver. Scroll recovery is debounced so it does not do
+     work at frame rate while the user is actively scrolling. */
   window.addEventListener('pageshow',heal);
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')heal();});
   window.addEventListener('scroll',function(){
-    if(scrollHealQueued)return;
-    scrollHealQueued=true;
-    requestAnimationFrame(function(){scrollHealQueued=false;heal();});
+    if(scrollHealTimer)clearTimeout(scrollHealTimer);
+    scrollHealTimer=setTimeout(function(){scrollHealTimer=0;heal();},90);
   },{passive:true});
+  if('onscrollend' in window)window.addEventListener('scrollend',heal,{passive:true});
 
-  /* Capture is only a final safety net. If a stale transparent backdrop receives
-     a tap, heal before it can continue blocking subsequent taps. Correct close
-     paths above mean this should be rare. */
+  /* Final safety net: an unexpected stale backdrop that receives a tap repairs
+     itself before it can block subsequent interactions. Reconcile only runs when
+     a repair was actually needed. */
   document.addEventListener('pointerdown',heal,true);
-  document.addEventListener('touchstart',heal,{capture:true,passive:true});
 
   heal();
 
