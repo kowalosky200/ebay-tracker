@@ -41,33 +41,32 @@
   setTimeout(function(){document.documentElement.classList.remove('rt-motion-prep');},1200);
 
   var scripts=[
-    ['./app-core.js',V.core],
-    ['./workflow-system.js',V.workflow],
-    ['./surface-ownership.js',V.surface],
-    ['./workflow-qol.js',V.qol],
-    ['./chart-polish.js',V.polish],
-    ['./chart-motion.js',V.chartMotion],
-    ['./chart-finalize.js',V.finalize],
-    ['./chart-reveal.js',V.reveal],
-    ['./chart-line-motion.js',V.line],
-    ['./motion-system.js',V.motion]
+    ['./app-core.js',V.core,'high'],
+    ['./workflow-system.js',V.workflow,'auto'],
+    ['./surface-ownership.js',V.surface,'auto'],
+    ['./workflow-qol.js',V.qol,'auto'],
+    ['./chart-polish.js',V.polish,'low'],
+    ['./chart-motion.js',V.chartMotion,'low'],
+    ['./chart-finalize.js',V.finalize,'low'],
+    ['./chart-reveal.js',V.reveal,'low'],
+    ['./chart-line-motion.js',V.line,'low'],
+    ['./motion-system.js',V.motion,'low']
   ];
 
   function url(src,version){return src+'?v='+version;}
-  function writeScript(src,version){document.write('<script src="'+url(src,version)+'"><\/script>');}
 
-  if(document.readyState==='loading'){
-    scripts.forEach(function(spec){writeScript(spec[0],spec[1]);});
-    return;
-  }
-
-  /* Dynamic scripts are non-async: browsers may fetch them in parallel but must
-     execute them in insertion order, preserving the wrapper/dependency chain
-     without the old one-request-per-onload network waterfall. */
+  /* app.js is loaded at the bottom of index.html, after the real page/modal DOM
+     and after accounting/reports. Dynamic non-async scripts can therefore start
+     downloading together without parser blocking. `async=false` preserves exact
+     execution order, while fetch priority gives the large app-core bundle first
+     claim on the connection and lets decorative motion layers fill spare capacity.
+     The previous document.write chain made first-load execution unnecessarily
+     serial even though the phone/network could do more work in parallel. */
   scripts.forEach(function(spec){
     var s=document.createElement('script');
     s.async=false;
     s.src=url(spec[0],spec[1]);
+    try{s.fetchPriority=spec[2];}catch(_){}
     document.head.appendChild(s);
   });
 })();
