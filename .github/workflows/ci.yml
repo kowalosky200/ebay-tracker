@@ -74,6 +74,7 @@ jobs:
           surface=Path('surface-ownership.js').read_text(encoding='utf-8')
           line=Path('chart-line-motion.js').read_text(encoding='utf-8')
           chart=Path('chart-motion.js').read_text(encoding='utf-8')
+          motion=Path('motion-system.js').read_text(encoding='utf-8')
           global_style_pattern="observer.observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class','style'"
           assert global_style_pattern not in surface, 'surface ownership must not observe global style mutations'
           assert global_style_pattern not in line, 'line motion must not observe global style mutations'
@@ -81,6 +82,7 @@ jobs:
           assert "fill.style.width='0%'" not in chart, 'Money Flow must not animate layout width from zero'
           assert 'sequenceDelay=660' not in chart, 'Money Flow must not reintroduce delayed value presentation'
           assert 'animateValue(' not in chart, 'Money Flow values should render final figures immediately, not JS count-up'
+          assert 'rtPageEnterV1450 110ms' in motion, 'page switch motion must remain short and immediate'
           print('Motion performance guardrails passed')
           PY
 
@@ -97,7 +99,10 @@ jobs:
           assert "setAttribute('aria-hidden','true')" in health, 'closing surfaces must become semantically closed immediately'
           assert '__RT_SURFACE_OWNERSHIP.reconcile' in health, 'surface ownership must be reconciled in the same task as close'
           assert 'new MutationObserver' not in health, 'interaction health must not add a global mutation observer/polling loop'
-          assert "addEventListener('scroll'" in health and "visibilitychange" in health, 'iOS interrupted-gesture/background recovery hooks must remain'
+          assert "visibilitychange" in health and "addEventListener('scrollend'" in health, 'iOS background/scroll-end recovery hooks must remain'
+          assert "addEventListener('pointerdown',heal" not in health, 'normal taps must never run recovery DOM scans before navigation'
+          assert "addEventListener('touchstart',heal" not in health, 'normal touches must never run recovery DOM scans before navigation'
+          assert "addEventListener('scroll'," not in health, 'active scrolling must not schedule repeated recovery scans'
           print('Interaction hit-test guardrails passed')
           PY
 
