@@ -70,10 +70,14 @@ jobs:
 
           surface=Path('surface-ownership.js').read_text(encoding='utf-8')
           line=Path('chart-line-motion.js').read_text(encoding='utf-8')
+          chart=Path('chart-motion.js').read_text(encoding='utf-8')
           global_style_pattern="observer.observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class','style'"
           assert global_style_pattern not in surface, 'surface ownership must not observe global style mutations'
           assert global_style_pattern not in line, 'line motion must not observe global style mutations'
           assert 'state.rafs' not in line, 'Sales line motion must use one shared rAF timeline, not per-element rAF arrays'
+          assert "fill.style.width='0%'" not in chart, 'Money Flow must not animate layout width from zero'
+          assert 'sequenceDelay=660' not in chart, 'Money Flow must not reintroduce delayed value presentation'
+          assert 'animateValue(' not in chart, 'Money Flow values should render final figures immediately, not JS count-up'
           print('Motion performance guardrails passed')
           PY
 
