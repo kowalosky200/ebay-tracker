@@ -20,14 +20,14 @@
     core:'afff7100',
     workflow:'6cb382ef',
     surface:'f31a3e3c',
-    interaction:'7091f5df',
+    interaction:'bb0f84b3',
     qol:'7c923b17',
     polish:'9481578c',
     chartMotion:'d27d650a',
     finalize:'b7f72066',
     reveal:'79ff92a2',
     line:'fc7cee33',
-    motion:'a7fd273d',
+    motion:'a79d0af1',
     dashboard:'4539b2fb',
     stockDetail:'62301cdf'
   };
@@ -66,7 +66,7 @@
      and after accounting/reports. Dynamic non-async scripts can therefore start
      downloading together without parser blocking. `async=false` preserves exact
      execution order, while fetch priority gives the large app-core bundle first
-     claim on the connection and lets decorative motion layers fill spare capacity.
+     claim on the connection and lets decorative presentation layers fill spare capacity.
      The previous document.write chain made first-load execution unnecessarily
      serial even though the phone/network could do more work in parallel. */
   scripts.forEach(function(spec){
