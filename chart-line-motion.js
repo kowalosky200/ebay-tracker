@@ -1,11 +1,11 @@
-/* RETRADE yearly Sales line-motion refinement v1.4.48
+/* RETRADE yearly Sales line-motion refinement v1.4.49
  * Loaded after chart-reveal.js.
  *
  * Presentation-only responsibilities:
  * - one owner for Sales line motion: no competing rt-chart-draw replay
  * - prepare paths before they become visible, avoiding loaded -> rewind flashes
- * - reliable iOS/Safari path drawing using a requestAnimationFrame timeline
- * - slower historical draw and a still-slower linear dotted forecast reveal
+ * - one requestAnimationFrame timeline for all paths/points/rings
+ * - smooth solid history to Today, then a measured dotted forecast reveal
  * - always restore solid history strokes after motion completes
  * - deliberate period switches replay; same-period background renders settle
  *
@@ -17,10 +17,10 @@
   if(typeof _renderChartInto!=='function')return;
 
   var NS='http://www.w3.org/2000/svg';
-  var HISTORY_MS=1650;
-  var HISTORY_DELAY=120;
-  var FORECAST_DELAY=HISTORY_DELAY+HISTORY_MS+170;
-  var FORECAST_MS=1900;
+  var HISTORY_MS=820;
+  var HISTORY_DELAY=45;
+  var FORECAST_DELAY=HISTORY_DELAY+HISTORY_MS+30;
+  var FORECAST_MS=720;
   var currentKey=null;
   var maskSerial=0;
 
@@ -48,8 +48,8 @@
   }
 
   function installStyles(){
-    ['rt-line-motion-v1446','rt-line-motion-v1447','rt-line-motion-v1448'].forEach(function(id){var old=document.getElementById(id);if(old)old.remove();});
-    var s=document.createElement('style');s.id='rt-line-motion-v1448';
+    ['rt-line-motion-v1446','rt-line-motion-v1447','rt-line-motion-v1448','rt-line-motion-v1449'].forEach(function(id){var old=document.getElementById(id);if(old)old.remove();});
+    var s=document.createElement('style');s.id='rt-line-motion-v1449';
     s.textContent='\
 #p-monthly svg.rt-refined-sales-motion path.rt-refined-history-line,\
 #p-monthly svg.rt-refined-sales-motion path.rt-refined-forecast-line{animation:none!important;}\
@@ -99,31 +99,45 @@
     Array.prototype.forEach.call(svg.querySelectorAll('mask[data-rt-sales-forecast-mask="1"]'),function(m){m.remove();});
     Array.prototype.forEach.call(svg.querySelectorAll('path.rt-refined-forecast-line'),function(p){p.removeAttribute('mask');});
   }
+
+  /* One frame callback updates every active animation job for this SVG. The old
+     implementation launched a separate rAF loop for every path, dot and ring;
+     on a phone that multiplied JS callbacks and style writes precisely while the
+     browser was trying to paint the chart. */
   function cancelState(state){
     if(!state)return;
     state.cancelled=true;
-    (state.rafs||[]).forEach(function(id){try{cancelAnimationFrame(id);}catch(_){} });
-    state.rafs=[];
+    if(state.raf){try{cancelAnimationFrame(state.raf);}catch(_){}state.raf=0;}
+    state.jobs=[];
   }
-  function addRaf(state,id){if(state&&id)state.rafs.push(id);return id;}
-
-  function tween(state,delay,duration,ease,draw,done){
-    var born=now(),raf=0;
-    function step(ts){
+  function requestStateFrame(state){
+    if(!state||state.cancelled||state.raf||!state.jobs.length)return;
+    state.raf=requestAnimationFrame(function frame(ts){
+      state.raf=0;
       if(state.cancelled)return;
-      var t=(ts-born-delay)/duration;
-      if(t<0){raf=requestAnimationFrame(step);addRaf(state,raf);return;}
-      if(t>1)t=1;
-      draw(ease(t));
-      if(t<1){raf=requestAnimationFrame(step);addRaf(state,raf);}
-      else if(done)done();
-    }
-    raf=requestAnimationFrame(step);addRaf(state,raf);
+      var keep=[],completed=[];
+      state.jobs.forEach(function(job){
+        if(ts<job.start){keep.push(job);return;}
+        var t=job.duration>0?(ts-job.start)/job.duration:1;
+        if(t<0)t=0;if(t>1)t=1;
+        try{job.draw(job.ease(t));}catch(_){}
+        if(t<1)keep.push(job);
+        else if(job.done)completed.push(job.done);
+      });
+      state.jobs=keep;
+      completed.forEach(function(fn){try{fn();}catch(_){} });
+      requestStateFrame(state);
+    });
+  }
+  function tween(state,delay,duration,ease,draw,done){
+    if(!state||state.cancelled)return;
+    state.jobs.push({start:now()+Math.max(0,delay||0),duration:Math.max(1,duration||1),ease:ease,draw:draw,done:done});
+    requestStateFrame(state);
   }
   function easeHistory(t){
-    /* Mild ease-out: calm start, but avoids the long sticky tail that made the
-       previous animation look like it was juddering to a halt. */
-    return 1-Math.pow(1-t,2.15);
+    /* Quick response with a soft landing, without the sticky easing tail that
+       made the old line appear to judder just before completion. */
+    return 1-Math.pow(1-t,2.05);
   }
   function linear(t){return t;}
 
@@ -138,9 +152,6 @@
   }
   function finishHistory(st){
     if(!st||!st.path||!st.path.isConnected)return;
-    /* The solid line must not depend on a fill-forwards animation object. Clear
-       our temporary dash geometry completely so the renderer's normal stroke is
-       once again the single source of truth. */
     st.path.style.strokeDashoffset='0px';
     st.path.style.removeProperty('stroke-dasharray');
     st.path.style.removeProperty('stroke-dashoffset');
@@ -186,7 +197,7 @@
     circles.forEach(function(c){
       c.classList.add('rt-refined-series-point');
       try{c.getAnimations().forEach(function(a){a.cancel();});}catch(_){}
-      c.style.opacity='0';c.style.transform='scale(.76)';c.style.transformOrigin='center';c.style.transformBox='fill-box';
+      c.style.opacity='0';c.style.transform='scale(.82)';c.style.transformOrigin='center';c.style.transformBox='fill-box';
     });
     return circles;
   }
@@ -194,9 +205,22 @@
     var rings=Array.prototype.slice.call(svg.querySelectorAll('.rt-sales-forecast-ring'));
     rings.forEach(function(r){
       try{r.getAnimations().forEach(function(a){a.cancel();});}catch(_){}
-      r.style.animation='none';r.style.opacity='0';r.style.transform='scale(.74)';r.style.transformOrigin='center';r.style.transformBox='fill-box';
+      r.style.animation='none';r.style.opacity='0';r.style.transform='scale(.82)';r.style.transformOrigin='center';r.style.transformBox='fill-box';
     });
     return rings;
+  }
+
+  function settleImmediately(svg,key){
+    clearPriorMasks(svg);
+    Array.prototype.forEach.call(svg.querySelectorAll('path.rt-refined-history-line'),function(p){
+      p.style.removeProperty('stroke-dasharray');p.style.removeProperty('stroke-dashoffset');
+    });
+    Array.prototype.forEach.call(svg.querySelectorAll('circle.rt-refined-series-point,.rt-sales-forecast-ring'),function(el){
+      el.style.removeProperty('opacity');el.style.removeProperty('transform');
+    });
+    svg.classList.add('rt-motion-ready');
+    svg.__rtRefinedSalesState={key:key,played:true,cancelled:false,jobs:[],raf:0};
+    return svg.__rtRefinedSalesState;
   }
 
   function prepare(svg,key){
@@ -204,18 +228,15 @@
     cancelState(svg.__rtRefinedSalesState);
     clearPriorMasks(svg);
     svg.classList.remove('rt-chart-draw');
-    if(reducedMotion()){
-      svg.classList.add('rt-motion-ready');
-      svg.__rtRefinedSalesState={key:key,played:true,cancelled:false,rafs:[]};
-      return svg.__rtRefinedSalesState;
-    }
+    if(reducedMotion())return settleImmediately(svg,key);
+
     var paths=Array.prototype.slice.call(svg.querySelectorAll('path')).filter(isSeriesPath);
     var history=[],forecast=[];
     paths.forEach(function(p){
       var dashed=isDashed(p),st=dashed?prepareForecast(svg,p):prepareHistory(p);
       if(st)(dashed?forecast:history).push(st);
     });
-    var state={key:key,history:history,forecast:forecast,points:preparePoints(svg),rings:prepareRings(svg),played:false,cancelled:false,rafs:[]};
+    var state={key:key,history:history,forecast:forecast,points:preparePoints(svg),rings:prepareRings(svg),played:false,cancelled:false,jobs:[],raf:0};
     svg.__rtRefinedSalesState=state;
     svg.classList.add('rt-refined-sales-motion','rt-motion-ready');
     return state;
@@ -227,18 +248,18 @@
     var minX=Math.min.apply(Math,xs),maxX=Math.max.apply(Math,xs),span=Math.max(1,maxX-minX);
     state.points.forEach(function(c){
       var progress=(num(c.getAttribute('cx'))-minX)/span;
-      var delay=HISTORY_DELAY+220+progress*(HISTORY_MS-330);
-      tween(state,delay,220,easeHistory,function(e){
+      var delay=HISTORY_DELAY+100+progress*(HISTORY_MS-170);
+      tween(state,delay,120,easeHistory,function(e){
         if(!c.isConnected)return;
-        c.style.opacity=String(e);c.style.transform='scale('+(0.76+0.24*e).toFixed(3)+')';
+        c.style.opacity=String(e);c.style.transform='scale('+(0.82+0.18*e).toFixed(3)+')';
       },function(){if(c.isConnected){c.style.removeProperty('opacity');c.style.removeProperty('transform');}});
     });
   }
   function revealRings(state){
     state.rings.forEach(function(r,i){
-      tween(state,FORECAST_DELAY+FORECAST_MS+90+i*45,300,easeHistory,function(e){
+      tween(state,FORECAST_DELAY+FORECAST_MS+35+i*24,170,easeHistory,function(e){
         if(!r.isConnected)return;
-        r.style.opacity=String(e);r.style.transform='scale('+(0.74+0.26*e).toFixed(3)+')';
+        r.style.opacity=String(e);r.style.transform='scale('+(0.82+0.18*e).toFixed(3)+')';
       },function(){if(r.isConnected){r.style.removeProperty('opacity');r.style.removeProperty('transform');}});
     });
   }
@@ -250,14 +271,16 @@
     state.played=true;
 
     state.history.forEach(function(st,i){
-      var extra=st.path.classList.contains('rt-chart-tertiary-line')?90:Math.min(i,2)*30;
+      var extra=st.path.classList.contains('rt-chart-tertiary-line')?35:Math.min(i,2)*16;
       tween(state,HISTORY_DELAY+extra,HISTORY_MS,easeHistory,function(e){
         if(st.path.isConnected)st.path.style.strokeDashoffset=(st.len*(1-e)).toFixed(2)+'px';
       },function(){finishHistory(st);});
     });
     revealPoints(state);
     state.forecast.forEach(function(st,i){
-      tween(state,FORECAST_DELAY+i*70,FORECAST_MS,linear,function(e){
+      /* The forecast deliberately stays linear so the dotted section reveals at
+         a constant, readable cadence rather than racing then sticking at the end. */
+      tween(state,FORECAST_DELAY+i*28,FORECAST_MS,linear,function(e){
         if(st.wipe.isConnected)st.wipe.style.strokeDashoffset=(st.len*(1-e)).toFixed(2)+'px';
       },function(){finishForecast(st);});
     });
@@ -270,8 +293,6 @@
     if(play(svg))return;
     var st=svg.__rtRefinedSalesState;
     if(!st||st.played||st.cancelled)return;
-    /* No polling loop: the page-state observer below will call us when the Sales
-       page actually becomes visible. */
   }
 
   var _renderBeforeLineMotion=_renderChartInto;
@@ -286,7 +307,7 @@
          same-period background refreshes stay settled and do not rewind. */
       if(changed||!prior||!prior.played){
         prepare(svgEl,key);
-        requestAnimationFrame(function(){requestAnimationFrame(function(){playWhenVisible(svgEl);});});
+        requestAnimationFrame(function(){playWhenVisible(svgEl);});
       }else{
         svgEl.classList.add('rt-motion-ready');
       }
@@ -300,19 +321,28 @@
   if(existing&&existing.querySelector('path')){
     currentKey=salesPeriodKey();
     prepare(existing,currentKey);
-    requestAnimationFrame(function(){requestAnimationFrame(function(){playWhenVisible(existing);});});
+    requestAnimationFrame(function(){playWhenVisible(existing);});
   }
   requestAnimationFrame(function(){document.documentElement.classList.remove('rt-motion-prep');});
 
+  /* Visibility changes are page-level events. Watching the entire document's
+     style attribute was self-triggering because this animation changes SVG style
+     every frame. Observe only the Sales page state instead. */
   try{
-    var lastVisible=false;
-    var observer=new MutationObserver(function(){
-      var svg=document.getElementById('monthly-profitability-svg');
-      if(!svg)return;
-      var visible=isVisible(svg);
-      if(visible&&!lastVisible)playWhenVisible(svg);
-      lastVisible=visible;
-    });
-    observer.observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class','style','hidden','aria-busy']});
+    var page=document.getElementById('p-monthly');
+    if(page){
+      var pageObserver=new MutationObserver(function(){
+        var svg=document.getElementById('monthly-profitability-svg');
+        if(svg)playWhenVisible(svg);
+      });
+      pageObserver.observe(page,{attributes:true,attributeFilter:['class','hidden','aria-busy']});
+    }
   }catch(_){}
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState!=='visible')return;
+    var svg=document.getElementById('monthly-profitability-svg');
+    if(svg)playWhenVisible(svg);
+  });
+
+  window.__RT_LINE_MOTION_BUILD='20260907-line-motion-2';
 })();
