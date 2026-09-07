@@ -5,7 +5,7 @@
 (function(){
   'use strict';
 
-  var BUILD='20260907-workflow-qol-4';
+  var BUILD='20260907-workflow-qol-5';
   var freshFocus=new WeakSet();
 
   function workflowSurface(el){
@@ -29,12 +29,11 @@
   function markFirstFocus(el){
     freshFocus.add(el);
     selectAll(el);
-    // Mobile Safari may place the caret again as the original tap completes.
-    // Re-select after the click/default caret placement, without refocusing.
-    setTimeout(function(){
-      if(freshFocus.has(el))selectAll(el);
-    },0);
-    setTimeout(function(){freshFocus.delete(el);},180);
+    // Mobile Safari may place the caret again after pointerdown as the physical
+    // tap completes. Keep the first-focus selection alive through that gesture.
+    setTimeout(function(){if(freshFocus.has(el))selectAll(el);},0);
+    setTimeout(function(){if(freshFocus.has(el))selectAll(el);},60);
+    setTimeout(function(){freshFocus.delete(el);},500);
   }
 
   function tokenInputs(surface){
@@ -67,10 +66,15 @@
     decorateToken(input);
   }
 
+  function inputFromGestureTarget(target){
+    if(isNumericInput(target))return target;
+    var token=target&&target.closest?target.closest('.ip-token.rt-native-edit'):null;
+    return token?token.querySelector('input.rt-token-native'):null;
+  }
+
   // First focus on a price/cost/percentage field means "replace this value".
-  // A second tap while the same input remains focused is left alone so the user
-  // can deliberately place the caret for a small edit instead. This applies to
-  // the item page, quick panel and lifecycle dialogs such as Mark Sold.
+  // A later deliberate tap while the same input remains focused is left alone so
+  // the user can position the caret for a small correction.
   document.addEventListener('focusin',function(e){
     var input=e.target;
     if(!isNumericInput(input)||!workflowSurface(input))return;
@@ -78,30 +82,39 @@
     markFirstFocus(input);
   },true);
 
-  // Belt-and-braces for iOS: after the first pointer gesture completes, restore
-  // the full selection if Safari replaced it with a single caret position.
+  // iOS detail: when the user taps the CARD rather than the text itself, pointerup
+  // targets the card. The previous implementation only re-selected when pointerup
+  // targeted the input, so Safari could replace the selection with an invisible
+  // caret after our focus code had already run. Resolve the input from either.
   document.addEventListener('pointerup',function(e){
-    var input=e.target;
-    if(!isNumericInput(input)||!freshFocus.has(input))return;
+    var input=inputFromGestureTarget(e.target);
+    if(!input||!freshFocus.has(input))return;
     selectAll(input);
   },true);
 
-  // Tapping anywhere on an editable KPI card focuses its native editor. This is
-  // intentionally only for workflow-system's stable token cards, not locked KPIs.
+  document.addEventListener('click',function(e){
+    var input=inputFromGestureTarget(e.target);
+    if(!input||!freshFocus.has(input))return;
+    selectAll(input);
+  },true);
+
+  // Tapping anywhere on an editable KPI card focuses its stable native editor.
   document.addEventListener('pointerdown',function(e){
     var token=e.target&&e.target.closest?e.target.closest('.ip-token.rt-native-edit'):null;
     if(!token)return;
     var input=token.querySelector('input.rt-token-native');
-    if(!input||e.target===input)return;
+    if(!input)return;
     configureToken(input);
-    try{input.focus({preventScroll:true});}catch(err){input.focus();}
-    markFirstFocus(input);
+    if(e.target!==input){
+      try{input.focus({preventScroll:true});}catch(err){input.focus();}
+      markFirstFocus(input);
+    }
   },true);
 
   // Enter/Next moves through editable KPI cards without collapsing the keyboard.
   // Focusing the next input causes the current one to blur/commit through the
-  // existing durable save path; workflow-system then sees another editor focused
-  // and deliberately skips its destructive page re-render.
+  // durable save path; workflow-system then sees another editor focused and skips
+  // a destructive page re-render until editing is actually finished.
   document.addEventListener('keydown',function(e){
     var input=e.target;
     if(!input||!input.classList||!input.classList.contains('rt-token-native'))return;
@@ -185,7 +198,8 @@
     style.textContent=[
       '.ip-token.rt-qol-money .ip-token-val::before{content:"£";flex:0 0 auto;margin-right:1px}',
       '.ip-token.rt-qol-percent .ip-token-val::after{content:"%";flex:0 0 auto;margin-left:1px}',
-      '.ip-token.rt-native-edit .rt-token-native{min-width:0;caret-color:currentColor;user-select:text;-webkit-user-select:text}',
+      '.ip-token.rt-native-edit .rt-token-native{min-width:0;caret-color:var(--accent);user-select:text;-webkit-user-select:text}',
+      '.ip-token.rt-native-edit .rt-token-native::selection{background:var(--accent);color:#111827;-webkit-text-fill-color:#111827}',
       '.ip-token.rt-native-edit:focus-within .ip-token-sub{color:var(--accent)}',
       '.ip-token.rt-native-edit:active{transform:none!important}',
       '.ip-token.rt-native-edit,.ip-token.rt-native-edit input{touch-action:manipulation}',
@@ -199,5 +213,6 @@
   tokenInputs(document.getElementById('p-item')).forEach(configureToken);
   tokenInputs(document.getElementById('slide-panel')).forEach(configureToken);
 
+  window.__RT_WORKFLOW_QOL_BUILD=BUILD;
   console.info('[RETRADE] workflow QoL layer loaded',BUILD);
 })();
