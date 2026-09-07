@@ -42,6 +42,16 @@
 .tab,.bnt,.nav-more-btn,.more-sheet-row{transition-property:color,background-color,opacity!important;transition-duration:110ms!important;transition-timing-function:ease-out!important;}\
 .tab svg,.bnt svg,.nav-more-btn svg{transition:transform 135ms var(--rt-motion-ease),color 110ms ease-out!important;}\
 .tab.on svg,.bnt.on svg{transform:translateY(-1px);}\
+/* Command Centre bars acknowledge the range immediately and finish their entire\
+   left-to-right reveal in roughly half a second even on 30 daily columns. The\
+   prior stack could exceed a second once stagger + animation duration combined. */\
+#p-summary svg.rt-chart-draw .rt-chart-primary-bar:not(.rt-chart-profit-bar):not(.rt-chart-forecast-shell),\
+#p-summary svg.rt-chart-draw .rt-chart-primary-actual{animation-duration:280ms!important;animation-delay:calc(var(--bar-i,0) * 7ms)!important;}\
+#p-summary svg.rt-chart-draw .rt-chart-profit-bar:not(.rt-chart-forecast-shell),\
+#p-summary svg.rt-chart-draw .rt-chart-profit-actual{animation-duration:245ms!important;animation-delay:calc(var(--bar-i,0) * 7ms + 32ms)!important;}\
+#p-summary svg.rt-chart-draw .rt-chart-forecast-shell{animation-duration:220ms!important;animation-delay:calc(var(--bar-i,0) * 7ms + 80ms)!important;}\
+#p-summary svg.rt-chart-draw .rt-chart-refund-dot{animation-duration:135ms!important;animation-delay:125ms!important;}\
+button,.tab,.bnt,.nav-more-btn,.more-sheet-row,.fab-dial-item{touch-action:manipulation;}\
 @media(prefers-reduced-motion:reduce){\
  .page.on:not(.rt-boot-noanim),#panel-content,#confirm-modal.open,#confirm-modal.open .confirm-box{animation:none!important;}\
  .slide-panel,#more-sheet,.country-panel,.fab-dial-item,#fab-dial,#search-fab,.tab,.bnt,.nav-more-btn,.more-sheet-row,.tab svg,.bnt svg,.nav-more-btn svg{transition:none!important;}\
@@ -161,5 +171,5 @@
     pageStructureObserver.observe(document.documentElement,{subtree:true,childList:true});
   }catch(_){}
 
-  window.__RT_GLOBAL_MOTION_BUILD='20260907-motion-system-2';
+  window.__RT_GLOBAL_MOTION_BUILD='20260907-motion-system-3';
 })();
