@@ -5,7 +5,7 @@
 (function(){
   'use strict';
 
-  var BUILD='20260907-workflow-2';
+  var BUILD='20260907-workflow-3';
   var accountPanelOrigin=null;
   var saveTimers=new Map();
 
@@ -71,6 +71,18 @@
     recomputeItem(item);
   }
 
+  function visibleToken(field,id){
+    var wanted='tok-'+field+'-'+id;
+    var all=document.querySelectorAll('.ip-token[id]');
+    var first=null;
+    for(var n=0;n<all.length;n++){
+      if(all[n].id!==wanted)continue;
+      if(!first)first=all[n];
+      try{if(all[n].getClientRects().length)return all[n];}catch(e){}
+    }
+    return first;
+  }
+
   function anotherWorkflowInputFocused(root,current){
     var a=document.activeElement;
     return !!(a&&a!==current&&root&&root.contains(a)&&a.classList&&a.classList.contains('rt-token-native'));
@@ -89,6 +101,26 @@
     },0);
   }
 
+  function updateReceiptMirror(root,item,field){
+    if(!root||field!=='salePrice')return;
+    var mirror=root.querySelector('.rt-receipt-price-mirror');
+    if(mirror)mirror.textContent='£'+(Number(item.salePrice)||0).toFixed(2);
+  }
+
+  function selectNativeInput(input){
+    if(!input)return;
+    try{input.focus({preventScroll:true});}catch(e){try{input.focus();}catch(_e){}}
+    try{input.select();}catch(e2){
+      try{input.setSelectionRange(0,String(input.value||'').length);}catch(_e2){}
+    }
+    setTimeout(function(){
+      if(document.activeElement!==input)return;
+      try{input.select();}catch(e3){
+        try{input.setSelectionRange(0,String(input.value||'').length);}catch(_e3){}
+      }
+    },0);
+  }
+
   function makeNativeTokenInput(token,item,field,month,id,root){
     if(!token||token.classList.contains('locked'))return;
     var val=token.querySelector('.ip-token-val');
@@ -102,6 +134,8 @@
     input.inputMode='decimal';
     input.autocomplete='off';
     input.spellcheck=false;
+    input.setAttribute('autocorrect','off');
+    input.setAttribute('autocapitalize','off');
     input.setAttribute('aria-label',(token.querySelector('.ip-token-label')||{}).textContent||field);
     input.value=rawTokenValue(item,field);
     input.dataset.lastCommitted=String(input.value);
@@ -109,19 +143,44 @@
     val.textContent='';
     val.appendChild(input);
     token.classList.add('rt-native-edit');
+    token.dataset.rtNativeEditor='1';
+
+    /* The native input replaces app-core's temporary inject/blur/re-render editor.
+       Remove those inline handlers so a card tap can never invoke both systems. */
+    token.removeAttribute('onpointerdown');
+    token.removeAttribute('onclick');
+    try{token.onpointerdown=null;token.onclick=null;}catch(e){}
+
+    var live=function(){
+      applyTokenValue(item,field,input.value);
+      input.dataset.rtDirty='1';
+      updateReceiptMirror(root,item,field);
+    };
 
     var commit=function(){
+      var dirty=input.dataset.rtDirty==='1';
       var now=String(input.value);
-      if(now===input.dataset.lastCommitted)return false;
+      if(!dirty&&now===input.dataset.lastCommitted)return false;
       applyTokenValue(item,field,now);
       input.value=rawTokenValue(item,field);
       input.dataset.lastCommitted=String(input.value);
+      delete input.dataset.rtDirty;
+      updateReceiptMirror(root,item,field);
       queueSave(month+'|'+id);
       return true;
     };
 
+    var cancel=function(){
+      input.value=input.dataset.lastCommitted;
+      applyTokenValue(item,field,input.value);
+      delete input.dataset.rtDirty;
+      updateReceiptMirror(root,item,field);
+    };
+
+    input.addEventListener('input',live);
     input.addEventListener('pointerdown',function(e){e.stopPropagation();});
     input.addEventListener('click',function(e){e.stopPropagation();});
+    input.addEventListener('focus',function(){token.classList.add('rt-native-focused');});
     input.addEventListener('keydown',function(e){
       if(e.key==='Enter'){
         e.preventDefault();
@@ -130,13 +189,21 @@
       }
       if(e.key==='Escape'){
         e.preventDefault();
-        input.value=input.dataset.lastCommitted;
+        cancel();
         input.blur();
       }
     });
     input.addEventListener('blur',function(){
+      token.classList.remove('rt-native-focused');
       var changed=commit();
       if(changed)refreshAfterTokenEdit(root,month,id,input);
+    });
+
+    /* Fallback independent of workflow-qol: the entire card is a real focus
+       target and the current value is selected in the same user gesture. */
+    token.addEventListener('click',function(e){
+      if(e.target===input)return;
+      selectNativeInput(input);
     });
   }
 
@@ -144,8 +211,8 @@
     if(!root||!item)return;
     var activeListing=!item.dateSold&&!item.resaleSalePrice&&!item.isReturned&&item.state!=='sourced'&&!item.scrappedAt;
     if(activeListing){
-      var saleTok=document.getElementById('tok-salePrice-'+item.id);
-      if(saleTok&&root.contains(saleTok)){
+      var saleTok=root.querySelector('.ip-token[id^="tok-salePrice-"]');
+      if(saleTok){
         var label=saleTok.querySelector('.ip-token-label');
         if(label)label.textContent='Asking Price';
       }
@@ -254,11 +321,10 @@
     if(typeof window.openTokenEdit==='function'&&!window.openTokenEdit._rtWorkflowWrapped){
       var baseOpenToken=window.openTokenEdit;
       var wrappedOpenToken=function(month,id,field){
-        var tok=document.getElementById('tok-'+field+'-'+id);
+        var tok=visibleToken(field,id);
         var native=tok&&tok.querySelector('.rt-token-native');
         if(native){
-          try{native.focus({preventScroll:true});}catch(e){native.focus();}
-          try{native.select();}catch(e){}
+          selectNativeInput(native);
           return;
         }
         return baseOpenToken.apply(this,arguments);
@@ -337,12 +403,14 @@
     style.id='rt-workflow-styles';
     style.textContent=[
       '.ip-token.rt-native-edit{cursor:text;touch-action:manipulation;-webkit-tap-highlight-color:transparent}',
-      '.ip-token.rt-native-edit .ip-token-val{display:flex;align-items:center;min-width:0}',
-      '.rt-token-native{display:block;width:100%;min-width:0;margin:0;padding:0;border:0;outline:0;background:transparent;color:inherit;font:inherit;font-weight:inherit;line-height:inherit;letter-spacing:inherit;-webkit-appearance:none;appearance:none;touch-action:manipulation}',
-      '.rt-token-native:focus{outline:none}',
+      '.ip-token.rt-native-edit .ip-token-val{display:flex;align-items:center;min-width:0;overflow:visible}',
+      '.rt-token-native{display:block;width:100%;min-width:0;margin:0;padding:0;border:0;outline:0;background:transparent;color:var(--text)!important;-webkit-text-fill-color:var(--text)!important;font:inherit;font-weight:inherit;line-height:inherit;letter-spacing:inherit;-webkit-appearance:none;appearance:none;touch-action:manipulation;opacity:1!important;caret-color:var(--accent)}',
+      '.rt-token-native:focus{outline:none;color:var(--text)!important;-webkit-text-fill-color:var(--text)!important}',
+      '.rt-token-native::selection{background:var(--accent);color:#111827;-webkit-text-fill-color:#111827}',
       '.ip-token.rt-native-edit:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim)}',
+      '.ip-token.rt-native-edit:focus-within .ip-token-sub{color:var(--accent)}',
       '.rt-receipt-price-mirror{font-weight:600;color:var(--green);white-space:nowrap}',
-      '@media(max-width:600px){.ip-token.rt-native-edit{min-height:92px}}'
+      '@media(max-width:600px){.ip-token.rt-native-edit{min-height:92px}.rt-token-native{font-size:inherit!important}}'
     ].join('');
     document.head.appendChild(style);
   }
@@ -353,5 +421,6 @@
   installAccountPanelReturnFix();
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flushFocusedWorkflowInput();});
   window.addEventListener('pagehide',flushFocusedWorkflowInput);
+  window.__RT_WORKFLOW_SYSTEM_BUILD=BUILD;
   console.info('[RETRADE] workflow coherence layer loaded',BUILD);
 })();
