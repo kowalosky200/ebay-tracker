@@ -1,7 +1,8 @@
 /* RETRADE app entrypoint.
  * The production bundle is kept intact in app-core.js; workflow-system.js owns
  * navigation/input coherence; surface-ownership.js arbitrates active dialogs,
- * panels and pages; workflow-qol.js owns fast editing shortcuts;
+ * panels and pages; interaction-health.js ensures closed visual layers release
+ * hit-testing immediately; workflow-qol.js owns fast editing shortcuts;
  * chart-polish.js, chart-motion.js, chart-finalize.js, chart-reveal.js,
  * chart-line-motion.js and motion-system.js own presentation motion;
  * dashboard-details.js owns exact Command Centre drill-down semantics;
@@ -19,6 +20,7 @@
     core:'afff7100',
     workflow:'6cb382ef',
     surface:'f31a3e3c',
+    interaction:'6dadf008',
     qol:'7c923b17',
     polish:'9481578c',
     chartMotion:'d27d650a',
@@ -46,6 +48,7 @@
     ['./app-core.js',V.core,'high'],
     ['./workflow-system.js',V.workflow,'auto'],
     ['./surface-ownership.js',V.surface,'auto'],
+    ['./interaction-health.js',V.interaction,'auto'],
     ['./workflow-qol.js',V.qol,'auto'],
     ['./chart-polish.js',V.polish,'low'],
     ['./chart-motion.js',V.chartMotion,'low'],
