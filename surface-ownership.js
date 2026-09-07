@@ -11,14 +11,18 @@
 (function(){
   'use strict';
 
-  var BUILD='20260907-surface-ownership-2';
+  var BUILD='20260907-surface-ownership-3';
   var OPEN_SEQ=0;
   var scheduled=false;
   var currentOwner=null;
+  var markedOwner=null;
   var seenOpen=new WeakMap();
   var openedAt=new WeakMap();
   var suspended=new Map();
   var workflowPanelIds=new Map();
+  var knownSurfaces=new Set();
+  var surfaceObservers=new Map();
+  var pageObservers=new Map();
 
   var SURFACE_SELECTOR=[
     '#slide-panel',
@@ -51,10 +55,15 @@
     var managed=el.dataset.rtSurfaceSuspended==='true';
     if(!managed&&el.getAttribute('aria-hidden')==='true')return false;
 
+    /* Cheap inline/class checks reject the common closed states before asking the
+       browser for computed style/layout. Only the small cached surface set ever
+       reaches these reads; chart/SVG frame mutations never trigger this layer. */
+    if(el.style&&el.style.display==='none')return false;
+    if(el.id==='slide-panel'&&!el.classList.contains('on'))return false;
+
     var s=styleOf(el);
     if(!s||s.display==='none'||s.visibility==='hidden'||s.visibility==='collapse')return false;
     if(!managed&&s.pointerEvents==='none'&&Number(s.opacity||1)===0)return false;
-    if(el.id==='slide-panel'&&!el.classList.contains('on'))return false;
     if(!el.getClientRects||!el.getClientRects().length)return false;
     return true;
   }
@@ -76,10 +85,56 @@
     return 0;
   }
 
+  function untrackSurface(el){
+    var obs=surfaceObservers.get(el);
+    if(obs){try{obs.disconnect();}catch(e){}surfaceObservers.delete(el);}
+    knownSurfaces.delete(el);
+    seenOpen.delete(el);
+    openedAt.delete(el);
+  }
+
+  function trackSurface(el){
+    if(!el||el.nodeType!==1||knownSurfaces.has(el))return;
+    knownSurfaces.add(el);
+    var obs=new MutationObserver(schedule);
+    obs.observe(el,{
+      attributes:true,
+      attributeFilter:['class','style','hidden','aria-hidden','open','data-rt-workflow-suspended']
+    });
+    surfaceObservers.set(el,obs);
+  }
+
+  function trackPage(el){
+    if(!el||el.nodeType!==1||pageObservers.has(el))return;
+    var obs=new MutationObserver(schedule);
+    obs.observe(el,{
+      attributes:true,
+      attributeFilter:['class','hidden','aria-hidden','data-rt-workflow-view','data-rt-workflow-item','data-rt-workflow-account']
+    });
+    pageObservers.set(el,obs);
+  }
+
+  function trackTree(node){
+    if(!node||node.nodeType!==1)return;
+    try{if(node.matches(SURFACE_SELECTOR))trackSurface(node);}catch(e){}
+    try{if(node.matches('.page'))trackPage(node);}catch(e2){}
+    try{node.querySelectorAll(SURFACE_SELECTOR).forEach(trackSurface);}catch(e3){}
+    try{node.querySelectorAll('.page').forEach(trackPage);}catch(e4){}
+  }
+
+  function pruneTracked(){
+    Array.from(knownSurfaces).forEach(function(el){if(!el.isConnected)untrackSurface(el);});
+    Array.from(pageObservers.keys()).forEach(function(el){
+      if(el.isConnected)return;
+      try{pageObservers.get(el).disconnect();}catch(e){}
+      pageObservers.delete(el);
+    });
+  }
+
   function collectSurfaces(){
-    var list=Array.from(document.querySelectorAll(SURFACE_SELECTOR));
+    pruneTracked();
     var open=[];
-    list.forEach(function(el){
+    knownSurfaces.forEach(function(el){
       var now=isOpen(el);
       var before=seenOpen.get(el)===true;
       if(now&&!before)openedAt.set(el,++OPEN_SEQ);
@@ -222,10 +277,10 @@
   }
 
   function markOwner(owner){
-    document.querySelectorAll('[data-rt-surface-owner="true"]').forEach(function(el){
-      if(el!==owner)delete el.dataset.rtSurfaceOwner;
-    });
-    if(owner)owner.dataset.rtSurfaceOwner='true';
+    if(markedOwner===owner)return;
+    if(markedOwner&&markedOwner.isConnected)delete markedOwner.dataset.rtSurfaceOwner;
+    markedOwner=owner||null;
+    if(markedOwner)markedOwner.dataset.rtSurfaceOwner='true';
   }
 
   function reconcile(){
@@ -277,6 +332,14 @@
   var redirectingFocus=false;
   document.addEventListener('focusin',function(e){
     if(redirectingFocus)return;
+
+    /* A newly-created generated modal can synchronously focus an input before the
+       child-list observer has run. Register that one surface directly first. */
+    try{
+      var direct=e.target&&e.target.closest?e.target.closest(SURFACE_SELECTOR):null;
+      if(direct)trackSurface(direct);
+    }catch(_e){}
+
     var owner=chooseOwner(collectSurfaces());
     if(!owner||owner.contains(e.target))return;
 
@@ -298,13 +361,21 @@
     document.head.appendChild(style);
   }
 
-  var observer=new MutationObserver(schedule);
-  observer.observe(document.documentElement,{
-    subtree:true,
-    childList:true,
-    attributes:true,
-    attributeFilter:['class','style','hidden','aria-hidden','open','data-rt-workflow-suspended','data-rt-workflow-view','data-rt-workflow-item']
+  /* Performance rule: never observe `style` across the whole document. Chart
+     animation updates inline SVG styles every frame. The old global observer
+     therefore woke the ownership system at frame rate and forced unrelated
+     style/layout reads. Only actual interaction surfaces watch their own style;
+     the document observer is structural only. */
+  trackTree(document.documentElement);
+  var structureObserver=new MutationObserver(function(records){
+    var relevant=false;
+    records.forEach(function(record){
+      record.addedNodes.forEach(function(node){trackTree(node);relevant=true;});
+      if(record.removedNodes&&record.removedNodes.length)relevant=true;
+    });
+    if(relevant)schedule();
   });
+  structureObserver.observe(document.documentElement,{subtree:true,childList:true});
 
   window.addEventListener('pageshow',schedule);
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')schedule();});
