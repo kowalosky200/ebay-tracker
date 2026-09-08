@@ -104,8 +104,6 @@
       if(fill&&fill!=='none'&&fill!=='transparent')return false;
       return stroke(el)!=='none'||/line|series|revenue|profit|forecast|projection|partial/i.test(cls);
     }
-    /* Do not accidentally animate chart axes built from <line>. Non-path geometry
-       is admitted only when it carries an explicit forecast/dash signal. */
     return forecastCandidate(el)&&stroke(el)!=='none';
   }
   function geometryElements(svg){
@@ -221,21 +219,18 @@
     st.el.style.removeProperty('stroke-dashoffset');
   }
 
-  /* The forecast is hidden BEFORE any geometry request. That ordering is the
-     important Safari fix: a hidden/pre-rendered Sales page can report zero SVG
-     length, but the dotted segment still cannot leak onto the first visible frame. */
-  function prepareForecast(svg,el,knownLen,knownDash){
-    if(!el)return null;
-    el.classList.add('rt-refined-forecast-line');
-    try{el.getAnimations().forEach(function(a){a.cancel();});}catch(_){}
-    el.setAttribute('data-rt-motion-pending','1');
-    el.style.opacity='0';
+  function prepareForecast(svg,path,knownLen,knownDash){
+    if(!path)return null;
+    path.classList.add('rt-refined-forecast-line');
+    try{path.getAnimations().forEach(function(a){a.cancel();});}catch(_){}
+    path.setAttribute('data-rt-motion-pending','1');
+    path.style.opacity='0';
 
-    var pattern=knownDash||dash(el);
-    var len=knownLen||geometryLength(el);
-    if(!(len>0))return {kind:'forecast',el:el,len:0,dashPattern:pattern,pending:true,lastStep:-1};
-    var g=endpointGeometry(svg,el,len);
-    if(!g)return {kind:'forecast',el:el,len:len,dashPattern:pattern,pending:true,lastStep:-1};
+    var pattern=knownDash||dash(path);
+    var len=knownLen||geometryLength(path);
+    if(!(len>0))return {kind:'forecast',el:path,len:0,dashPattern:pattern,pending:true,lastStep:-1};
+    var g=endpointGeometry(svg,path,len);
+    if(!g)return {kind:'forecast',el:path,len:len,dashPattern:pattern,pending:true,lastStep:-1};
 
     var pad=9,left=g.left-pad,right=g.right+pad;
     var cp=document.createElementNS(NS,'clipPath');
@@ -245,14 +240,14 @@
     rect.setAttribute('x',left.toFixed(2));rect.setAttribute('y',String(g.y));
     rect.setAttribute('width','0');rect.setAttribute('height',String(Math.max(1,g.height)));
     cp.appendChild(rect);defs(svg).appendChild(cp);
-    el.setAttribute('clip-path','url(#'+id+')');
-    el.removeAttribute('data-rt-motion-pending');
-    el.style.opacity='1';
+    path.setAttribute('clip-path','url(#'+id+')');
+    path.removeAttribute('data-rt-motion-pending');
+    path.style.opacity='1';
 
-    var parts=String(pattern||dash(el)).match(/[0-9]*\.?[0-9]+/g)||[];
+    var parts=String(pattern||dash(path)).match(/[0-9]*\.?[0-9]+/g)||[];
     var pitch=(num(parts[0])+num(parts[1]))||8;
     var steps=Math.max(10,Math.min(34,Math.round(len/Math.max(4,pitch))));
-    return {kind:'forecast',el:el,clip:cp,rect:rect,len:len,dashPattern:pattern,x:left,width:right-left,steps:steps,lastStep:-1,pending:false};
+    return {kind:'forecast',el:path,clip:cp,rect:rect,len:len,dashPattern:pattern,x:left,width:right-left,steps:steps,lastStep:-1,pending:false};
   }
   function hydratePending(state){
     if(!state)return false;
@@ -320,12 +315,10 @@
     if(reducedMotion())return settle(svg,key);
 
     var history=[],forecast=[];
-    geometryElements(svg).forEach(function(el){
-      /* Decide before changing any stroke styles. History preparation itself uses
-         stroke-dasharray, so classification must never be repeated afterwards. */
-      var isForecast=forecastCandidate(el);
-      var originalDash=isForecast?dash(el):'';
-      var st=isForecast?prepareForecast(svg,el,0,originalDash):prepareHistory(el);
+    geometryElements(svg).forEach(function(p){
+      var isForecast=forecastCandidate(p);
+      var originalDash=isForecast?dash(p):'';
+      var st=isForecast?prepareForecast(svg,p,0,originalDash):prepareHistory(p);
       if(st)(isForecast?forecast:history).push(st);
     });
     var state={key:key,svg:svg,history:history,forecast:forecast,points:preparePoints(svg),rings:prepareRings(svg),played:false,cancelled:false,jobs:[],raf:0,geometryRetries:0,renderId:++renderSerial};
@@ -359,9 +352,6 @@
     if(!svg||!visible(svg)||reducedMotion())return false;
     var state=svg.__rtRefinedSalesState;
     if(!state||state.played||state.cancelled)return false;
-
-    /* If the chart was discovered while display:none and Safari exposed too little
-       SVG information, rediscover it once it is genuinely visible. */
     if(!state.history.length&&!state.forecast.length&&geometryElements(svg).length){
       state=prepare(svg,state.key);
       if(!state)return false;
@@ -393,17 +383,12 @@
   _renderChartInto=function(svgEl,labels,revData,profitData,handlers,opts){
     var out=before.apply(this,arguments);
     if(isSales(svgEl,opts)){
-      /* _renderChartInto rebuilds the SVG children. Period equality therefore says
-         nothing about whether the current paths have been prepared. Always re-arm
-         the freshly rendered chart, including same-period data/loading refreshes. */
       prepare(svgEl,periodKey());
       requestAnimationFrame(function(){playWhenVisible(svgEl);});
     }
     return out;
   };
 
-  /* app-core may have rendered Sales before this layer arrives. Preparation is
-     synchronous and hides forecast paths before the first-paint pre-arm is released. */
   var existing=document.getElementById('monthly-profitability-svg');
   if(existing&&existing.querySelector('path,line,polyline')){
     prepare(existing,periodKey());
