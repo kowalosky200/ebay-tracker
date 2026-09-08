@@ -18,6 +18,7 @@ jobs:
         run: |
           node --check app.js
           node --check workflow-system.js
+          node --check launch-route.js
           node --check surface-ownership.js
           node --check interaction-health.js
           node --check workflow-qol.js
@@ -82,11 +83,28 @@ jobs:
           assert global_style_pattern not in surface, 'surface ownership must not observe global style mutations'
           assert global_style_pattern not in line, 'line motion must not observe global style mutations'
           assert 'state.rafs' not in line, 'Sales line motion must use one shared rAF timeline, not per-element rAF arrays'
+          assert "document.createElementNS(NS,'mask')" not in line, 'Sales forecast must not return to the Safari-prone SVG mask reveal'
+          assert "document.createElementNS(NS,'clipPath')" in line and "rect.setAttribute('width','0')" in line, 'forecast must be physically clipped before first paint'
+          assert 'Math.floor(e*st.steps)' in line and 'FORECAST_MS=920' in line, 'forecast must reveal in visible dash-by-dash steps'
+          assert 'FORECAST_DELAY=HISTORY_DELAY+HISTORY_MS+70' in line, 'forecast must wait until the solid history reaches Today'
           assert "fill.style.width='0%'" not in chart, 'Money Flow must not animate layout width from zero'
           assert 'sequenceDelay=660' not in chart, 'Money Flow must not reintroduce delayed value presentation'
           assert 'animateValue(' not in chart, 'Money Flow values should render final figures immediately, not JS count-up'
           assert 'rtPageEnterV1450 110ms' in motion, 'page switch motion must remain short and immediate'
           print('Motion performance guardrails passed')
+          PY
+
+      - name: Cold launch route coherence
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          launch=Path('launch-route.js').read_text(encoding='utf-8')
+          assert "nativeGo.call(window,'summary'" in launch, 'cold document launch must normalise to Home / Command Centre'
+          assert "addEventListener('pointerdown',userTookControl,true)" in launch, 'a trusted first user gesture must cancel launch normalisation before onclick routing'
+          assert 'setTimeout(openHome,650)' in launch and '1800' in launch, 'launch guard must cover async saved-route restoration then retire'
+          assert 'localStorage' not in launch and 'sessionStorage' not in launch, 'launch normalisation must not rewrite persisted application data'
+          print('Cold launch Home guardrails passed')
           PY
 
       - name: Interaction hit-test health
@@ -155,7 +173,7 @@ jobs:
           assert '_activityUndoState' in undo and 'undoActivity' in undo, 'Sales undo must reuse canonical Activity safety/restore logic'
           assert '_stepBackTitle' in undo and 'stepBack' in undo, 'single-item menu undo needs the existing lifecycle fallback for older items'
           assert 'SELECTED_ITEMS' in undo and 'rt-sales-bulk-undo' in undo, 'Sales selection mode must expose a bulk Undo control'
-          assert 'Undo latest change' in undo and '.ddwrap[id^="dd-"]' in undo, 'Sales ⋮ item menus must expose Undo'
+          assert 'Undo sale' in undo and '.ddwrap[id^="dd-"]' in undo, 'Sales ⋮ item menus must expose Undo sale'
           assert 'Grouped' not in undo or '_activityUndoState' in undo, 'protected lifecycle rules must stay delegated to the canonical undo eligibility check'
           assert 'calcGrossProfit' not in undo and 'salePrice=' not in undo, 'undo affordance must not reimplement accounting or sale mutation formulas'
           print('Sales undo guardrails passed')
@@ -202,6 +220,7 @@ jobs:
           assets={
               'core':'app-core.js',
               'workflow':'workflow-system.js',
+              'launch':'launch-route.js',
               'surface':'surface-ownership.js',
               'interaction':'interaction-health.js',
               'qol':'workflow-qol.js',
@@ -234,7 +253,7 @@ jobs:
           entry=Path('app.js').read_text(encoding='utf-8')
           for required in ('app.js','app.css'):
               assert required in index, f'{required} is not referenced by index.html'
-          for required in ('workflow-system.js','surface-ownership.js','interaction-health.js','workflow-qol.js','listing-flow.js','chart-line-motion.js','motion-system.js','fab-system.js','sales-undo.js','dashboard-details.js','stock-detail-profit.js'):
+          for required in ('workflow-system.js','launch-route.js','surface-ownership.js','interaction-health.js','workflow-qol.js','listing-flow.js','chart-line-motion.js','motion-system.js','fab-system.js','sales-undo.js','dashboard-details.js','stock-detail-profit.js'):
               assert required in entry, f'{required} is not loaded by app.js'
           print('Core file reference check passed')
           PY
