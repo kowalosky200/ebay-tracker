@@ -32,7 +32,7 @@
     reveal:'79ff92a2',
     line:'fc7cee33',
     motion:'a79d0af1',
-    fab:'76fa2a95',
+    fab:'ea658b4b',
     dashboard:'4539b2fb',
     stockDetail:'62301cdf'
   };
