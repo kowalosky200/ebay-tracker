@@ -8,6 +8,8 @@
  * chart-line-motion.js and motion-system.js own presentation motion;
  * fab-system.js keeps the bottom action shell mounted across routes while
  * retaining the intentional mobile collapse on genuine downward scrolling;
+ * sales-undo.js exposes the existing safe lifecycle/activity undo from Sales
+ * selection mode and item action menus;
  * dashboard-details.js owns exact Command Centre drill-down semantics;
  * stock-detail-profit.js keeps sourced-stock panel estimates financially coherent.
  */
@@ -33,6 +35,7 @@
     line:'fc7cee33',
     motion:'a79d0af1',
     fab:'ea658b4b',
+    salesUndo:'a2c872c2',
     dashboard:'4539b2fb',
     stockDetail:'62301cdf'
   };
@@ -63,6 +66,7 @@
     ['./chart-line-motion.js',V.line,'low'],
     ['./motion-system.js',V.motion,'low'],
     ['./fab-system.js',V.fab,'auto'],
+    ['./sales-undo.js',V.salesUndo,'auto'],
     ['./dashboard-details.js',V.dashboard,'auto'],
     ['./stock-detail-profit.js',V.stockDetail,'auto']
   ];
