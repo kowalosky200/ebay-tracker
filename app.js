@@ -34,7 +34,7 @@
     chartMotion:'d27d650a',
     finalize:'b7f72066',
     reveal:'d868a139',
-    line:'29d086c9',
+    line:'37307dd3',
     motion:'a79d0af1',
     fab:'ea658b4b',
     salesUndo:'a4911fd7',
