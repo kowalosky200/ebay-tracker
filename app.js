@@ -35,7 +35,7 @@
     line:'fc7cee33',
     motion:'a79d0af1',
     fab:'ea658b4b',
-    salesUndo:'a2c872c2',
+    salesUndo:'e5d6dffa',
     dashboard:'4539b2fb',
     stockDetail:'62301cdf'
   };
