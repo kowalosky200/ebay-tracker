@@ -21,6 +21,7 @@ jobs:
           node --check surface-ownership.js
           node --check interaction-health.js
           node --check workflow-qol.js
+          node --check listing-flow.js
           node --check chart-polish.js
           node --check chart-motion.js
           node --check chart-finalize.js
@@ -99,12 +100,28 @@ jobs:
           assert "el.style.pointerEvents='none'" in health, 'closed visual surfaces must leave the hit-test path immediately'
           assert "setAttribute('aria-hidden','true')" in health, 'closing surfaces must become semantically closed immediately'
           assert '__RT_SURFACE_OWNERSHIP.reconcile' in health, 'surface ownership must be reconciled in the same task as close'
+          assert 'semanticScrollLockCount' in health and 'reconcileScrollLocks' in health, 'popup close must reconcile the body scroll-lock reference count'
+          assert "['closePanel','closeModal','resolveConfirm','_closeSaleModal']" in health, 'all synchronous popup closers must reconcile scroll locks'
+          assert "b.style.position=''" in health and "b.style.overflow=''" in health, 'orphaned popup locks must restore body scrolling'
           assert 'new MutationObserver' not in health, 'interaction health must not add a global mutation observer/polling loop'
           assert "visibilitychange" in health and "addEventListener('scrollend'" in health, 'iOS background/scroll-end recovery hooks must remain'
           assert "addEventListener('pointerdown',heal" not in health, 'normal taps must never run recovery DOM scans before navigation'
           assert "addEventListener('touchstart',heal" not in health, 'normal touches must never run recovery DOM scans before navigation'
           assert "addEventListener('scroll'," not in health, 'active scrolling must not schedule repeated recovery scans'
           print('Interaction hit-test guardrails passed')
+          PY
+
+      - name: Listing flow coherence
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          listing=Path('listing-flow.js').read_text(encoding='utf-8')
+          assert "List Item — locked" in listing and "'List Item'" in listing, 'listing submit copy must say List Item, never Add Item'
+          assert 'submitQuickAdd' in listing and 'submitListFromSourced' in listing, 'both generic and sourced listing routes must share the same semantics'
+          assert '__RT_INTERACTION_HEALTH.reconcileScrollLocks' in listing, 'successful popup -> listing transitions must verify body scroll release'
+          assert '__RT_SURFACE_OWNERSHIP.reconcile' in listing, 'successful listing transitions must release stale popup ownership'
+          print('Listing flow guardrails passed')
           PY
 
       - name: Persistent FAB shell
@@ -165,6 +182,7 @@ jobs:
               'surface':'surface-ownership.js',
               'interaction':'interaction-health.js',
               'qol':'workflow-qol.js',
+              'listing':'listing-flow.js',
               'polish':'chart-polish.js',
               'chartMotion':'chart-motion.js',
               'finalize':'chart-finalize.js',
@@ -192,7 +210,7 @@ jobs:
           entry=Path('app.js').read_text(encoding='utf-8')
           for required in ('app.js','app.css'):
               assert required in index, f'{required} is not referenced by index.html'
-          for required in ('workflow-system.js','surface-ownership.js','interaction-health.js','workflow-qol.js','chart-line-motion.js','motion-system.js','fab-system.js','dashboard-details.js','stock-detail-profit.js'):
+          for required in ('workflow-system.js','surface-ownership.js','interaction-health.js','workflow-qol.js','listing-flow.js','chart-line-motion.js','motion-system.js','fab-system.js','dashboard-details.js','stock-detail-profit.js'):
               assert required in entry, f'{required} is not loaded by app.js'
           print('Core file reference check passed')
           PY
