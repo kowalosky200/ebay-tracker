@@ -124,7 +124,7 @@ jobs:
           print('Listing flow guardrails passed')
           PY
 
-      - name: Persistent FAB shell
+      - name: Persistent bottom action shell
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -132,10 +132,13 @@ jobs:
           fab=Path('fab-system.js').read_text(encoding='utf-8')
           assert '_FAB_HIDDEN_PAGES.clear' in fab, 'app pages must not deliberately suppress the shell FAB'
           assert "['list','sourced','sourcerun','expense','trip']" in fab, 'unmapped pages need the universal Command Centre launcher'
-          assert 'nativeOptions.call(this,pageId)' in fab, 'context-specific page actions must remain first priority'
-          assert 'return fallback();' in fab, 'zero-action and route-handoff states must fall back instead of hiding the FAB'
-          assert 'requestAnimationFrame(ensureVisible)' in fab, 'a pre-existing hidden presentation state must be repaired after load'
-          print('Persistent FAB guardrails passed')
+          assert 'nativeOptions.call(this,pageId)' in fab and 'return fallback();' in fab, 'context actions stay first, universal fallback handles unmapped/handoff routes'
+          assert "_syncFabVisibility=function(){keepShellVisible();}" in fab, 'page visibility sync must never hide/reveal the persistent shell'
+          assert '#bottom-nav.nav-hidden{transform:none!important' in fab, 'legacy hide-on-scroll must be visually neutralised'
+          assert 'body:has(#bottom-nav.nav-hidden) #fab-dial' in fab, 'FAB must remain anchored when legacy scroll state changes'
+          assert "watch(document.getElementById('bottom-nav'),['style','aria-hidden'])" in fab, 'bottom-nav class must not be observed/fought on every scroll frame'
+          assert "nav.classList.remove('nav-hidden')" not in fab, 'persistent shell must not create scroll classList ping-pong'
+          print('Persistent bottom shell guardrails passed')
           PY
 
       - name: Dashboard drill coherence
