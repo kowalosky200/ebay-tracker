@@ -133,12 +133,14 @@ jobs:
           assert '_FAB_HIDDEN_PAGES.clear' in fab, 'app pages must not deliberately suppress the shell FAB'
           assert "['list','sourced','sourcerun','expense','trip']" in fab, 'unmapped pages need the universal Command Centre launcher'
           assert 'nativeOptions.call(this,pageId)' in fab and 'return fallback();' in fab, 'context actions stay first, universal fallback handles unmapped/handoff routes'
-          assert "_syncFabVisibility=function(){keepShellVisible();}" in fab, 'page visibility sync must never hide/reveal the persistent shell'
-          assert '#bottom-nav.nav-hidden{transform:none!important' in fab, 'legacy hide-on-scroll must be visually neutralised'
-          assert 'body:has(#bottom-nav.nav-hidden) #fab-dial' in fab, 'FAB must remain anchored when legacy scroll state changes'
+          assert "_syncFabVisibility=function(){keepShellMounted();}" in fab, 'page visibility sync must not hide/reveal the shell'
+          assert 'rt-bottom-route-handoff' in fab and 'beginRouteHandoff' in fab, 'route changes must explicitly protect the shell from synthetic scroll hiding'
+          assert 'body:not(.rt-bottom-route-handoff):has(#bottom-nav.nav-hidden)' in fab, 'genuine nav-hidden scroll state must still collapse the mobile shell'
+          assert 'translateY(150%)' in fab and 'opacity:0!important' in fab, 'scroll collapse must move FAB/search out cleanly'
+          assert "nav.classList.remove('nav-hidden')" in fab, 'route handoff must clear stale nav-hidden before and after navigation'
           assert "watch(document.getElementById('bottom-nav'),['style','aria-hidden'])" in fab, 'bottom-nav class must not be observed/fought on every scroll frame'
-          assert "nav.classList.remove('nav-hidden')" not in fab, 'persistent shell must not create scroll classList ping-pong'
-          print('Persistent bottom shell guardrails passed')
+          assert "addEventListener('scroll'," not in fab, 'FAB shell must reuse the existing scroll signal rather than add another scroll listener'
+          print('Route-stable, scroll-collapsible bottom shell guardrails passed')
           PY
 
       - name: Dashboard drill coherence
