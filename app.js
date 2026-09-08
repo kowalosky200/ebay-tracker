@@ -6,7 +6,8 @@
  * listing-flow.js owns list-form copy + popup->listing transition coherence;
  * chart-polish.js, chart-motion.js, chart-finalize.js, chart-reveal.js,
  * chart-line-motion.js and motion-system.js own presentation motion;
- * fab-system.js keeps the application FAB persistent with universal fallbacks;
+ * fab-system.js keeps the bottom action shell permanently mounted while pages
+ * change, with context actions first and universal fallbacks otherwise;
  * dashboard-details.js owns exact Command Centre drill-down semantics;
  * stock-detail-profit.js keeps sourced-stock panel estimates financially coherent.
  */
@@ -31,7 +32,7 @@
     reveal:'79ff92a2',
     line:'fc7cee33',
     motion:'a79d0af1',
-    fab:'56689423',
+    fab:'a44933a8',
     dashboard:'4539b2fb',
     stockDetail:'62301cdf'
   };
