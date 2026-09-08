@@ -1,6 +1,8 @@
 /* RETRADE Sales undo affordances.
  *
  * Adds Undo Sale to Sales multi-select controls and per-item ⋮ menus.
+ * Historical generic copy "Undo latest change" is deliberately replaced by the
+ * task-specific "Undo sale" wording in the live UI.
  * Both entry points reuse RETRADE's existing dependency-aware Activity undo;
  * no sale fields, accounting values or lifecycle history are rewritten here.
  * A legacy item with no Activity snapshot can still use the existing stepBack()
