@@ -86,7 +86,7 @@ jobs:
           assert 'state.rafs' not in line, 'Sales line motion must use one shared rAF timeline, not per-element rAF arrays'
           assert "document.createElementNS(NS,'mask')" not in line, 'Sales forecast must not return to the Safari-prone SVG mask reveal'
           assert "document.createElementNS(NS,'clipPath')" in line and "rect.setAttribute('width','0')" in line, 'forecast must be physically clipped before first paint'
-          assert "path.style.opacity='0'" in line and 'getPointAtLength' in line and 'getBBox()' not in line, 'hidden Sales pages must keep forecast invisible until geometry is safe on iOS'
+          assert "path.style.opacity='0'" in line and 'getPointAtLength' in line and '.getBBox(' not in line, 'hidden Sales pages must keep forecast invisible until geometry is safe on iOS'
           assert 'var isForecast=forecastCandidate(p);' in line and 'if(st)(isForecast?forecast:history).push(st);' in line, 'history/forecast classification must be captured before preparation mutates dasharray'
           assert 'dashed(p)?forecast:history' not in line, 'never re-test dash state after prepareHistory writes a temporary dasharray'
           assert 'Math.floor(e*st.steps)' in line and 'FORECAST_MS=920' in line, 'forecast must reveal in visible dash-by-dash steps'
