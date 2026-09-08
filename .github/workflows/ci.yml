@@ -132,15 +132,17 @@ jobs:
           fab=Path('fab-system.js').read_text(encoding='utf-8')
           assert '_FAB_HIDDEN_PAGES.clear' in fab, 'app pages must not deliberately suppress the shell FAB'
           assert "['list','sourced','sourcerun','expense','trip']" in fab, 'unmapped pages need the universal Command Centre launcher'
-          assert 'nativeOptions.call(this,pageId)' in fab and 'return fallback();' in fab, 'context actions stay first, universal fallback handles unmapped/handoff routes'
-          assert "_syncFabVisibility=function(){keepShellMounted();}" in fab, 'page visibility sync must not hide/reveal the shell'
-          assert 'rt-bottom-route-handoff' in fab and 'beginRouteHandoff' in fab, 'route changes must explicitly protect the shell from synthetic scroll hiding'
-          assert 'body:not(.rt-bottom-route-handoff):has(#bottom-nav.nav-hidden)' in fab, 'genuine nav-hidden scroll state must still collapse the mobile shell'
-          assert 'translateY(150%)' in fab and 'opacity:0!important' in fab, 'scroll collapse must move FAB/search out cleanly'
-          assert "nav.classList.remove('nav-hidden')" in fab, 'route handoff must clear stale nav-hidden before and after navigation'
-          assert "watch(document.getElementById('bottom-nav'),['style','aria-hidden'])" in fab, 'bottom-nav class must not be observed/fought on every scroll frame'
-          assert "addEventListener('scroll'," not in fab, 'FAB shell must reuse the existing scroll signal rather than add another scroll listener'
-          print('Route-stable, scroll-collapsible bottom shell guardrails passed')
+          assert 'nativeOptions.call(this,pageId)' in fab and 'return fallback();' in fab, 'context actions stay first, universal fallback handles unmapped routes'
+          assert "_syncFabVisibility=function(){keepShellMounted();}" in fab, 'page visibility sync must never hide/reveal the shell'
+          assert '#bottom-nav.nav-hidden{transform:none!important' in fab, 'legacy nav-hidden must not visually control the shell after programmatic scroll restore'
+          assert 'rt-shell-scroll-hidden' in fab and 'setScrollCollapsed' in fab, 'visual collapse must have a dedicated user-scroll state'
+          assert "addEventListener('touchmove',beginUserScroll" in fab and "addEventListener('wheel',beginUserScroll" in fab, 'collapse must be armed by a real user scroll gesture'
+          assert "addEventListener('scroll',function()" in fab and 'requestAnimationFrame(processUserScroll)' in fab, 'trusted scroll sessions must update cheaply on one rAF path'
+          assert 'if(routeActive||!userScrollActive)' in fab, 'programmatic route scroll restoration must never collapse the shell'
+          assert 'beginRouteHandoff' in fab and 'setScrollCollapsed(false)' in fab, 'route changes must synchronously restore the shell before scrolling/rendering'
+          assert 'translateY(150%)' in fab and 'opacity:0!important' in fab, 'genuine user scroll collapse must still move FAB/search out cleanly'
+          assert 'new MutationObserver' not in fab, 'FAB shell must not watch style/class mutations during scrolling'
+          print('Route-stable, trusted-scroll bottom shell guardrails passed')
           PY
 
       - name: Dashboard drill coherence
