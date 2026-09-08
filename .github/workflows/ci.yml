@@ -27,6 +27,7 @@ jobs:
           node --check chart-reveal.js
           node --check chart-line-motion.js
           node --check motion-system.js
+          node --check fab-system.js
           node --check dashboard-details.js
           node --check stock-detail-profit.js
           node --check accounting.js
@@ -106,6 +107,20 @@ jobs:
           print('Interaction hit-test guardrails passed')
           PY
 
+      - name: Persistent FAB shell
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          fab=Path('fab-system.js').read_text(encoding='utf-8')
+          assert '_FAB_HIDDEN_PAGES.clear' in fab, 'app pages must not deliberately suppress the shell FAB'
+          assert "['list','sourced','sourcerun','expense','trip']" in fab, 'unmapped pages need the universal Command Centre launcher'
+          assert 'nativeOptions.call(this,pageId)' in fab, 'context-specific page actions must remain first priority'
+          assert 'return fallback();' in fab, 'zero-action and route-handoff states must fall back instead of hiding the FAB'
+          assert 'requestAnimationFrame(ensureVisible)' in fab, 'a pre-existing hidden presentation state must be repaired after load'
+          print('Persistent FAB guardrails passed')
+          PY
+
       - name: Dashboard drill coherence
         run: |
           python - <<'PY'
@@ -156,6 +171,7 @@ jobs:
               'reveal':'chart-reveal.js',
               'line':'chart-line-motion.js',
               'motion':'motion-system.js',
+              'fab':'fab-system.js',
               'dashboard':'dashboard-details.js',
               'stockDetail':'stock-detail-profit.js',
           }
@@ -176,7 +192,7 @@ jobs:
           entry=Path('app.js').read_text(encoding='utf-8')
           for required in ('app.js','app.css'):
               assert required in index, f'{required} is not referenced by index.html'
-          for required in ('workflow-system.js','surface-ownership.js','interaction-health.js','workflow-qol.js','chart-line-motion.js','motion-system.js','dashboard-details.js','stock-detail-profit.js'):
+          for required in ('workflow-system.js','surface-ownership.js','interaction-health.js','workflow-qol.js','chart-line-motion.js','motion-system.js','fab-system.js','dashboard-details.js','stock-detail-profit.js'):
               assert required in entry, f'{required} is not loaded by app.js'
           print('Core file reference check passed')
           PY
