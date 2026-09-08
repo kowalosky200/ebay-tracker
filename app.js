@@ -2,7 +2,8 @@
  * The production bundle is kept intact in app-core.js; workflow-system.js owns
  * navigation/input coherence; surface-ownership.js arbitrates active dialogs,
  * panels and pages; interaction-health.js ensures closed visual layers release
- * hit-testing immediately; workflow-qol.js owns fast editing shortcuts;
+ * hit-testing and body scroll immediately; workflow-qol.js owns fast editing;
+ * listing-flow.js owns list-form copy + popup->listing transition coherence;
  * chart-polish.js, chart-motion.js, chart-finalize.js, chart-reveal.js,
  * chart-line-motion.js and motion-system.js own presentation motion;
  * fab-system.js keeps the application FAB persistent with universal fallbacks;
@@ -21,8 +22,9 @@
     core:'afff7100',
     workflow:'6cb382ef',
     surface:'f31a3e3c',
-    interaction:'bb0f84b3',
+    interaction:'984c3f20',
     qol:'7c923b17',
+    listing:'e426f9af',
     polish:'9481578c',
     chartMotion:'d27d650a',
     finalize:'b7f72066',
@@ -52,6 +54,7 @@
     ['./surface-ownership.js',V.surface,'auto'],
     ['./interaction-health.js',V.interaction,'auto'],
     ['./workflow-qol.js',V.qol,'auto'],
+    ['./listing-flow.js',V.listing,'auto'],
     ['./chart-polish.js',V.polish,'low'],
     ['./chart-motion.js',V.chartMotion,'low'],
     ['./chart-finalize.js',V.finalize,'low'],
