@@ -6,8 +6,8 @@
  * listing-flow.js owns list-form copy + popup->listing transition coherence;
  * chart-polish.js, chart-motion.js, chart-finalize.js, chart-reveal.js,
  * chart-line-motion.js and motion-system.js own presentation motion;
- * fab-system.js keeps the bottom action shell permanently mounted while pages
- * change, with context actions first and universal fallbacks otherwise;
+ * fab-system.js keeps the bottom action shell mounted across routes while
+ * retaining the intentional mobile collapse on genuine downward scrolling;
  * dashboard-details.js owns exact Command Centre drill-down semantics;
  * stock-detail-profit.js keeps sourced-stock panel estimates financially coherent.
  */
@@ -32,7 +32,7 @@
     reveal:'79ff92a2',
     line:'fc7cee33',
     motion:'a79d0af1',
-    fab:'7e04aa9a',
+    fab:'76fa2a95',
     dashboard:'4539b2fb',
     stockDetail:'62301cdf'
   };
