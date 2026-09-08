@@ -29,6 +29,7 @@ jobs:
           node --check chart-line-motion.js
           node --check motion-system.js
           node --check fab-system.js
+          node --check sales-undo.js
           node --check dashboard-details.js
           node --check stock-detail-profit.js
           node --check accounting.js
@@ -145,6 +146,21 @@ jobs:
           print('Route-stable, trusted-scroll bottom shell guardrails passed')
           PY
 
+      - name: Sales undo affordances
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          undo=Path('sales-undo.js').read_text(encoding='utf-8')
+          assert '_activityUndoState' in undo and 'undoActivity' in undo, 'Sales undo must reuse canonical Activity safety/restore logic'
+          assert '_stepBackTitle' in undo and 'stepBack' in undo, 'single-item menu undo needs the existing lifecycle fallback for older items'
+          assert 'SELECTED_ITEMS' in undo and 'rt-sales-bulk-undo' in undo, 'Sales selection mode must expose a bulk Undo control'
+          assert 'Undo latest change' in undo and '.ddwrap[id^="dd-"]' in undo, 'Sales ⋮ item menus must expose Undo'
+          assert 'Grouped' not in undo or '_activityUndoState' in undo, 'protected lifecycle rules must stay delegated to the canonical undo eligibility check'
+          assert 'calcGrossProfit' not in undo and 'salePrice=' not in undo, 'undo affordance must not reimplement accounting or sale mutation formulas'
+          print('Sales undo guardrails passed')
+          PY
+
       - name: Dashboard drill coherence
         run: |
           python - <<'PY'
@@ -197,6 +213,7 @@ jobs:
               'line':'chart-line-motion.js',
               'motion':'motion-system.js',
               'fab':'fab-system.js',
+              'salesUndo':'sales-undo.js',
               'dashboard':'dashboard-details.js',
               'stockDetail':'stock-detail-profit.js',
           }
@@ -217,7 +234,7 @@ jobs:
           entry=Path('app.js').read_text(encoding='utf-8')
           for required in ('app.js','app.css'):
               assert required in index, f'{required} is not referenced by index.html'
-          for required in ('workflow-system.js','surface-ownership.js','interaction-health.js','workflow-qol.js','listing-flow.js','chart-line-motion.js','motion-system.js','fab-system.js','dashboard-details.js','stock-detail-profit.js'):
+          for required in ('workflow-system.js','surface-ownership.js','interaction-health.js','workflow-qol.js','listing-flow.js','chart-line-motion.js','motion-system.js','fab-system.js','sales-undo.js','dashboard-details.js','stock-detail-profit.js'):
               assert required in entry, f'{required} is not loaded by app.js'
           print('Core file reference check passed')
           PY
