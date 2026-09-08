@@ -1,9 +1,9 @@
-/* RETRADE persistent FAB system.
+/* RETRADE persistent bottom action shell.
  *
- * The FAB is part of the application shell, not page content. Context-specific
- * pages can narrow its actions, but navigation must never make the control blink
- * out simply because a route has no bespoke FAB mapping (or because the old page
- * has been deactivated a frame before the new one becomes active).
+ * The bottom navigation + centre FAB are application chrome, not page content.
+ * They stay mounted and visible while pages, panels and filters change. Page-
+ * specific FAB actions may change, but the shell itself must never blink, slide
+ * away on scroll, or enter a temporary hidden state during route handoff.
  *
  * UI-only: no item/accounting/lifecycle/persistence behaviour lives here.
  */
@@ -11,7 +11,8 @@
   'use strict';
 
   if(window.__RT_FAB_SYSTEM)return;
-  var BUILD='20260908-fab-system-1';
+  var BUILD='20260908-fab-system-2';
+  var repairing=false;
 
   var nativeOptions=(typeof _fabOptionsForPage==='function')?_fabOptionsForPage:null;
   var universal;
@@ -23,9 +24,8 @@
     universal=['list','sourced','sourcerun','expense','trip'];
   }
 
-  /* The old model deliberately hid the FAB on read-only/history pages. That made
-     the app shell visibly change shape and also created a hide -> show flash when
-     switching routes. Those pages now use the universal launcher instead. */
+  /* Read-only/history routes used to deliberately hide the FAB. They now inherit
+     the universal launcher instead, so the bottom shell never changes shape. */
   try{
     if(typeof _FAB_HIDDEN_PAGES!=='undefined'&&_FAB_HIDDEN_PAGES&&typeof _FAB_HIDDEN_PAGES.clear==='function'){
       _FAB_HIDDEN_PAGES.clear();
@@ -39,46 +39,108 @@
       var options=[];
       try{options=nativeOptions.call(this,pageId)||[];}catch(_e){}
       if(Array.isArray(options)&&options.length)return options.slice();
-
-      /* This also covers the tiny route-handoff window where no .page.on exists.
-         Returning the universal set there means visibility never toggles off just
-         because navigation is between two synchronous class changes. */
+      /* Includes the synchronous old-page-off -> new-page-on handoff. */
       return fallback();
     };
   }
 
-  function ensureVisible(){
+  function appShellIsAvailable(){
     var dial=document.getElementById('fab-dial');
-    if(!dial)return;
-
-    /* Respect the authentication/ownership gate. app-core intentionally keeps the
-       FAB display:none until the user has entered the app. */
-    try{
-      if(dial.style.display==='none'&&typeof DB!=='undefined'&&!DB._userOwned&&
-         !(typeof _previewMode!=='undefined'&&_previewMode))return;
-    }catch(_e){}
-
-    try{if(typeof _syncFabVisibility==='function')_syncFabVisibility();}catch(_e2){}
-
-    /* If an older visibility pass ran just before this layer loaded, remove only
-       the presentation-level hidden residue. Future page changes stay visible via
-       the fallback options above, so this is a one-time recovery rather than a
-       per-navigation mutation. */
-    dial.classList.remove('rt-fab-motion-hidden');
-    dial.style.visibility='';
-    dial.removeAttribute('aria-hidden');
+    if(!dial)return false;
+    /* Authentication deliberately uses display:none. Do not surface app chrome
+       before the user has entered the application. */
+    if(dial.style.display==='none')return false;
+    return true;
   }
 
-  ensureVisible();
-  requestAnimationFrame(ensureVisible);
-  window.addEventListener('pageshow',ensureVisible);
+  function clearPresentationHide(el){
+    if(!el)return;
+    if(el.__rtFabHideTimer){
+      clearTimeout(el.__rtFabHideTimer);
+      el.__rtFabHideTimer=0;
+    }
+    el.classList.remove('rt-fab-motion-hidden');
+    if(el.style.visibility==='hidden')el.style.visibility='';
+    if(el.style.opacity==='0')el.style.opacity='';
+    el.removeAttribute('aria-hidden');
+  }
+
+  function keepShellVisible(){
+    if(repairing)return;
+    repairing=true;
+    try{
+      var nav=document.getElementById('bottom-nav');
+      if(nav){
+        /* nav-hidden was the old scroll-away mechanism. Removing it means page
+           switches and scroll restoration cannot move the shell off screen. */
+        nav.classList.remove('nav-hidden');
+        if(nav.style.visibility==='hidden')nav.style.visibility='';
+        if(nav.style.opacity==='0')nav.style.opacity='';
+        nav.removeAttribute('aria-hidden');
+      }
+
+      if(appShellIsAvailable()){
+        clearPresentationHide(document.getElementById('fab-dial'));
+        clearPresentationHide(document.getElementById('search-fab'));
+      }
+    }finally{
+      repairing=false;
+    }
+  }
+
+  /* Neutralise the legacy CSS route that translated the entire mobile shell off
+     screen whenever #bottom-nav acquired .nav-hidden. We intentionally do NOT
+     force display:block: desktop/auth layouts keep their existing display rules. */
+  if(!document.getElementById('rt-persistent-bottom-shell')){
+    var style=document.createElement('style');
+    style.id='rt-persistent-bottom-shell';
+    style.textContent=[
+      '@media(max-width:999px){',
+      '#bottom-nav.nav-hidden{transform:none!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}',
+      'body:has(#bottom-nav.nav-hidden) #fab-dial,body:has(#bottom-nav.nav-hidden) .fab-dial{transform:translateX(-50%)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}',
+      'body:has(#bottom-nav.nav-hidden) #search-fab{transform:none!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}',
+      '#fab-dial.rt-fab-motion-hidden{opacity:1!important;scale:1!important;visibility:visible!important;pointer-events:auto!important}',
+      '}',
+      '@media(prefers-reduced-motion:reduce){#bottom-nav,#fab-dial,#search-fab{transition:none!important}}'
+    ].join('');
+    document.head.appendChild(style);
+  }
+
+  /* motion-system used to own FAB visibility. At this point the design contract is
+     stronger: signed-in app chrome is always present, so a visibility sync only
+     repairs the shell. Context-specific options are still resolved when the FAB
+     is opened through _fabOptionsForPage(). This removes the hide -> rAF -> show
+     cycle entirely rather than trying to make that cycle faster. */
+  try{
+    if(typeof _syncFabVisibility==='function'){
+      _syncFabVisibility=function(){keepShellVisible();};
+    }
+  }catch(_e3){}
+
+  keepShellVisible();
+  requestAnimationFrame(keepShellVisible);
+
+  /* Watch only the three shell elements. If legacy scroll/nav code adds a hidden
+     class/style, remove it in the same microtask before the browser paints. No
+     page-tree observer and no work on normal taps/scroll frames. */
+  function watch(el){
+    if(!el)return;
+    var obs=new MutationObserver(function(){keepShellVisible();});
+    obs.observe(el,{attributes:true,attributeFilter:['class','style','aria-hidden']});
+  }
+  watch(document.getElementById('bottom-nav'));
+  watch(document.getElementById('fab-dial'));
+  watch(document.getElementById('search-fab'));
+
+  window.addEventListener('pageshow',keepShellVisible);
   document.addEventListener('visibilitychange',function(){
-    if(document.visibilityState==='visible')ensureVisible();
+    if(document.visibilityState==='visible')keepShellVisible();
   });
 
   window.__RT_FAB_SYSTEM={
     build:BUILD,
-    universal:function(){return fallback();}
+    universal:function(){return fallback();},
+    repair:keepShellVisible
   };
-  console.info('[RETRADE] persistent FAB system loaded',BUILD);
+  console.info('[RETRADE] persistent bottom action shell loaded',BUILD);
 })();
