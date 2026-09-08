@@ -17,6 +17,22 @@ jobs:
       - name: JavaScript syntax
         run: |
           node --check app.js
+          node --check workflow-system.js
+          node --check launch-route.js
+          node --check surface-ownership.js
+          node --check interaction-health.js
+          node --check workflow-qol.js
+          node --check listing-flow.js
+          node --check chart-polish.js
+          node --check chart-motion.js
+          node --check chart-finalize.js
+          node --check chart-reveal.js
+          node --check chart-line-motion.js
+          node --check motion-system.js
+          node --check fab-system.js
+          node --check sales-undo.js
+          node --check dashboard-details.js
+          node --check stock-detail-profit.js
           node --check accounting.js
           node --check reports.js
           node --check sw.js
@@ -54,12 +70,198 @@ jobs:
           print('Workflow write-safety check passed')
           PY
 
+      - name: Motion performance guardrails
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          surface=Path('surface-ownership.js').read_text(encoding='utf-8')
+          line=Path('chart-line-motion.js').read_text(encoding='utf-8')
+          reveal=Path('chart-reveal.js').read_text(encoding='utf-8')
+          chart=Path('chart-motion.js').read_text(encoding='utf-8')
+          motion=Path('motion-system.js').read_text(encoding='utf-8')
+          global_style_pattern="observer.observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class','style'"
+          assert global_style_pattern not in surface, 'surface ownership must not observe global style mutations'
+          assert global_style_pattern not in line, 'line motion must not observe global style mutations'
+          assert 'state.rafs' not in line, 'Sales line motion must use one shared rAF timeline, not per-element rAF arrays'
+          assert "document.createElementNS(NS,'mask')" not in line, 'Sales forecast must not return to the Safari-prone SVG mask reveal'
+          assert "document.createElementNS(NS,'clipPath')" in line and "rect.setAttribute('width','0')" in line, 'forecast must be physically clipped before first paint'
+          assert "path.style.opacity='0'" in line and 'getPointAtLength' in line and '.getBBox(' not in line, 'hidden Sales pages must keep forecast invisible until geometry is safe on iOS'
+          assert 'var isForecast=forecastCandidate(p);' in line and 'if(st)(isForecast?forecast:history).push(st);' in line, 'history/forecast classification must be captured before preparation mutates dasharray'
+          assert 'dashed(p)?forecast:history' not in line, 'never re-test dash state after prepareHistory writes a temporary dasharray'
+          assert 'Math.floor(e*st.steps)' in line and 'FORECAST_MS=920' in line, 'forecast must reveal in visible dash-by-dash steps'
+          assert 'FORECAST_DELAY=HISTORY_DELAY+HISTORY_MS+70' in line, 'forecast must wait until the solid history reaches Today'
+          assert 'pendingDashboardReplay' in reveal and 'wasLoading=loadingHandoffActive()' in reveal, 'dashboard skeleton handoff must explicitly remember a pending real-layout replay'
+          assert 'if(loadingHandoffActive()||!summaryIsActive())' in reveal, 'dashboard replay must never be spent behind the skeleton or on a hidden page'
+          assert 'lastReplayAt=t' in reveal and 't-lastReplayAt<450' in reveal, 'dashboard de-dupe may stamp only a real post-loading replay, not the loading phase'
+          assert "handoffObserver.observe(body,{attributes:true,attributeFilter:['class']})" in reveal, 'dashboard handoff detection must be cheap attribute-only observation, never SVG/style polling'
+          assert "fill.style.width='0%'" not in chart, 'Money Flow must not animate layout width from zero'
+          assert 'sequenceDelay=660' not in chart, 'Money Flow must not reintroduce delayed value presentation'
+          assert 'animateValue(' not in chart, 'Money Flow values should render final figures immediately, not JS count-up'
+          assert 'rtPageEnterV1450 110ms' in motion, 'page switch motion must remain short and immediate'
+          print('Motion performance guardrails passed')
+          PY
+
+      - name: Cold launch route coherence
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          launch=Path('launch-route.js').read_text(encoding='utf-8')
+          assert "nativeGo.call(window,'summary'" in launch, 'cold document launch must normalise to Home / Command Centre'
+          assert "addEventListener('pointerdown',userTookControl,true)" in launch, 'a trusted first user gesture must cancel launch normalisation before onclick routing'
+          assert 'setTimeout(openHome,650)' in launch and '1800' in launch, 'launch guard must cover async saved-route restoration then retire'
+          assert 'localStorage' not in launch and 'sessionStorage' not in launch, 'launch normalisation must not rewrite persisted application data'
+          print('Cold launch Home guardrails passed')
+          PY
+
+      - name: Interaction hit-test health
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          health=Path('interaction-health.js').read_text(encoding='utf-8')
+          assert "wrap('closeMoreSheet'" in health, 'More-sheet close must release hit-testing synchronously'
+          assert "wrap('toggleMoreSheet'" in health, 'More-sheet open/close semantics must stay explicit'
+          assert "wrap('closeAllCategoriesModal'" in health, 'closing category drawer must release hit-testing before animation removal'
+          assert "el.style.pointerEvents='none'" in health, 'closed visual surfaces must leave the hit-test path immediately'
+          assert "setAttribute('aria-hidden','true')" in health, 'closing surfaces must become semantically closed immediately'
+          assert '__RT_SURFACE_OWNERSHIP.reconcile' in health, 'surface ownership must be reconciled in the same task as close'
+          assert 'semanticScrollLockCount' in health and 'reconcileScrollLocks' in health, 'popup close must reconcile the body scroll-lock reference count'
+          assert "['closePanel','closeModal','resolveConfirm','_closeSaleModal']" in health, 'all synchronous popup closers must reconcile scroll locks'
+          assert "b.style.position=''" in health and "b.style.overflow=''" in health, 'orphaned popup locks must restore body scrolling'
+          assert 'new MutationObserver' not in health, 'interaction health must not add a global mutation observer/polling loop'
+          assert "visibilitychange" in health and "addEventListener('scrollend'" in health, 'iOS background/scroll-end recovery hooks must remain'
+          assert "addEventListener('pointerdown',heal" not in health, 'normal taps must never run recovery DOM scans before navigation'
+          assert "addEventListener('touchstart',heal" not in health, 'normal touches must never run recovery DOM scans before navigation'
+          assert "addEventListener('scroll'," not in health, 'active scrolling must not schedule repeated recovery scans'
+          print('Interaction hit-test guardrails passed')
+          PY
+
+      - name: Listing flow coherence
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          listing=Path('listing-flow.js').read_text(encoding='utf-8')
+          assert "List Item — locked" in listing and "'List Item'" in listing, 'listing submit copy must say List Item, never Add Item'
+          assert 'submitQuickAdd' in listing and 'submitListFromSourced' in listing, 'both generic and sourced listing routes must share the same semantics'
+          assert '__RT_INTERACTION_HEALTH.reconcileScrollLocks' in listing, 'successful popup -> listing transitions must verify body scroll release'
+          assert '__RT_SURFACE_OWNERSHIP.reconcile' in listing, 'successful listing transitions must release stale popup ownership'
+          print('Listing flow guardrails passed')
+          PY
+
+      - name: Persistent bottom action shell
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          fab=Path('fab-system.js').read_text(encoding='utf-8')
+          assert '_FAB_HIDDEN_PAGES.clear' in fab, 'app pages must not deliberately suppress the shell FAB'
+          assert "['list','sourced','sourcerun','expense','trip']" in fab, 'unmapped pages need the universal Command Centre launcher'
+          assert 'nativeOptions.call(this,pageId)' in fab and 'return fallback();' in fab, 'context actions stay first, universal fallback handles unmapped routes'
+          assert "_syncFabVisibility=function(){keepShellMounted();}" in fab, 'page visibility sync must never hide/reveal the shell'
+          assert '#bottom-nav.nav-hidden{transform:none!important' in fab, 'legacy nav-hidden must not visually control the shell after programmatic scroll restore'
+          assert 'rt-shell-scroll-hidden' in fab and 'setScrollCollapsed' in fab, 'visual collapse must have a dedicated user-scroll state'
+          assert "addEventListener('touchmove',beginUserScroll" in fab and "addEventListener('wheel',beginUserScroll" in fab, 'collapse must be armed by a real user scroll gesture'
+          assert "addEventListener('scroll',function()" in fab and 'requestAnimationFrame(processUserScroll)' in fab, 'trusted scroll sessions must update cheaply on one rAF path'
+          assert 'if(routeActive||!userScrollActive)' in fab, 'programmatic route scroll restoration must never collapse the shell'
+          assert 'beginRouteHandoff' in fab and 'setScrollCollapsed(false)' in fab, 'route changes must synchronously restore the shell before scrolling/rendering'
+          assert 'translateY(150%)' in fab and 'opacity:0!important' in fab, 'genuine user scroll collapse must still move FAB/search out cleanly'
+          assert 'new MutationObserver' not in fab, 'FAB shell must not watch style/class mutations during scrolling'
+          print('Route-stable, trusted-scroll bottom shell guardrails passed')
+          PY
+
+      - name: Sales undo affordances
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          undo=Path('sales-undo.js').read_text(encoding='utf-8')
+          assert '_activityUndoState' in undo and 'undoActivity' in undo, 'Sales undo must reuse canonical Activity safety/restore logic'
+          assert '_stepBackTitle' in undo and 'stepBack' in undo, 'single-item menu undo needs the existing lifecycle fallback for older items'
+          assert 'SELECTED_ITEMS' in undo and 'rt-sales-bulk-undo' in undo, 'Sales selection mode must expose a bulk Undo control'
+          assert 'Undo sale' in undo and '.ddwrap[id^="dd-"]' in undo, 'Sales ⋮ item menus must expose Undo sale'
+          assert 'Grouped' not in undo or '_activityUndoState' in undo, 'protected lifecycle rules must stay delegated to the canonical undo eligibility check'
+          assert 'calcGrossProfit' not in undo and 'salePrice=' not in undo, 'undo affordance must not reimplement accounting or sale mutation formulas'
+          print('Sales undo guardrails passed')
+          PY
+
+      - name: Dashboard drill coherence
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          details=Path('dashboard-details.js').read_text(encoding='utf-8')
+          assert 'showGrossRevenueBreakdown' in details, 'Gross Revenue must have an exact dashboard breakdown'
+          assert 'showGrossProfitBreakdown' in details, 'Gross Profit must have an exact dashboard breakdown'
+          assert 'showGrossMarginBreakdown' in details, 'Gross Margin must have an exact dashboard breakdown'
+          assert 'revenue-weighted overall margin' in details, 'Gross Margin must remain weighted profit / revenue, not average item margin'
+          assert "h.fn!=='showMonthSnapshot'" in details and "h.fn='showRangeSnapshot'" in details, 'FY chart months must normalize to exact datapoint ranges'
+          assert 'exactIndexFromClick' in details and 'stopImmediatePropagation' in details, 'chart taps must own their exact X-position and not fall through to the mobile hero card'
+          assert "closest('#summary-chart-svg,#summary-chart-svg-mobile')" in details, 'metric-card routing must not steal chart taps'
+          print('Dashboard drill coherence guardrails passed')
+          PY
+
+      - name: Sourced stock estimate coherence
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          detail=Path('stock-detail-profit.js').read_text(encoding='utf-8')
+          assert '_estPotentialNet' in detail, 'sourced panel profit must reuse the canonical expected-profit estimate'
+          assert '_estPartnerCut' in detail, 'partner/consignment estimated share must be represented in sourced profit'
+          assert 'Est. Profit' in detail, 'sourced panel must expose an explicit estimated-profit token'
+          assert "'✎ Tap to edit'" in detail, 'Est. Sale helper must not masquerade as a naive profit number'
+          assert 'refreshPanelParts' in detail, 'inline parts changes must refresh estimated profit immediately'
+          assert "observer.observe(panel,{childList:true,subtree:true,characterData:true})" in detail, 'estimate edits must stay live without observing global style mutations'
+          print('Sourced stock estimate coherence guardrails passed')
+          PY
+
+      - name: Runtime asset hashes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, re
+
+          entry=Path('app.js').read_text(encoding='utf-8')
+          assets={
+              'core':'app-core.js',
+              'workflow':'workflow-system.js',
+              'launch':'launch-route.js',
+              'surface':'surface-ownership.js',
+              'interaction':'interaction-health.js',
+              'qol':'workflow-qol.js',
+              'listing':'listing-flow.js',
+              'polish':'chart-polish.js',
+              'chartMotion':'chart-motion.js',
+              'finalize':'chart-finalize.js',
+              'reveal':'chart-reveal.js',
+              'line':'chart-line-motion.js',
+              'motion':'motion-system.js',
+              'fab':'fab-system.js',
+              'salesUndo':'sales-undo.js',
+              'dashboard':'dashboard-details.js',
+              'stockDetail':'stock-detail-profit.js',
+          }
+          for key,path in assets.items():
+              match=re.search(rf"\b{re.escape(key)}:'([a-f0-9]{{8}})'",entry)
+              assert match, f'missing content hash for {path} in app.js'
+              data=Path(path).read_bytes()
+              actual=hashlib.sha1(f'blob {len(data)}\0'.encode()+data).hexdigest()[:8]
+              assert match.group(1)==actual, f'{path} cache hash is stale: app.js={match.group(1)} actual={actual}'
+          print('Runtime asset hash map matches Git blobs')
+          PY
+
       - name: Core file references
         run: |
           python - <<'PY'
           from pathlib import Path
           index=Path('index.html').read_text(encoding='utf-8')
+          entry=Path('app.js').read_text(encoding='utf-8')
           for required in ('app.js','app.css'):
               assert required in index, f'{required} is not referenced by index.html'
+          for required in ('workflow-system.js','launch-route.js','surface-ownership.js','interaction-health.js','workflow-qol.js','listing-flow.js','chart-line-motion.js','motion-system.js','fab-system.js','sales-undo.js','dashboard-details.js','stock-detail-profit.js'):
+              assert required in entry, f'{required} is not loaded by app.js'
           print('Core file reference check passed')
           PY

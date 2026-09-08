@@ -1,14 +1,15 @@
-/* RETRADE chart spacing + single-handoff reveal v1.4.48
+/* RETRADE chart spacing + loader handoff reveal v1.4.49
  * Loaded after chart-finalize.js.
  *
  * Presentation-only responsibilities:
  * - keep true breathing room between 30-day daily columns
- * - prevent dashboard chart motion from starting while the real-layout loader is
- *   still handing off, so the post-loading replay happens exactly once
- * - de-duplicate any near-simultaneous dashboard handoff replay calls
+ * - hold dashboard motion while the real-layout loader is genuinely active
+ * - replay the canonical dashboard motion exactly once AFTER the skeleton ->
+ *   real-layout handoff, rather than accidentally consuming that replay early
+ * - de-duplicate only real post-loading replays
  *
  * Sales line-chart motion is owned exclusively by chart-line-motion.js.
- * No accounting, sync, inventory lifecycle or persisted-data logic is touched.
+ * No accounting, sync, inventory lifecycle or persisted data logic is touched.
  */
 (function(){
   'use strict';
@@ -16,6 +17,7 @@
   if(typeof _renderChartInto!=='function')return;
 
   function num(v){v=Number(v);return isFinite(v)?v:0;}
+  function clock(){return (typeof performance!=='undefined'&&performance.now)?performance.now():Date.now();}
   function periodKey(){
     try{if(typeof SUMMARY_PERIOD!=='undefined')return String(SUMMARY_PERIOD||'').toLowerCase();}catch(_){}
     return '';
@@ -33,18 +35,20 @@
   function isDashboardBars(opts){
     return !!(opts&&opts.primaryBars&&opts.secondaryBarsInPrimary&&opts.primaryLabel==='Gross Revenue'&&opts.secondaryLabel==='Gross Profit');
   }
+  function summaryPage(){return document.getElementById('p-summary');}
+  function summaryIsActive(){var p=summaryPage();return !!(p&&p.classList.contains('on'));}
   function loadingHandoffActive(){
     try{if(typeof _realLayoutLoading!=='undefined'&&_realLayoutLoading)return true;}catch(_){}
     var body=document.body;
     if(body&&body.classList.contains('rt-data-loading-active'))return true;
-    var page=document.getElementById('p-summary');
+    var page=summaryPage();
     if(page&&(page.getAttribute('aria-busy')==='true'||page.classList.contains('rt-loading')))return true;
     return false;
   }
 
   function installStyles(){
-    ['rt-chart-reveal-v1445','rt-chart-reveal-v1448'].forEach(function(id){var old=document.getElementById(id);if(old)old.remove();});
-    var s=document.createElement('style');s.id='rt-chart-reveal-v1448';
+    ['rt-chart-reveal-v1445','rt-chart-reveal-v1448','rt-chart-reveal-v1449'].forEach(function(id){var old=document.getElementById(id);if(old)old.remove();});
+    var s=document.createElement('style');s.id='rt-chart-reveal-v1449';
     s.textContent='\
 #p-summary svg.rt-daily-gap-bars .rt-chart-primary-bar:not(.rt-chart-profit-bar){stroke-width:.48!important;stroke-opacity:.46!important;}\
 #p-summary svg.rt-daily-gap-bars .rt-chart-profit-bar{stroke-width:.36!important;stroke-opacity:.40!important;}\
@@ -90,20 +94,83 @@
     Array.prototype.forEach.call(svgEl.querySelectorAll('.rt-chart-profit-bar:not(.rt-chart-forecast-shell)'),function(rect){centerResize(rect,profitWidth);});
   }
 
-  /* app-core already owns the loader -> dashboard reveal. Earlier presentation
-     layers also replayed it, which could visibly grow the bars twice. Keep one
-     owner and throttle accidental duplicate finish callbacks from the loader. */
+  var nativeReplay=null;
+  var pendingDashboardReplay=false;
+  var replayQueued=false;
+  var lastReplayAt=-Infinity;
+  var handoffSerial=0;
+  var wasLoading=loadingHandoffActive();
+
+  function fallbackReplay(){
+    var svgs=[document.getElementById('summary-chart-svg'),document.getElementById('summary-chart-svg-mobile')].filter(Boolean);
+    if(!svgs.length)return;
+    svgs.forEach(function(svg){svg.classList.remove('rt-chart-draw');});
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      if(loadingHandoffActive()||!summaryIsActive())return;
+      svgs.forEach(function(svg){if(svg.isConnected)svg.classList.add('rt-chart-draw');});
+    });});
+  }
+
+  function performReplay(page,args){
+    page=page||summaryPage();
+    if(!page||page.id!=='p-summary')return nativeReplay?nativeReplay.apply(window,args||[]):undefined;
+    if(loadingHandoffActive()||!summaryIsActive()){
+      pendingDashboardReplay=true;
+      return;
+    }
+    var t=clock();
+    /* Only de-dupe a replay that really happened after loading. The old code
+       stamped lastReplayAt even for an early/hidden call, then suppressed the
+       actual skeleton handoff for 2.2 seconds — leaving a fully settled chart. */
+    if(t-lastReplayAt<450)return;
+    lastReplayAt=t;
+    pendingDashboardReplay=false;
+    if(nativeReplay)return nativeReplay.apply(window,args&&args.length?args:[page]);
+    return fallbackReplay();
+  }
+
+  function queueReplay(){
+    if(replayQueued||loadingHandoffActive())return;
+    if(!summaryIsActive()){pendingDashboardReplay=true;return;}
+    replayQueued=true;
+    var token=++handoffSerial;
+    /* Two paint frames let the real responsive layout replace its skeleton before
+       the canonical motion classes are re-armed. No arbitrary UX delay. */
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      replayQueued=false;
+      if(token!==handoffSerial)return;
+      if(loadingHandoffActive()){pendingDashboardReplay=true;return;}
+      performReplay(summaryPage(),[summaryPage()]);
+    });});
+  }
+
   try{
     if(typeof _replayDashboardMotionAfterLoading==='function'){
-      var nativeReplay=_replayDashboardMotionAfterLoading;
-      var lastReplayAt=-Infinity;
+      nativeReplay=_replayDashboardMotionAfterLoading;
       _replayDashboardMotionAfterLoading=function(page){
-        var now=(typeof performance!=='undefined'&&performance.now)?performance.now():Date.now();
-        if(page&&page.id==='p-summary'&&now-lastReplayAt<2200)return;
-        if(page&&page.id==='p-summary')lastReplayAt=now;
+        if(page&&page.id==='p-summary')return performReplay(page,arguments);
         return nativeReplay.apply(this,arguments);
       };
     }
+  }catch(_){}
+
+  function checkHandoff(){
+    var loading=loadingHandoffActive();
+    if(loading){wasLoading=true;return;}
+    if(wasLoading){
+      wasLoading=false;
+      pendingDashboardReplay=true;
+    }
+    if(pendingDashboardReplay)queueReplay();
+  }
+
+  /* Observe only the two state owners involved in the loader handoff. This is
+     attribute-only and non-subtree, so SVG animation style writes never wake it. */
+  try{
+    var body=document.body,page=summaryPage();
+    var handoffObserver=new MutationObserver(checkHandoff);
+    if(body)handoffObserver.observe(body,{attributes:true,attributeFilter:['class']});
+    if(page)handoffObserver.observe(page,{attributes:true,attributeFilter:['class','aria-busy']});
   }catch(_){}
 
   var _renderBeforeReveal=_renderChartInto;
@@ -111,10 +178,28 @@
     var out=_renderBeforeReveal.apply(this,arguments);
     if(isDashboardBars(opts)){
       enforceThirtyDayGaps(svgEl,labels);
-      /* A render that happens under the loading surface must stay at rest. The
-         canonical app-core handoff starts rt-chart-draw after the loader fades. */
-      if(loadingHandoffActive())svgEl.classList.remove('rt-chart-draw');
+      if(loadingHandoffActive()){
+        /* Real data can render behind the loader, but its motion must not be spent
+           there. Hold it at rest and mark one real-layout replay as pending. */
+        svgEl.classList.remove('rt-chart-draw');
+        pendingDashboardReplay=true;
+        wasLoading=true;
+      }else if(pendingDashboardReplay){
+        queueReplay();
+      }
     }
     return out;
+  };
+
+  /* If this layer arrives while the real-layout loader is already active, retain
+     that fact even if no chart render happens before the class is removed. */
+  if(wasLoading)pendingDashboardReplay=true;
+  requestAnimationFrame(checkHandoff);
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')checkHandoff();});
+
+  window.__RT_DASHBOARD_REVEAL={
+    build:'20260908-dashboard-reveal-2',
+    pending:function(){return pendingDashboardReplay;},
+    check:checkHandoff
   };
 })();

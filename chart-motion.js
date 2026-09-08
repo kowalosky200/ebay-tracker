@@ -1,4 +1,4 @@
-/* RETRADE chart motion + adaptive forecast pass v1.4.41
+/* RETRADE chart motion + adaptive forecast pass v1.4.49
  * Presentation-only layer loaded after chart-polish.js.
  *
  * Command Centre
@@ -6,7 +6,7 @@
  * - short operational ranges show ACTUALS ONLY: no forecast on 7/30/60/90/FY
  * - Calendar Year may retain the existing forecast treatment
  * - refunds are isolated red event dots, never a connecting trend
- * - slower, capped, left-to-right bar motion
+ * - short, capped, left-to-right bar motion
  *
  * Sales
  * - current-month forecast = actual-to-date + expected remainder
@@ -16,7 +16,7 @@
  * - revenue and net profit are projected independently
  * - an uncertainty range narrows as the month is completed and history grows
  * - mobile month labels are collision-managed (e.g. no "FebMar")
- * - chart -> actual point -> forecast -> profit-breakdown is one motion sequence
+ * - chart -> actual point -> forecast remains one coherent motion sequence
  *
  * Accounting, sync, inventory lifecycle and persisted data are untouched.
  */
@@ -112,12 +112,12 @@
 @keyframes rtSalesForecastIn{from{opacity:0;transform:scale(.68)}to{opacity:1;transform:scale(1)}}\
 #p-monthly svg.rt-chart-draw .rt-sales-actual-dot{transform-box:fill-box;transform-origin:center;animation:rtSalesActualIn 220ms ease-out both;animation-delay:690ms;}\
 #p-monthly svg.rt-chart-draw .rt-sales-forecast-ring,#p-monthly svg.rt-chart-draw .rt-sales-forecast-label,#p-monthly svg.rt-chart-draw .rt-sales-range-label{transform-box:fill-box;transform-origin:center;animation:rtSalesForecastIn 300ms ease-out both;animation-delay:900ms;}\
-#p-monthly .mf-fill{transform-origin:left center;will-change:width;}\
+#p-monthly .mf-fill{transform-origin:left center;will-change:transform;}\
 #p-monthly .mf-val{font-variant-numeric:tabular-nums;}\
 @media(prefers-reduced-motion:reduce){\
  #p-summary svg.rt-chart-draw .rt-chart-primary-bar,#p-summary svg.rt-chart-draw .rt-chart-actual-overlay,#p-summary svg.rt-chart-draw .rt-chart-forecast-shell,#p-summary svg.rt-chart-draw .rt-chart-refund-dot,\
  #p-monthly svg.rt-chart-draw .rt-sales-actual-dot,#p-monthly svg.rt-chart-draw .rt-sales-forecast-ring,#p-monthly svg.rt-chart-draw .rt-sales-forecast-label,#p-monthly svg.rt-chart-draw .rt-sales-range-label{animation:none!important;transform:none!important;opacity:1!important;}\
- #p-monthly .mf-fill{transition:none!important;}\
+ #p-monthly .mf-fill{transition:none!important;transform:none!important;}\
 }';
     document.head.appendChild(s);
   }
@@ -172,7 +172,7 @@
     if(!ev)return {rev:0,profit:0};
     var b=null;try{if(typeof _saleBreakdown==='function')b=_saleBreakdown(ev)||null;}catch(_){}
     if(ev.isReturnAdjustment){
-      var adj=num(ev.salePrice); // canonical return adjustments are negative revenue.
+      var adj=num(ev.salePrice);
       var pr=(b&&isFinite(Number(b.netProfit)))?num(b.netProfit):adj;
       return {rev:adj,profit:pr};
     }
@@ -441,29 +441,29 @@
     };
   }
 
-  var _moneyHost=null,_moneyPeriod=null;
-  function parseMoneyText(s){
-    s=String(s||'').replace(/,/g,'');var neg=/[−-]/.test(s),m=s.match(/\d+(?:\.\d+)?/);if(!m)return null;
-    var v=Number(m[0]);return isFinite(v)?(neg?-v:v):null;
-  }
-  function animateValue(el,targetText,delay,dur){
-    var target=parseMoneyText(targetText);if(target===null)return;
-    var decimals=(String(targetText).split('.')[1]||'').replace(/[^0-9].*$/,'').length;decimals=Math.min(2,Math.max(0,decimals));
-    setTimeout(function(){
-      var start=null;function frame(ts){if(start===null)start=ts;var t=clamp(0,(ts-start)/dur,1),e=1-Math.pow(1-t,3),v=target*e;el.textContent=money(v,decimals);if(t<1)requestAnimationFrame(frame);else el.textContent=targetText;}requestAnimationFrame(frame);
-    },delay);
-  }
+  var _moneyHost=null,_moneyPeriod=null,_moneyMotionSerial=0;
   function animateMoneyFlow(host){
     if(!host||reducedMotion())return;
-    var sequenceDelay=660,fillDur=650,stagger=58;
+    var token=++_moneyMotionSerial,fillDur=260,stagger=22;
     var fills=host.querySelectorAll('.mf-fill');
+
+    /* Values are information, not decoration: keep the final £ figures readable
+       immediately. Only the bar fill gets a short compositor transform. The old
+       version hid values at £0, waited 660ms, then animated width for 650ms,
+       causing delayed readability plus layout work on every transition frame. */
     Array.prototype.forEach.call(fills,function(fill,i){
-      var target=fill.style.width||'';if(!target)return;
-      fill.style.transition='none';fill.style.width='0%';try{void fill.getBoundingClientRect().width;}catch(_){}
-      requestAnimationFrame(function(){fill.style.transition='width '+fillDur+'ms '+EASE+' '+(sequenceDelay+i*stagger)+'ms';fill.style.width=target;});
+      fill.style.transition='none';
+      fill.style.transform='scaleX(.04)';
+      fill.style.opacity='.72';
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          if(token!==_moneyMotionSerial||!fill.isConnected)return;
+          fill.style.transition='transform '+fillDur+'ms '+EASE+' '+(i*stagger)+'ms,opacity 150ms ease-out '+(i*stagger)+'ms';
+          fill.style.transform='scaleX(1)';
+          fill.style.opacity='1';
+        });
+      });
     });
-    var vals=host.querySelectorAll('.mf-val');
-    Array.prototype.forEach.call(vals,function(el,i){var target=el.textContent;el.textContent=money(0,(target.indexOf('.')>=0?2:0));animateValue(el,target,sequenceDelay+i*stagger,fillDur);});
   }
   if(typeof renderMonthlyMoneyFlow==='function'){
     var _renderMoneyBeforeMotion=renderMonthlyMoneyFlow;
@@ -474,4 +474,6 @@
       _moneyHost=host;_moneyPeriod=key;if(should)animateMoneyFlow(host);return ret;
     };
   }
+
+  window.__RT_CHART_MOTION_BUILD='20260907-chart-motion-13';
 })();
