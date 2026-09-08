@@ -5,6 +5,7 @@
  * hit-testing immediately; workflow-qol.js owns fast editing shortcuts;
  * chart-polish.js, chart-motion.js, chart-finalize.js, chart-reveal.js,
  * chart-line-motion.js and motion-system.js own presentation motion;
+ * fab-system.js keeps the application FAB persistent with universal fallbacks;
  * dashboard-details.js owns exact Command Centre drill-down semantics;
  * stock-detail-profit.js keeps sourced-stock panel estimates financially coherent.
  */
@@ -28,6 +29,7 @@
     reveal:'79ff92a2',
     line:'fc7cee33',
     motion:'a79d0af1',
+    fab:'56689423',
     dashboard:'4539b2fb',
     stockDetail:'62301cdf'
   };
@@ -56,6 +58,7 @@
     ['./chart-reveal.js',V.reveal,'low'],
     ['./chart-line-motion.js',V.line,'low'],
     ['./motion-system.js',V.motion,'low'],
+    ['./fab-system.js',V.fab,'auto'],
     ['./dashboard-details.js',V.dashboard,'auto'],
     ['./stock-detail-profit.js',V.stockDetail,'auto']
   ];
