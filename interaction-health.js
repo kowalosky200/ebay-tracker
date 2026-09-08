@@ -1,8 +1,9 @@
 /* RETRADE interaction hit-test health.
  *
  * A closing surface stops owning input IMMEDIATELY. Its visual fade/slide may
- * finish afterwards, but it must never keep the underlying page inert or keep a
- * transparent full-screen backdrop in the hit-test path while iOS is busy.
+ * finish afterwards, but it must never keep the underlying page inert, leave a
+ * transparent full-screen backdrop in the hit-test path, or strand the body in
+ * the iOS fixed-position scroll lock after the surface is gone.
  *
  * This is deliberately UI-only: no data, accounting, lifecycle or sync rules.
  */
@@ -10,7 +11,7 @@
   'use strict';
 
   if(window.__RT_INTERACTION_HEALTH)return;
-  var BUILD='20260907-interaction-health-3';
+  var BUILD='20260908-interaction-health-4';
   var repairs=0;
   var healing=false;
 
@@ -72,6 +73,85 @@
     return closeHitTesting(byId(id),false);
   }
 
+  /* app-core freezes body scrolling by reference count. That is correct for a
+     legitimate nested stack (panel -> confirm / panel -> sold modal), but a lost
+     close callback leaves _scrollLockCount > 0 forever and iOS then has a page
+     that cannot even scroll. Reconcile the count against the tiny set of surfaces
+     that ACTUALLY call lockBodyScroll(). This runs only at surface lifecycle edges,
+     never on ordinary taps or animation frames. */
+  function semanticScrollLockCount(){
+    var n=0;
+    var panel=byId('slide-panel');
+    if(panel&&panel.classList.contains('on'))n++;
+
+    var confirm=byId('confirm-modal');
+    if(confirm&&confirm.classList.contains('open'))n++;
+
+    ['sold-modal','resale-modal'].forEach(function(id){
+      var modal=byId(id);
+      if(!modal)return;
+      if(modal.style.display&&modal.style.display!=='none'&&modal.getAttribute('aria-hidden')!=='true')n++;
+    });
+
+    var cats=byId('all-cats-modal');
+    if(cats&&cats.getAttribute('aria-hidden')!=='true'&&cats.style.pointerEvents!=='none')n++;
+    return n;
+  }
+
+  function bodyIsFrozen(){
+    var b=document.body;
+    return !!(b&&(b.style.position==='fixed'||b.style.overflow==='hidden'));
+  }
+
+  function freezeBodyAt(y){
+    var b=document.body;if(!b)return;
+    b.style.position='fixed';
+    b.style.top=(-y)+'px';
+    b.style.left='0';
+    b.style.right='0';
+    b.style.width='100%';
+    b.style.overflow='hidden';
+  }
+
+  function thawBody(y){
+    var b=document.body;if(!b)return;
+    b.style.position='';
+    b.style.top='';
+    b.style.left='';
+    b.style.right='';
+    b.style.width='';
+    b.style.overflow='';
+    try{window.scrollTo(0,Math.max(0,Number(y)||0));}catch(e){}
+  }
+
+  function reconcileScrollLocks(){
+    var desired=semanticScrollLockCount();
+    try{
+      var actual=(typeof _scrollLockCount!=='undefined')?Math.max(0,Number(_scrollLockCount)||0):null;
+      var savedY=(typeof _scrollLockY!=='undefined')?Math.max(0,Number(_scrollLockY)||0):(window.pageYOffset||0);
+
+      if(actual!==null&&actual!==desired){
+        _scrollLockCount=desired;
+        repairs++;
+      }
+
+      if(desired===0){
+        if(bodyIsFrozen()){
+          thawBody(savedY);
+          repairs++;
+        }
+      }else if(!bodyIsFrozen()){
+        /* A real locking surface is open but the body escaped its lock. Repair in
+           the safe direction too so the background cannot scroll through a modal. */
+        var now=window.pageYOffset||document.documentElement.scrollTop||0;
+        try{if(typeof _scrollLockY!=='undefined')_scrollLockY=now;}catch(e2){}
+        freezeBodyAt(now);
+        repairs++;
+      }
+    }catch(e){console.warn('[RETRADE] scroll-lock reconcile failed',e);}
+    return desired;
+  }
+
   function healLoadingLock(){
     try{
       if(document.body.classList.contains('rt-data-loading-active') &&
@@ -118,6 +198,7 @@
       var panelOverlay=byId('panel-overlay');
       if(panel&&panelOverlay&&!panel.classList.contains('on')&&panelOverlay.classList.contains('on')){
         panelOverlay.classList.remove('on');
+        panelOverlay.style.pointerEvents='none';
         repairs++;
       }
 
@@ -126,6 +207,7 @@
       var catsPanel=byId('all-cats-panel');
       if(catsPanel&&cats&&cats.getAttribute('aria-hidden')==='true')closeHitTesting(catsPanel,false);
 
+      reconcileScrollLocks();
       healLoadingLock();
     }finally{
       healing=false;
@@ -143,10 +225,9 @@
     window[name]=wrapped;
   }
 
-  /* The More sheet was the primary intermittent-dead-page path. Core keeps the
-     sheet display:block for its close animation. Surface ownership used that
-     visual presence as "still open", which kept .page.on inert. Semantic close
-     now ends ownership synchronously; the slide animation is free to finish later. */
+  /* The More sheet was the first intermittent-dead-page path. Core keeps the
+     sheet display:block for its close animation. Semantic close ends ownership
+     synchronously; the slide animation is free to finish later. */
   wrap('closeMoreSheet',function(base){
     return function(){
       var out=base.apply(this,arguments);
@@ -167,7 +248,9 @@
   });
 
   /* The categories drawer has the same visual-close pattern: opacity/transform
-     first, DOM removal later. Remove it from hit-testing/ownership first. */
+     first, DOM removal later. Remove it from hit-testing/ownership first. The
+     core delayed unlock is retained here because a panel can legitimately sit
+     underneath it; the lifecycle heal catches browser-interrupted callbacks. */
   wrap('closeAllCategoriesModal',function(base){
     return function(){
       var overlay=byId('all-cats-modal');
@@ -183,22 +266,22 @@
     };
   });
 
-  /* Static modal/panel close functions usually update their state correctly,
-     but restore ownership in the same task rather than waiting a frame. */
-  ['closePanel','closeModal','resolveConfirm'].forEach(function(name){
+  /* These closes have synchronous lock/unlock semantics. Immediately reconcile
+     the reference counter against visible surfaces so one historical missing
+     unlock cannot poison the next popup -> page transition. */
+  ['closePanel','closeModal','resolveConfirm','_closeSaleModal'].forEach(function(name){
     wrap(name,function(base){
       return function(){
         var out=base.apply(this,arguments);
+        reconcileScrollLocks();
         ownershipReconcile();
         return out;
       };
     });
   });
 
-  /* Recovery is intentionally OUT of the normal gesture path. A page/nav tap
-     must go straight to its own handler with no document-wide DOM queries first.
-     The actual close functions above prevent stale ownership at source; these
-     lifecycle edges are only a fallback for browser suspension/interruption. */
+  /* Recovery stays OUT of the normal gesture path. Page/nav taps go straight to
+     their own handler; lifecycle edges are only a fallback for Safari suspension. */
   window.addEventListener('pageshow',heal);
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')heal();});
   if('onscrollend' in window)window.addEventListener('scrollend',heal,{passive:true});
@@ -208,15 +291,21 @@
   window.__RT_INTERACTION_HEALTH={
     build:BUILD,
     heal:heal,
+    reconcileScrollLocks:reconcileScrollLocks,
     repairs:function(){return repairs;},
     snapshot:function(){
       var page=document.querySelector('.page.on');
+      var lockCount=null;
+      try{lockCount=(typeof _scrollLockCount!=='undefined')?_scrollLockCount:null;}catch(e){}
       return {
         owner:window.__RT_SURFACE_OWNERSHIP&&window.__RT_SURFACE_OWNERSHIP.active?window.__RT_SURFACE_OWNERSHIP.active():null,
         suspended:window.__RT_SURFACE_OWNERSHIP&&window.__RT_SURFACE_OWNERSHIP.suspended?window.__RT_SURFACE_OWNERSHIP.suspended():[],
         page:page?page.id:null,
         pageInert:!!(page&&page.inert),
         moreOpen:moreSheetIsOpen(),
+        scrollLockCount:lockCount,
+        expectedScrollLocks:semanticScrollLockCount(),
+        bodyFrozen:bodyIsFrozen(),
         repairs:repairs
       };
     }
