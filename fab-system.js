@@ -11,7 +11,7 @@
   'use strict';
 
   if(window.__RT_FAB_SYSTEM)return;
-  var BUILD='20260908-fab-system-2';
+  var BUILD='20260908-fab-system-3';
   var repairing=false;
 
   var nativeOptions=(typeof _fabOptionsForPage==='function')?_fabOptionsForPage:null;
@@ -71,9 +71,9 @@
     try{
       var nav=document.getElementById('bottom-nav');
       if(nav){
-        /* nav-hidden was the old scroll-away mechanism. Removing it means page
-           switches and scroll restoration cannot move the shell off screen. */
-        nav.classList.remove('nav-hidden');
+        /* Do not fight the legacy scroll handler by repeatedly removing its
+           nav-hidden state. CSS below makes that state visually inert, so active
+           scrolling stays free of MutationObserver/classList ping-pong. */
         if(nav.style.visibility==='hidden')nav.style.visibility='';
         if(nav.style.opacity==='0')nav.style.opacity='';
         nav.removeAttribute('aria-hidden');
@@ -120,17 +120,17 @@
   keepShellVisible();
   requestAnimationFrame(keepShellVisible);
 
-  /* Watch only the three shell elements. If legacy scroll/nav code adds a hidden
-     class/style, remove it in the same microtask before the browser paints. No
-     page-tree observer and no work on normal taps/scroll frames. */
-  function watch(el){
+  /* Observe only direct presentation mutations on the persistent controls. Do
+     not observe bottom-nav class changes: scroll code may toggle nav-hidden and
+     the CSS override already makes that zero-cost visually. */
+  function watch(el,attrs){
     if(!el)return;
     var obs=new MutationObserver(function(){keepShellVisible();});
-    obs.observe(el,{attributes:true,attributeFilter:['class','style','aria-hidden']});
+    obs.observe(el,{attributes:true,attributeFilter:attrs});
   }
-  watch(document.getElementById('bottom-nav'));
-  watch(document.getElementById('fab-dial'));
-  watch(document.getElementById('search-fab'));
+  watch(document.getElementById('bottom-nav'),['style','aria-hidden']);
+  watch(document.getElementById('fab-dial'),['class','style','aria-hidden']);
+  watch(document.getElementById('search-fab'),['class','style','aria-hidden']);
 
   window.addEventListener('pageshow',keepShellVisible);
   document.addEventListener('visibilitychange',function(){
