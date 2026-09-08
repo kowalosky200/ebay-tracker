@@ -1,17 +1,18 @@
 /* RETRADE app entrypoint.
  * The production bundle is kept intact in app-core.js; workflow-system.js owns
- * navigation/input coherence; surface-ownership.js arbitrates active dialogs,
- * panels and pages; interaction-health.js ensures closed visual layers release
- * hit-testing and body scroll immediately; workflow-qol.js owns fast editing;
- * listing-flow.js owns list-form copy + popup->listing transition coherence;
- * chart-polish.js, chart-motion.js, chart-finalize.js, chart-reveal.js,
- * chart-line-motion.js and motion-system.js own presentation motion;
- * fab-system.js keeps the bottom action shell mounted across routes while
- * retaining the intentional mobile collapse on genuine downward scrolling;
- * sales-undo.js exposes the existing safe lifecycle/activity undo from Sales
- * selection mode and item action menus;
- * dashboard-details.js owns exact Command Centre drill-down semantics;
- * stock-detail-profit.js keeps sourced-stock panel estimates financially coherent.
+ * navigation/input coherence; launch-route.js makes every cold document launch
+ * on Home without affecting subsequent user navigation; surface-ownership.js
+ * arbitrates active dialogs, panels and pages; interaction-health.js ensures
+ * closed visual layers release hit-testing and body scroll immediately;
+ * workflow-qol.js owns fast editing; listing-flow.js owns list-form copy +
+ * popup->listing transition coherence; chart-polish.js, chart-motion.js,
+ * chart-finalize.js, chart-reveal.js, chart-line-motion.js and motion-system.js
+ * own presentation motion; fab-system.js keeps the bottom action shell mounted
+ * across routes while retaining the intentional mobile collapse on genuine
+ * downward scrolling; sales-undo.js exposes the existing safe lifecycle/activity
+ * undo from Sales selection mode and item action menus; dashboard-details.js owns
+ * exact Command Centre drill-down semantics; stock-detail-profit.js keeps sourced-
+ * stock panel estimates financially coherent.
  */
 (function(){
   'use strict';
@@ -24,6 +25,7 @@
   var V={
     core:'afff7100',
     workflow:'6cb382ef',
+    launch:'34cd5b6c',
     surface:'f31a3e3c',
     interaction:'984c3f20',
     qol:'7c923b17',
@@ -32,7 +34,7 @@
     chartMotion:'d27d650a',
     finalize:'b7f72066',
     reveal:'79ff92a2',
-    line:'fc7cee33',
+    line:'2a8eded9',
     motion:'a79d0af1',
     fab:'ea658b4b',
     salesUndo:'a4911fd7',
@@ -55,6 +57,7 @@
   var scripts=[
     ['./app-core.js',V.core,'high'],
     ['./workflow-system.js',V.workflow,'auto'],
+    ['./launch-route.js',V.launch,'auto'],
     ['./surface-ownership.js',V.surface,'auto'],
     ['./interaction-health.js',V.interaction,'auto'],
     ['./workflow-qol.js',V.qol,'auto'],
