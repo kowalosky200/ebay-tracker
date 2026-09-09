@@ -5,12 +5,13 @@
  * cashflow-liabilities.js adds the free-cash liability view, and
  * performance-system.js owns query memoization + compact navigation behaviour.
  * sales-defaults.js keeps Monthly as the safe Sales landing route after reload/idle.
+ * partner-item-navigation.js makes Partner item rows direct full-page navigation.
  * launch-experience.js coordinates the cold-start / wake presentation.
  * Chart/motion refinements stay isolated presentation layers.
  */
 (function(){
   'use strict';
-  var v='20260909-v1459';
+  var v='20260909-v1460';
 
   /* Arm cold-start styling synchronously, before any child bundle can paint.
      launch-experience.js releases this once the real-layout boot handoff is done. */
@@ -47,6 +48,7 @@
     './cashflow-liabilities.js',
     './performance-system.js',
     './sales-defaults.js',
+    './partner-item-navigation.js',
     './chart-polish.js',
     './chart-motion.js',
     './chart-finalize.js',
@@ -63,7 +65,7 @@
     s.async=false;
     /* The coordinator and core define startup behaviour; later presentation
        layers are deliberately lower priority than the first useful interface. */
-    try{s.fetchPriority=index<2?'high':(index<8?'auto':'low');}catch(_){}
+    try{s.fetchPriority=index<2?'high':(index<9?'auto':'low');}catch(_){}
     s.onerror=function(){
       console.error('[RETRADE] startup script failed:',src);
       if(src==='./launch-experience.js')document.documentElement.classList.remove('rt-app-cold');
