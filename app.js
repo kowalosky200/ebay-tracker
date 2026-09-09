@@ -8,7 +8,7 @@
  */
 (function(){
   'use strict';
-  var v='20260909-v1456';
+  var v='20260909-v1457';
 
   /* First-paint motion pre-arm. The Sales SVG can be rendered by app-core before
      the refinement layer is loaded; keeping it transparent until that layer has
@@ -34,6 +34,7 @@
     writeScript('./chart-motion.js?v='+v);
     writeScript('./chart-finalize.js?v='+v);
     writeScript('./chart-reveal.js?v='+v);
+    writeScript('./sales-forecast-gate.js?v='+v);
     writeScript('./chart-line-motion.js?v='+v);
     writeScript('./chart-forecast-sequence.js?v='+v);
     writeScript('./motion-system.js?v='+v);
@@ -51,8 +52,10 @@
                 append('./chart-motion.js',function(){
                   append('./chart-finalize.js',function(){
                     append('./chart-reveal.js',function(){
-                      append('./chart-line-motion.js',function(){
-                        append('./chart-forecast-sequence.js',function(){append('./motion-system.js');});
+                      append('./sales-forecast-gate.js',function(){
+                        append('./chart-line-motion.js',function(){
+                          append('./chart-forecast-sequence.js',function(){append('./motion-system.js');});
+                        });
                       });
                     });
                   });
