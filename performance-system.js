@@ -1,11 +1,13 @@
-/* RETRADE performance + Sales navigation pass v1.4.55
+/* RETRADE performance + navigation pass v1.4.56
  *
- * Focused runtime fixes found during the chart/performance audit:
- * - memoize repeated sales-event range queries inside a render cycle/session
+ * Runtime responsibilities:
+ * - memoize repeated sales-event range/month queries inside a short render window
  * - invalidate memoized analytics whenever local/cloud data refreshes
- * - keep the Sales Yearly/Monthly sub-view stable across navigation/reloads
- * - make Yearly vs Monthly explicit with one compact segmented control
- * - add compact day/order separators to the date-sorted monthly sales list
+ * - remember the last Sales Yearly/Monthly sub-view
+ * - use the Sales nav button itself as the Yearly/Monthly toggle when already there
+ * - make every explicit Stock-nav click open Listed stock
+ * - keep compact day/order separators on date-sorted monthly Sales
+ * - tighten small-page language (Stock, Log past, Start new)
  *
  * No accounting maths, lifecycle rules, sync writes or Supabase schema changes.
  */
@@ -52,9 +54,6 @@
     }
   }catch(_){}
 
-  /* Local writes are the strongest invalidation signal. Cloud/sync refreshes
-     also pass through refreshActivePage, so stale analytics do not survive a
-     real data handoff. The short TTL is only a final safety net. */
   try{
     if(typeof saveDB==='function'){
       var nativeSaveDB=saveDB;
@@ -67,7 +66,10 @@
   }catch(_){}
 
   var SALES_STATE_KEY='rt-sales-route-v1';
+  function currentView(){try{return MONTHLY_VIEW==='detail'?'detail':'grid';}catch(_){return 'grid';}}
+  function activePageId(){var p=document.querySelector('.page.on');return p?p.id:'';}
   function safeCurrentMonth(){try{return typeof currentMonthKey==='function'?currentMonthKey():'';}catch(_){return '';}}
+  function bumpSalesMotion(){window.__rtSalesMotionReplayToken=(window.__rtSalesMotionReplayToken||0)+1;}
   function salesState(){
     var out={};
     try{out.view=MONTHLY_VIEW;}catch(_){}
@@ -77,9 +79,7 @@
     try{out.period=MONTHLY_PERIOD;}catch(_){}
     return out;
   }
-  function persistSalesState(){
-    try{localStorage.setItem(SALES_STATE_KEY,JSON.stringify(salesState()));}catch(_){}
-  }
+  function persistSalesState(){try{localStorage.setItem(SALES_STATE_KEY,JSON.stringify(salesState()));}catch(_){} }
   function restoreSalesState(){
     var s=null;try{s=JSON.parse(localStorage.getItem(SALES_STATE_KEY)||'null');}catch(_){}
     if(!s||typeof s!=='object')return false;
@@ -92,72 +92,121 @@
   }
   var restoredSalesState=restoreSalesState();
 
-  /* The production nav used to deliberately reset Sales to the current-month
-     detail route on every tab click. That is why a remembered Yearly/Monthly
-     view could appear to fight with navigation. Preserve the current sub-route
-     instead; explicit month/calendar actions still set their own context. */
+  function removeOldSalesSwitcher(){
+    var old=document.querySelector('#p-monthly .rt-sales-mode-switch');if(old)old.remove();
+  }
+
+  function setTextLeaf(el,text){
+    if(!el)return;
+    var spans=Array.prototype.slice.call(el.querySelectorAll('span')).filter(function(s){return String(s.textContent||'').trim().length>0;});
+    if(spans.length){spans[spans.length-1].textContent=text;return;}
+    el.textContent=text;
+  }
+  function polishStockUI(){
+    Array.prototype.forEach.call(document.querySelectorAll('[data-tab="stock"] .side-nav-item-label'),function(el){
+      if(String(el.textContent||'').trim()==='Inventory')el.textContent='Stock';
+    });
+    var page=document.getElementById('p-stock');if(!page)return;
+    var candidates=page.querySelectorAll('h1,h2,h3,[class*="page-title"],[class*="section-title"],[class*="heading"]');
+    var changed=false;
+    Array.prototype.some.call(candidates,function(el){
+      if(String(el.textContent||'').trim()==='Inventory'){el.textContent='Stock';changed=true;return true;}return false;
+    });
+    if(changed)return;
+    /* Fallback for the compact mobile header, whose title is currently a plain
+       div rather than a semantic heading. Do not touch buttons/filter labels. */
+    var all=page.querySelectorAll('div,span,strong');
+    Array.prototype.some.call(all,function(el){
+      if(el.closest('button,[role="button"],select,option'))return false;
+      if(String(el.textContent||'').trim()==='Inventory'&&el.children.length===0){el.textContent='Stock';return true;}
+      return false;
+    });
+  }
+  function polishRunsUI(){
+    var page=document.getElementById('p-runs');if(!page)return;
+    Array.prototype.forEach.call(page.querySelectorAll('button'),function(btn){
+      var txt=String(btn.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+      if(/^log past\b/.test(txt))setTextLeaf(btn,'Log past');
+      else if(/^start new\b/.test(txt))setTextLeaf(btn,'Start new');
+    });
+  }
+  function polishCurrentPage(){polishStockUI();polishRunsUI();removeOldSalesSwitcher();}
+
+  /* Sales-nav behaviour:
+     - from another page: return to the remembered Sales sub-view
+     - while already on Sales: the next Sales tap toggles Yearly <-> Monthly
+     Contextual month routing (calendar/month links) remains authoritative. */
   try{
     if(typeof goToTab==='function'){
       var nativeGoToTab=goToTab;
       goToTab=function(name,sourceEl){
+        if(name==='stock'){
+          try{STOCK_FILTER='listed';}catch(_){}
+          var stockOut=nativeGoToTab.apply(this,arguments);
+          try{if(typeof _saveUIState==='function')_saveUIState();}catch(_){}
+          requestAnimationFrame(polishStockUI);
+          return stockOut;
+        }
+        if(name==='runs'){
+          var runsOut=nativeGoToTab.apply(this,arguments);
+          requestAnimationFrame(polishRunsUI);
+          return runsOut;
+        }
         if(name!=='monthly')return nativeGoToTab.apply(this,arguments);
+
         var contextual=false;try{contextual=!!_monthOpenFromContext;}catch(_){}
         if(contextual)return nativeGoToTab.apply(this,arguments);
+
+        var alreadySales=activePageId()==='p-monthly';
+        if(alreadySales){
+          try{MONTHLY_VIEW=currentView()==='grid'?'detail':'grid';}catch(_){}
+          if(currentView()==='detail'){
+            try{if(!SELECTED_MONTH)SELECTED_MONTH=safeCurrentMonth();}catch(_){}
+          }
+        }
+        if(currentView()==='grid')bumpSalesMotion();
+
         var prior=false;try{prior=_monthOpenFromContext;_monthOpenFromContext=true;}catch(_){}
         try{return nativeGoToTab.apply(this,arguments);}
-        finally{try{_monthOpenFromContext=prior;}catch(_){}persistSalesState();}
+        finally{
+          try{_monthOpenFromContext=prior;}catch(_){}
+          persistSalesState();
+          requestAnimationFrame(removeOldSalesSwitcher);
+        }
       };
     }
   }catch(_){}
 
   function installStyles(){
-    if(document.getElementById('rt-performance-system-css'))return;
+    var old=document.getElementById('rt-performance-system-css');if(old)old.remove();
     var s=document.createElement('style');s.id='rt-performance-system-css';
     s.textContent='\
-#p-monthly .rt-sales-mode-switch{display:flex;align-items:center;width:max-content;max-width:100%;gap:2px;padding:3px;margin:0 0 11px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface2);box-shadow:0 1px 0 rgba(0,0,0,.03)}\
-#p-monthly .rt-sales-mode-btn{appearance:none;border:0;background:transparent;color:var(--text-secondary);font:inherit;font-size:11.5px;font-weight:720;line-height:1;padding:7px 13px;border-radius:7px;cursor:pointer;transition:background-color 140ms ease-out,color 140ms ease-out,box-shadow 140ms ease-out}\
-#p-monthly .rt-sales-mode-btn.on{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}\
-#p-monthly .rt-sales-mode-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}\
+#p-monthly .rt-sales-mode-switch{display:none!important}\
 #month-list .rt-sales-day{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:27px;padding:5px 13px 4px;border-top:1px solid color-mix(in srgb,var(--border) 82%,transparent);border-bottom:1px solid color-mix(in srgb,var(--border) 62%,transparent);background:color-mix(in srgb,var(--surface2) 88%,var(--bg));color:var(--text-secondary);font-size:10.5px;line-height:1.2;font-weight:730;letter-spacing:.015em}\
 #month-list .rt-sales-day:first-child{border-top:0}\
 #month-list .rt-sales-day-count{color:var(--muted);font-size:9.8px;font-weight:650;white-space:nowrap}\
-@media(max-width:639px){#p-monthly .rt-sales-mode-switch{margin-bottom:9px}#p-monthly .rt-sales-mode-btn{padding:7px 12px;font-size:11px}#month-list .rt-sales-day{padding-left:11px;padding-right:11px}}\
-@media(prefers-reduced-motion:reduce){#p-monthly .rt-sales-mode-btn{transition:none}}';
+@media(max-width:639px){#month-list .rt-sales-day{padding-left:11px;padding-right:11px}}';
     document.head.appendChild(s);
   }
   installStyles();
 
-  function currentView(){try{return MONTHLY_VIEW==='detail'?'detail':'grid';}catch(_){return 'grid';}}
-  function ensureSalesSwitcher(){
-    var page=document.getElementById('p-monthly');if(!page)return;
-    var old=page.querySelector('.rt-sales-mode-switch');if(old)old.remove();
-    var v=currentView(),wrap=document.createElement('div');wrap.className='rt-sales-mode-switch';wrap.setAttribute('role','tablist');wrap.setAttribute('aria-label','Sales view');
-    wrap.innerHTML='<button class="rt-sales-mode-btn '+(v==='grid'?'on':'')+'" type="button" role="tab" aria-selected="'+(v==='grid'?'true':'false')+'" onclick="rtSetSalesView(\'grid\')">Yearly</button><button class="rt-sales-mode-btn '+(v==='detail'?'on':'')+'" type="button" role="tab" aria-selected="'+(v==='detail'?'true':'false')+'" onclick="rtSetSalesView(\'detail\')">Monthly</button>';
-    page.insertBefore(wrap,page.firstChild);
-  }
-
-  window.rtSetSalesView=function(view){
-    view=view==='detail'?'detail':'grid';
-    try{MONTHLY_VIEW=view;}catch(_){}
-    if(view==='detail'){
-      try{if(!SELECTED_MONTH)SELECTED_MONTH=safeCurrentMonth();}catch(_){}
-    }
-    persistSalesState();
-    try{if(typeof _saveUIState==='function')_saveUIState();}catch(_){}
-    try{
-      if(view==='grid'&&typeof renderMonthlyGrid==='function')return renderMonthlyGrid();
-      if(view==='detail'&&typeof renderMonth==='function')return renderMonth();
-    }catch(_){}
-  };
-
+  /* Keep route state current without adding another visible control to Sales. */
   try{
     if(typeof renderMonth==='function'){
       var nativeRenderMonth=renderMonth;
-      renderMonth=function(){var out=nativeRenderMonth.apply(this,arguments);persistSalesState();ensureSalesSwitcher();return out;};
+      renderMonth=function(){var out=nativeRenderMonth.apply(this,arguments);persistSalesState();removeOldSalesSwitcher();return out;};
     }
     if(typeof renderMonthlyGrid==='function'){
       var nativeRenderMonthlyGrid=renderMonthlyGrid;
-      renderMonthlyGrid=function(){var out=nativeRenderMonthlyGrid.apply(this,arguments);persistSalesState();ensureSalesSwitcher();return out;};
+      renderMonthlyGrid=function(){var out=nativeRenderMonthlyGrid.apply(this,arguments);persistSalesState();removeOldSalesSwitcher();return out;};
+    }
+    if(typeof renderStock==='function'){
+      var nativeRenderStock=renderStock;
+      renderStock=function(){var out=nativeRenderStock.apply(this,arguments);polishStockUI();return out;};
+    }
+    if(typeof renderRuns==='function'){
+      var nativeRenderRuns=renderRuns;
+      renderRuns=function(){var out=nativeRenderRuns.apply(this,arguments);polishRunsUI();return out;};
     }
   }catch(_){}
 
@@ -182,8 +231,6 @@
     return '<div class="rt-sales-day" data-date="'+String(ds||'')+'"><span>'+formatDay(ds)+'</span><span class="rt-sales-day-count">'+n+' order'+(n===1?'':'s')+'</span></div>';
   }
 
-  /* Date-sold is the browsing workflow. Split only into consecutive day groups,
-     preserving the existing event order and bundle grouping exactly. */
   try{
     if(typeof _renderMonthList==='function'){
       var nativeRenderMonthList=_renderMonthList;
@@ -201,12 +248,9 @@
     }
   }catch(_){}
 
-  /* If app-core already painted the Sales page before this late optimisation
-     layer loaded, correct the remembered sub-view once before chart motion starts. */
   try{
     var active=document.querySelector('.page.on');
-    if(restoredSalesState&&active&&active.id==='p-monthly'&&typeof renderMonthlyPage==='function'){
-      renderMonthlyPage();
-    }else if(active&&active.id==='p-monthly')ensureSalesSwitcher();
+    if(restoredSalesState&&active&&active.id==='p-monthly'&&typeof renderMonthlyPage==='function')renderMonthlyPage();
+    polishCurrentPage();
   }catch(_){}
 })();

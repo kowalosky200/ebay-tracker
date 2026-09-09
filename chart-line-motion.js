@@ -1,13 +1,12 @@
-/* RETRADE yearly Sales line-motion refinement v1.4.55
+/* RETRADE yearly Sales line-motion refinement v1.4.56
  * Loaded after chart-reveal.js.
  *
  * One animation owner for the Yearly Sales line:
- * - wait briefly for first-layout/data handoff, then play once
  * - historical lines travel month-by-month with a calm stop-to-stop cadence
- * - after the last actual month, the forecast continuation reveals dash-by-dash
+ * - forecast geometry is physically hidden until history is complete
+ * - the final current-month projection then reveals dash-by-dash
  * - Revenue + Profit forecast continuations advance together
- * - incidental re-renders inherit the current timeline instead of replaying
- * - avoid repeated SVG geometry reads inside animation frames
+ * - deliberate Yearly re-entry can replay; incidental data re-renders do not
  *
  * No accounting, forecast maths, sync or persisted data is touched.
  */
@@ -22,11 +21,11 @@
   var SEGMENT_MS=205;
   var HISTORY_MIN=1050;
   var HISTORY_MAX=2300;
-  var FORECAST_GAP=120;
-  var FORECAST_STEP_MS=82;
-  var FORECAST_MIN=700;
-  var FORECAST_MAX=1500;
-  var RING_GAP=70;
+  var FORECAST_GAP=135;
+  var FORECAST_STEP_MS=100;
+  var FORECAST_MIN=900;
+  var FORECAST_MAX=1700;
+  var RING_GAP=80;
   var RING_MS=230;
   var activeSession=null;
   var maskSerial=0;
@@ -54,12 +53,13 @@
     try{if(typeof MONTHLY_PERIOD!=='undefined')key=String(MONTHLY_PERIOD||'');}catch(_){}
     var sel=document.querySelector('#p-monthly select.period-select-inline,#p-monthly select');
     if(sel){try{key+='|'+String(sel.value||'')+'|'+String(sel.options[sel.selectedIndex].text||'');}catch(_){} }
+    key+='|replay:'+String(window.__rtSalesMotionReplayToken||0);
     return key||'sales-default';
   }
 
   function installStyles(){
-    ['rt-line-motion-v1446','rt-line-motion-v1447','rt-line-motion-v1448','rt-line-motion-v1451','rt-line-motion-v1455'].forEach(function(id){var old=document.getElementById(id);if(old)old.remove();});
-    var s=document.createElement('style');s.id='rt-line-motion-v1455';
+    ['rt-line-motion-v1446','rt-line-motion-v1447','rt-line-motion-v1448','rt-line-motion-v1451','rt-line-motion-v1455','rt-line-motion-v1456'].forEach(function(id){var old=document.getElementById(id);if(old)old.remove();});
+    var s=document.createElement('style');s.id='rt-line-motion-v1456';
     s.textContent='\
 #p-monthly svg.rt-refined-sales-motion path.rt-refined-history-line,\
 #p-monthly svg.rt-refined-sales-motion path.rt-refined-forecast-line{animation:none!important;}\
@@ -92,6 +92,11 @@
   }
   function isDashed(path){
     var d=dashValue(path);return !!(d&&d!=='none'&&d!=='0px'&&d!=='0'&&!/^none$/i.test(d));
+  }
+  function isForecastPath(path){
+    if(!path)return false;
+    var cls=String(path.getAttribute('class')||'');
+    return isDashed(path)||/forecast|projection|partial/i.test(cls);
   }
   function isSeriesPath(path){
     if(!path||path.closest('defs'))return false;
@@ -135,6 +140,11 @@
     var len=pathLength(path);if(len<=14)return null;
     path.classList.add('rt-refined-forecast-line');
     try{path.getAnimations().forEach(function(a){a.cancel();});}catch(_){}
+    /* Do not rely on a zero-width mask alone for the pre-forecast phase. Some
+       WebKit/SVG combinations can still paint the original dashed stroke for a
+       frame. Visibility is the hard gate; it opens only when forecast motion starts. */
+    path.style.visibility='hidden';
+    path.style.opacity='0';
     var defs=ensureDefs(svg),mask=document.createElementNS(NS,'mask');
     var id='rt-sales-forecast-mask-'+Date.now()+'-'+(++maskSerial),vb=svg.viewBox&&svg.viewBox.baseVal;
     var W=vb&&vb.width?vb.width:num(svg.getAttribute('width'))||800,H=vb&&vb.height?vb.height:num(svg.getAttribute('height'))||320;
@@ -146,11 +156,12 @@
     wipe.style.strokeDasharray=len.toFixed(2)+'px '+len.toFixed(2)+'px';wipe.style.strokeDashoffset=len.toFixed(2)+'px';
     mask.appendChild(wipe);defs.appendChild(mask);path.setAttribute('mask','url(#'+id+')');
     var steps=Math.max(5,Math.min(30,Math.round(len/dashCycle(path))));
-    return {path:path,wipe:wipe,mask:mask,len:len,steps:steps,lastStep:-1,finished:false};
+    return {path:path,wipe:wipe,mask:mask,len:len,steps:steps,lastStep:-1,finished:false,opened:false};
   }
   function finishForecast(st){
     if(!st||st.finished)return;st.finished=true;
-    if(st.path&&st.path.isConnected)st.path.removeAttribute('mask');if(st.mask&&st.mask.isConnected)st.mask.remove();
+    if(st.path&&st.path.isConnected){st.path.style.removeProperty('visibility');st.path.style.removeProperty('opacity');st.path.removeAttribute('mask');}
+    if(st.mask&&st.mask.isConnected)st.mask.remove();
   }
 
   function preparePoints(svg){
@@ -185,6 +196,7 @@
   function settleFreshMarkup(svg){
     if(!svg)return;clearPriorMasks(svg);svg.classList.remove('rt-chart-draw');svg.classList.add('rt-refined-sales-motion','rt-motion-ready');
     Array.prototype.forEach.call(svg.querySelectorAll('path.rt-refined-history-line'),function(p){p.style.removeProperty('stroke-dasharray');p.style.removeProperty('stroke-dashoffset');});
+    Array.prototype.forEach.call(svg.querySelectorAll('path.rt-refined-forecast-line'),function(p){p.style.removeProperty('visibility');p.style.removeProperty('opacity');});
     Array.prototype.forEach.call(svg.querySelectorAll('.rt-sales-forecast-ring,circle.rt-refined-series-point'),function(el){el.style.removeProperty('opacity');el.style.removeProperty('transform');});
   }
 
@@ -204,7 +216,7 @@
       var reduced={session:session,history:[],forecast:[],points:[],rings:[],stages:[0,1]};svg.__rtRefinedSalesState=reduced;session.completed=true;settleFreshMarkup(svg);return reduced;
     }
     var paths=Array.prototype.slice.call(svg.querySelectorAll('path')).filter(isSeriesPath),history=[],forecast=[];
-    paths.forEach(function(p){var dashed=isDashed(p),st=dashed?prepareForecast(svg,p):prepareHistory(p);if(st)(dashed?forecast:history).push(st);});
+    paths.forEach(function(p){var projected=isForecastPath(p),st=projected?prepareForecast(svg,p):prepareHistory(p);if(st)(projected?forecast:history).push(st);});
     var points=preparePoints(svg),state={session:session,history:history,forecast:forecast,points:points,rings:prepareRings(svg),stages:pointStages(points)};
     svg.__rtRefinedSalesState=state;timingFor(session,state);
     if(session.startedAt!=null)applyFrame(state,elapsed==null?Math.max(0,now()-session.startedAt):elapsed);
@@ -236,6 +248,12 @@
     state.forecast.forEach(function(st){
       if(st.finished)return;
       var raw=clamp((elapsed-t.forecastStart)/t.forecastMs);
+      if(raw<=0){
+        if(st.path&&st.path.isConnected){st.path.style.visibility='hidden';st.path.style.opacity='0';}
+        if(st.wipe&&st.wipe.isConnected)st.wipe.style.strokeDashoffset=st.len.toFixed(2)+'px';
+        return;
+      }
+      if(!st.opened&&st.path&&st.path.isConnected){st.opened=true;st.path.style.visibility='visible';st.path.style.opacity='1';}
       if(raw>=1){finishForecast(st);return;}
       var step=Math.floor(raw*st.steps);if(step===st.lastStep)return;st.lastStep=step;
       var q=st.steps>0?step/st.steps:raw;if(st.wipe&&st.wipe.isConnected)st.wipe.style.strokeDashoffset=(st.len*(1-q)).toFixed(2)+'px';

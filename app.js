@@ -3,12 +3,12 @@
  * grouped-sale lifecycle, bundle-panel.js owns bundle presentation/navigation,
  * bundle-row-polish.js refines the combined Sales-row hierarchy,
  * cashflow-liabilities.js adds the free-cash liability view, and
- * performance-system.js owns query memoization + stable Sales sub-navigation.
+ * performance-system.js owns query memoization + compact navigation behaviour.
  * Chart/motion refinements stay isolated presentation layers.
  */
 (function(){
   'use strict';
-  var v='20260909-v1455';
+  var v='20260909-v1456';
 
   /* First-paint motion pre-arm. The Sales SVG can be rendered by app-core before
      the refinement layer is loaded; keeping it transparent until that layer has
@@ -35,6 +35,7 @@
     writeScript('./chart-finalize.js?v='+v);
     writeScript('./chart-reveal.js?v='+v);
     writeScript('./chart-line-motion.js?v='+v);
+    writeScript('./chart-forecast-sequence.js?v='+v);
     writeScript('./motion-system.js?v='+v);
     return;
   }
@@ -50,7 +51,9 @@
                 append('./chart-motion.js',function(){
                   append('./chart-finalize.js',function(){
                     append('./chart-reveal.js',function(){
-                      append('./chart-line-motion.js',function(){append('./motion-system.js');});
+                      append('./chart-line-motion.js',function(){
+                        append('./chart-forecast-sequence.js',function(){append('./motion-system.js');});
+                      });
                     });
                   });
                 });
