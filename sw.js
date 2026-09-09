@@ -38,7 +38,10 @@ self.addEventListener('install',event=>{
       await Promise.allSettled(CHILD_SCRIPTS.map(async name=>{
         const url=buildUrl(name);
         try{
-          const response=await fetch(new Request(url,{cache:'reload',credentials:'same-origin'}));
+          /* These exact URLs were normally fetched moments earlier by the page.
+             Let the browser reuse its HTTP/memory cache instead of forcing a
+             second network burst immediately after first launch. */
+          const response=await fetch(new Request(url,{credentials:'same-origin'}));
           if(response&&response.ok)await cache.put(url,response.clone());
         }catch(_){/* Network launch remains authoritative. */}
       }));
