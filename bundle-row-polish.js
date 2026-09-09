@@ -2,8 +2,8 @@
  * Loaded after bundle-panel.js.
  *
  * Keeps the normal sold-status column aligned, then places the bundle disclosure
- * affordance beside it. Also gives grouped orders their own generated row label
- * rather than borrowing the first member item's title.
+ * affordance beside it. Gives grouped orders their own generated row label and
+ * keeps expanded bundle members visually subordinate to the parent order.
  */
 (function(){
   'use strict';
@@ -27,6 +27,18 @@
 .bundle-row .rt-bundle-disclosure.expanded{background:color-mix(in srgb,var(--surface) 78%,var(--accent) 22%)!important;border-color:color-mix(in srgb,var(--border) 48%,var(--accent) 52%)!important;color:var(--accent)!important}\
 .bundle-row .rt-bundle-disclosure svg{width:13px!important;height:13px!important}\
 .bundle-row .item-row-name .rt-bundle-count{color:var(--text-secondary);font-weight:600;font-size:.91em;white-space:nowrap}\
+.rt-bundle-children{padding:5px 10px 8px 34px!important;border-top:0!important;background:transparent!important}\
+.rt-bundle-child{margin:5px 0 0!important;min-height:58px!important;border:1px solid color-mix(in srgb,var(--border) 82%,transparent)!important;border-radius:9px!important;background:color-mix(in srgb,var(--surface2) 78%,var(--surface))!important;box-shadow:0 1px 0 rgba(0,0,0,.025)}\
+.rt-bundle-child:first-child{margin-top:0!important;border-top:1px solid color-mix(in srgb,var(--border) 82%,transparent)!important}\
+.rt-bundle-child .item-main{padding-left:8px!important}.rt-bundle-child .item-row-inner{min-height:56px!important}\
+.rt-bundle-child .rt-bundle-child-branch{width:14px!important;flex:0 0 14px!important;font-size:13px!important;opacity:.78}\
+.rt-bundle-child .item-row-name{font-size:12.75px!important;line-height:1.28}\
+.rt-bundle-child .item-row-meta{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:5px!important;margin-top:4px!important}\
+.rt-bundle-child .item-row-meta .item-badge{margin:0!important}\
+.rt-bundle-child .item-badge.sold{font-size:9px!important;padding:2px 6px!important}\
+.rt-bundle-child .item-badge.bundle{font-size:9px!important;padding:2px 6px!important}\
+.rt-bundle-child .item-row-price{font-size:12.75px!important}.rt-bundle-child .item-row-profit{font-size:10.75px!important}\
+@media(max-width:639px){.rt-bundle-children{padding-left:20px!important;padding-right:7px!important}.rt-bundle-child .item-main{padding-left:6px!important}}\
 @media(prefers-reduced-motion:reduce){.bundle-row .rt-bundle-disclosure{transition:none!important}}';
     document.head.appendChild(s);
   }
@@ -54,6 +66,28 @@
         name.innerHTML='Bundle order <span class="rt-bundle-count">· '+count+' item'+(count===1?'':'s')+'</span>';
       }
     }
+
+    template.content.querySelectorAll('.rt-bundle-child').forEach(function(child){
+      var meta=child.querySelector('.item-row-meta');
+      if(!meta)return;
+      var oldBundle=meta.querySelector('.item-badge.bundle');
+      if(oldBundle)oldBundle.remove();
+      var sold=document.createElement('span');
+      sold.className='item-badge sold';
+      sold.textContent='SOLD';
+      var bundle=document.createElement('span');
+      bundle.className='item-badge bundle';
+      bundle.textContent='≋ BUNDLE';
+      var firstElement=meta.firstElementChild;
+      if(firstElement){
+        meta.insertBefore(bundle,firstElement);
+        meta.insertBefore(sold,bundle);
+      }else{
+        meta.appendChild(sold);
+        meta.appendChild(bundle);
+      }
+    });
+
     var holder=document.createElement('div');
     holder.appendChild(template.content);
     return holder.innerHTML;
