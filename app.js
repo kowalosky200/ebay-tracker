@@ -5,70 +5,70 @@
  * cashflow-liabilities.js adds the free-cash liability view, and
  * performance-system.js owns query memoization + compact navigation behaviour.
  * sales-defaults.js keeps Monthly as the safe Sales landing route after reload/idle.
+ * launch-experience.js coordinates the cold-start / wake presentation.
  * Chart/motion refinements stay isolated presentation layers.
  */
 (function(){
   'use strict';
-  var v='20260909-v1458';
+  var v='20260909-v1459';
+
+  /* Arm cold-start styling synchronously, before any child bundle can paint.
+     launch-experience.js releases this once the real-layout boot handoff is done. */
+  document.documentElement.classList.add('rt-app-cold','rt-motion-prep');
 
   /* First-paint motion pre-arm. The Sales SVG can be rendered by app-core before
      the refinement layer is loaded; keeping it transparent until that layer has
      prepared the paths prevents a visible fully-drawn -> rewind -> reveal jump. */
-  document.documentElement.classList.add('rt-motion-prep');
   if(!document.getElementById('rt-motion-preflight')){
     var pre=document.createElement('style');pre.id='rt-motion-preflight';
     pre.textContent='html.rt-motion-prep #monthly-profitability-svg{opacity:0!important}#monthly-profitability-svg{transition:opacity 140ms cubic-bezier(.22,.61,.36,1)}@media(prefers-reduced-motion:reduce){html.rt-motion-prep #monthly-profitability-svg{opacity:1!important}#monthly-profitability-svg{transition:none!important}}';
     document.head.appendChild(pre);
   }
-  /* Never let a presentation-layer failure strand the chart invisible. */
+  /* Never let a presentation-layer failure strand the chart or cold-start shell. */
   setTimeout(function(){document.documentElement.classList.remove('rt-motion-prep');},3000);
+  setTimeout(function(){
+    if(!document.body||!document.body.classList.contains('rt-real-layout-loading')){
+      document.documentElement.classList.remove('rt-app-cold');
+    }
+  },5000);
 
-  function writeScript(src){document.write('<script src="'+src+'"><\/script>');}
-  if(document.readyState==='loading'){
-    writeScript('./app-core.js?v='+v);
-    writeScript('./bundle-orders.js?v='+v);
-    writeScript('./bundle-panel.js?v='+v);
-    writeScript('./bundle-row-polish.js?v='+v);
-    writeScript('./cashflow-liabilities.js?v='+v);
-    writeScript('./performance-system.js?v='+v);
-    writeScript('./sales-defaults.js?v='+v);
-    writeScript('./chart-polish.js?v='+v);
-    writeScript('./chart-motion.js?v='+v);
-    writeScript('./chart-finalize.js?v='+v);
-    writeScript('./chart-reveal.js?v='+v);
-    writeScript('./sales-forecast-gate.js?v='+v);
-    writeScript('./chart-line-motion.js?v='+v);
-    writeScript('./chart-forecast-sequence.js?v='+v);
-    writeScript('./motion-system.js?v='+v);
-    return;
-  }
+  /*
+   * Ordered dynamic classic scripts are intentionally used instead of
+   * document.write / nested onload chains. `async=false` preserves execution
+   * order, while appending the full list immediately lets the browser discover
+   * and download independent files in parallel and lets HTML parsing finish.
+   */
+  var files=[
+    './launch-experience.js',
+    './app-core.js',
+    './bundle-orders.js',
+    './bundle-panel.js',
+    './bundle-row-polish.js',
+    './cashflow-liabilities.js',
+    './performance-system.js',
+    './sales-defaults.js',
+    './chart-polish.js',
+    './chart-motion.js',
+    './chart-finalize.js',
+    './chart-reveal.js',
+    './sales-forecast-gate.js',
+    './chart-line-motion.js',
+    './chart-forecast-sequence.js',
+    './motion-system.js'
+  ];
 
-  function append(src,onload){var s=document.createElement('script');s.src=src+'?v='+v;if(onload)s.onload=onload;document.head.appendChild(s);}
-  append('./app-core.js',function(){
-    append('./bundle-orders.js',function(){
-      append('./bundle-panel.js',function(){
-        append('./bundle-row-polish.js',function(){
-          append('./cashflow-liabilities.js',function(){
-            append('./performance-system.js',function(){
-              append('./sales-defaults.js',function(){
-                append('./chart-polish.js',function(){
-                  append('./chart-motion.js',function(){
-                    append('./chart-finalize.js',function(){
-                      append('./chart-reveal.js',function(){
-                        append('./sales-forecast-gate.js',function(){
-                          append('./chart-line-motion.js',function(){
-                            append('./chart-forecast-sequence.js',function(){append('./motion-system.js');});
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
-    });
+  files.forEach(function(src,index){
+    var s=document.createElement('script');
+    s.src=src+'?v='+v;
+    s.async=false;
+    /* The coordinator and core define startup behaviour; later presentation
+       layers are deliberately lower priority than the first useful interface. */
+    try{s.fetchPriority=index<2?'high':(index<8?'auto':'low');}catch(_){}
+    s.onerror=function(){
+      console.error('[RETRADE] startup script failed:',src);
+      if(src==='./launch-experience.js')document.documentElement.classList.remove('rt-app-cold');
+      if(src==='./chart-line-motion.js')document.documentElement.classList.remove('rt-motion-prep');
+    };
+    document.head.appendChild(s);
   });
 })();
