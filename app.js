@@ -1,76 +1,74 @@
 /* RETRADE app entrypoint.
- * The production bundle is kept intact in app-core.js; bundle-orders.js owns
- * grouped-sale lifecycle, bundle-panel.js owns bundle presentation/navigation,
- * bundle-row-polish.js refines the combined Sales-row hierarchy,
- * cashflow-liabilities.js adds the free-cash liability view, and
- * performance-system.js owns query memoization + compact navigation behaviour.
- * sales-defaults.js keeps Monthly as the safe Sales landing route after reload/idle.
- * partner-item-navigation.js makes Partner item rows direct full-page navigation.
- * launch-experience.js coordinates the cold-start / wake presentation.
- * Chart/motion refinements stay isolated presentation layers.
+ *
+ * Cold-start is intentionally staged:
+ *   1) launch coordinator + production core
+ *   2) give the browser one real paint opportunity
+ *   3) load feature/presentation refinements in deterministic order
+ *
+ * This keeps the large core authoritative while avoiding a long back-to-back
+ * chain of secondary JavaScript evaluation before the first useful frame.
  */
 (function(){
   'use strict';
-  var v='20260909-v1460';
+  var v='20260909-v1461';
 
-  /* Arm cold-start styling synchronously, before any child bundle can paint.
-     launch-experience.js releases this once the real-layout boot handoff is done. */
   document.documentElement.classList.add('rt-app-cold','rt-motion-prep');
 
-  /* First-paint motion pre-arm. The Sales SVG can be rendered by app-core before
-     the refinement layer is loaded; keeping it transparent until that layer has
-     prepared the paths prevents a visible fully-drawn -> rewind -> reveal jump. */
   if(!document.getElementById('rt-motion-preflight')){
     var pre=document.createElement('style');pre.id='rt-motion-preflight';
-    pre.textContent='html.rt-motion-prep #monthly-profitability-svg{opacity:0!important}#monthly-profitability-svg{transition:opacity 140ms cubic-bezier(.22,.61,.36,1)}@media(prefers-reduced-motion:reduce){html.rt-motion-prep #monthly-profitability-svg{opacity:1!important}#monthly-profitability-svg{transition:none!important}}';
+    pre.textContent='html.rt-motion-prep #monthly-profitability-svg{opacity:0!important}#monthly-profitability-svg{transition:opacity 120ms cubic-bezier(.22,.61,.36,1)}@media(prefers-reduced-motion:reduce){html.rt-motion-prep #monthly-profitability-svg{opacity:1!important}#monthly-profitability-svg{transition:none!important}}';
     document.head.appendChild(pre);
   }
-  /* Never let a presentation-layer failure strand the chart or cold-start shell. */
+
   setTimeout(function(){document.documentElement.classList.remove('rt-motion-prep');},3000);
   setTimeout(function(){
-    if(!document.body||!document.body.classList.contains('rt-real-layout-loading')){
-      document.documentElement.classList.remove('rt-app-cold');
-    }
+    if(!document.body||!document.body.classList.contains('rt-real-layout-loading'))document.documentElement.classList.remove('rt-app-cold');
   },5000);
 
-  /*
-   * Ordered dynamic classic scripts are intentionally used instead of
-   * document.write / nested onload chains. `async=false` preserves execution
-   * order, while appending the full list immediately lets the browser discover
-   * and download independent files in parallel and lets HTML parsing finish.
-   */
-  var files=[
-    './launch-experience.js',
-    './app-core.js',
-    './bundle-orders.js',
-    './bundle-panel.js',
-    './bundle-row-polish.js',
-    './cashflow-liabilities.js',
-    './performance-system.js',
-    './sales-defaults.js',
-    './partner-item-navigation.js',
-    './chart-polish.js',
-    './chart-motion.js',
-    './chart-finalize.js',
-    './chart-reveal.js',
-    './sales-forecast-gate.js',
-    './chart-line-motion.js',
-    './chart-forecast-sequence.js',
-    './motion-system.js'
-  ];
-
-  files.forEach(function(src,index){
+  function append(src,priority,onload){
     var s=document.createElement('script');
     s.src=src+'?v='+v;
     s.async=false;
-    /* The coordinator and core define startup behaviour; later presentation
-       layers are deliberately lower priority than the first useful interface. */
-    try{s.fetchPriority=index<2?'high':(index<9?'auto':'low');}catch(_){}
+    try{s.fetchPriority=priority||'auto';}catch(_){}
+    if(onload)s.onload=onload;
     s.onerror=function(){
       console.error('[RETRADE] startup script failed:',src);
       if(src==='./launch-experience.js')document.documentElement.classList.remove('rt-app-cold');
-      if(src==='./chart-line-motion.js')document.documentElement.classList.remove('rt-motion-prep');
+      if(src==='./sales-chart-sequence.js')document.documentElement.classList.remove('rt-motion-prep');
     };
     document.head.appendChild(s);
+    return s;
+  }
+
+  function loadEnhancements(){
+    /* Performance/navigation wrappers first: they are cheap and should be in
+       place before a fast Supabase response causes the hydrated render. */
+    var files=[
+      './performance-system.js',
+      './sales-defaults.js',
+      './bundle-orders.js',
+      './bundle-panel.js',
+      './bundle-row-polish.js',
+      './cashflow-liabilities.js',
+      './partner-item-navigation.js',
+      './chart-polish.js',
+      './chart-motion.js',
+      './chart-finalize.js',
+      './chart-reveal.js',
+      './sales-chart-sequence.js',
+      './chart-forecast-sequence.js',
+      './motion-system.js'
+    ];
+    files.forEach(function(src,index){append(src,index<2?'auto':'low');});
+  }
+
+  /* Only two scripts sit on the first critical execution path. Dynamic classic
+     scripts with async=false retain insertion order. */
+  append('./launch-experience.js','high');
+  append('./app-core.js','high',function(){
+    try{if(typeof window.__rtInstallLaunchCoreHooks==='function')window.__rtInstallLaunchCoreHooks();}catch(_){}
+    /* A frame boundary is deliberate: let the real shell/chrome reach the
+       screen before evaluating bundle/chart presentation layers. */
+    requestAnimationFrame(function(){loadEnhancements();});
   });
 })();
