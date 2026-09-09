@@ -4,11 +4,12 @@
  * bundle-row-polish.js refines the combined Sales-row hierarchy,
  * cashflow-liabilities.js adds the free-cash liability view, and
  * performance-system.js owns query memoization + compact navigation behaviour.
+ * sales-defaults.js keeps Monthly as the safe Sales landing route after reload/idle.
  * Chart/motion refinements stay isolated presentation layers.
  */
 (function(){
   'use strict';
-  var v='20260909-v1457';
+  var v='20260909-v1458';
 
   /* First-paint motion pre-arm. The Sales SVG can be rendered by app-core before
      the refinement layer is loaded; keeping it transparent until that layer has
@@ -30,6 +31,7 @@
     writeScript('./bundle-row-polish.js?v='+v);
     writeScript('./cashflow-liabilities.js?v='+v);
     writeScript('./performance-system.js?v='+v);
+    writeScript('./sales-defaults.js?v='+v);
     writeScript('./chart-polish.js?v='+v);
     writeScript('./chart-motion.js?v='+v);
     writeScript('./chart-finalize.js?v='+v);
@@ -48,13 +50,15 @@
         append('./bundle-row-polish.js',function(){
           append('./cashflow-liabilities.js',function(){
             append('./performance-system.js',function(){
-              append('./chart-polish.js',function(){
-                append('./chart-motion.js',function(){
-                  append('./chart-finalize.js',function(){
-                    append('./chart-reveal.js',function(){
-                      append('./sales-forecast-gate.js',function(){
-                        append('./chart-line-motion.js',function(){
-                          append('./chart-forecast-sequence.js',function(){append('./motion-system.js');});
+              append('./sales-defaults.js',function(){
+                append('./chart-polish.js',function(){
+                  append('./chart-motion.js',function(){
+                    append('./chart-finalize.js',function(){
+                      append('./chart-reveal.js',function(){
+                        append('./sales-forecast-gate.js',function(){
+                          append('./chart-line-motion.js',function(){
+                            append('./chart-forecast-sequence.js',function(){append('./motion-system.js');});
+                          });
                         });
                       });
                     });
