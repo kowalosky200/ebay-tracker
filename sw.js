@@ -1,4 +1,4 @@
-// RETRADE service worker — immutable app-child cache v20260909-v1459.
+// RETRADE service worker — immutable app-child cache v20260909-v1460.
 //
 // Safety model:
 // - navigation HTML, app.js, CSS, Supabase/auth/data and all cross-origin requests
@@ -6,7 +6,7 @@
 // - only same-origin child scripts carrying this exact build query are cached;
 // - a new build query can never receive a script from an older cache;
 // - install failures are non-fatal so offline/cache work never blocks the app.
-const BUILD='20260909-v1459';
+const BUILD='20260909-v1460';
 const CACHE_PREFIX='retrade-static-';
 const CACHE_NAME=CACHE_PREFIX+BUILD;
 const CHILD_SCRIPTS=[
@@ -18,6 +18,7 @@ const CHILD_SCRIPTS=[
   'cashflow-liabilities.js',
   'performance-system.js',
   'sales-defaults.js',
+  'partner-item-navigation.js',
   'chart-polish.js',
   'chart-motion.js',
   'chart-finalize.js',
